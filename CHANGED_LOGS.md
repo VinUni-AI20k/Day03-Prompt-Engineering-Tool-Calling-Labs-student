@@ -140,6 +140,22 @@ Tên run JSON trong lệnh parse là file của lần đo cuối đã thực hi�
 - **Kiểm tra đã làm:** build và lint sạch; gọi thử qua proxy thấy kết quả về từng bước (không phải chờ đến cuối). Chưa chat thử ba lượt đầy đủ trên giao diện.
 - **Việc tiếp theo:** chat thử ba lượt (yêu cầu thường, thiếu thông tin rồi bổ sung, yêu cầu gửi) và lưu transcript làm bằng chứng.
 
+### Chat với agent ngay trên Telegram
+
+- **Thêm:** `starter_v0/telegram_bot.py` và `starter_v0/tests/test_telegram_bot.py`.
+- **Vì sao:** trước đó bot Telegram chỉ gửi tin đi (công cụ `send` đăng lên kênh), chưa nghe và trả lời tin nhắn của người dùng.
+- **Làm được gì:** nhắn riêng cho bot thì agent chọn công cụ, chạy thật và trả lời lại. Khi cần xác nhận thì hiện nút Đồng ý / Không; khi hỏi chọn thì hiện nút lựa chọn. Mỗi cuộc chat lưu transcript như trên web.
+- **An toàn:** chỉ các chat nằm trong `TELEGRAM_ALLOWED_CHAT_IDS` mới dùng được, để người lạ không tiêu tốn tiền API. Tin trong kênh và nhóm bị bỏ qua. Khóa bí mật bị che khỏi log và transcript.
+- **Kiểm tra đã làm:** 10 bài test mới chạy không cần mạng (toàn bộ test là 118 đạt). Chạy thử logic với mô hình thật và Telegram giả: agent hỏi xác nhận bằng nút, sau khi bấm đồng ý thì gọi `send`. Chưa chạy với Telegram thật.
+- **Cách chạy:** `python telegram_bot.py --provider openai --version v3` (xem `.env.example`).
+
+### Đưa giao diện lên Vercel
+
+- **Làm gì:** deploy thư mục `web/` lên Vercel, link dùng thử: https://research-agent-ban5.vercel.app
+- **Cách hoạt động:** trang trên Vercel chỉ là giao diện; mọi lời gọi `/api/*` được chuyển về backend `server.py` chạy trên máy của nhóm qua tunnel Cloudflare (biến `API_ORIGIN` trên Vercel).
+- **Điều kiện để dùng được:** máy nhóm phải đang chạy `python server.py` và `cloudflared tunnel --url http://localhost:8000`. Địa chỉ tunnel đổi mỗi lần chạy lại nên cần cập nhật `API_ORIGIN` và deploy lại.
+- **Kiểm tra đã làm:** trang chủ, `/api/health`, `/api/tools` và một lượt chat có gọi tool đều chạy qua link Vercel.
+
 ## Việc khác đã làm
 
 - **Phân việc nhóm:** thư mục `tasks/` có bảng vai trò và checklist cho từng người.

@@ -93,7 +93,7 @@ def get_provider() -> Any:
         return _provider
 
 
-def new_session() -> dict[str, Any]:
+def new_session(source: str = "web_ui") -> dict[str, Any]:
     system_prompt = settings.system_prompt_path.read_text(encoding="utf-8")
     declarations = load_tool_declarations(settings.tools_path)
     artifact = build_artifact_version(settings.version, settings.system_prompt_path, settings.tools_path)
@@ -103,7 +103,7 @@ def new_session() -> dict[str, Any]:
     transcript_id = "_".join([
         safe_slug(settings.version),
         safe_slug(settings.provider_name),
-        "web",
+        safe_slug(source.replace("_ui", "")),
         datetime.now().strftime("%Y%m%dT%H%M%S%f"),
     ])
     transcript = {
@@ -111,7 +111,7 @@ def new_session() -> dict[str, Any]:
         **artifact_version_dict(artifact),
         "provider": settings.provider_name,
         "model": model,
-        "source": "web_ui",
+        "source": source,
         "system_prompt": str(settings.system_prompt_path),
         "tools": str(settings.tools_path),
         "history_window": settings.history_window,
@@ -232,6 +232,12 @@ def stream_turn(session: dict[str, Any], user_text: str) -> Iterator[str]:
     write_transcript(session["path"], clean(session["transcript"]))
     if final:
         yield sse(final)
+
+
+def turn_events(session: dict[str, Any], user_text: str) -> Iterator[dict[str, Any]]:
+    """Same agent turn as stream_turn, as plain dicts (used by the Telegram bot)."""
+    for frame in stream_turn(session, user_text):
+        yield json.loads(frame[len("data: "):])
 
 
 # ---------------------------------------------------------------- routes
