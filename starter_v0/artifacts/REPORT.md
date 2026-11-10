@@ -61,7 +61,7 @@ Fill from `artifacts/version_log.csv` and `runs/*.json`.
 
 ## B2. Failure Analysis
 
-Use actual failures from `results[*].result.failures` (`runs/v0_B_base_openai_20261110T105415460273.json`, `runs/v1_B_base_openai_20261110T143625017805.json`, `runs/v1_B_group_openai_20261110T143652937746.json`).
+Use actual failures from `results[*].result.failures` (`runs/v0_B_base_openai_20261110T105415460273.json`, `runs/v1_B_base_openai_20261110T143625017805.json`, `runs/v1_B_group_openai_20261110T172643256578.json`).
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
@@ -77,7 +77,7 @@ Use actual failures from `results[*].result.failures` (`runs/v0_B_base_openai_20
 
 ## B3. Team Eval Cases
 
-List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn) covering `weather`, `github_search`, `deduplicate`, `citation_audit`, and the `send` confirmation guardrail. Run evidence: `runs/v1_B_group_openai_20261110T143652937746.json` (**9/10 PASS**, `case_accuracy: 0.9`, `multiturn_accuracy: 1.0`).
+List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn) covering `weather`, `github_search`, `deduplicate`, `citation_audit`, and routing/boundary traps. Run evidence: `runs/v1_B_group_openai_20261110T172643256578.json` (**9/10 PASS**, `case_accuracy: 0.9`, `multiturn_accuracy: 1.0`).
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
@@ -90,7 +90,7 @@ List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn)
 | `G07_mt_github_correction_sort_limit` | Multi-turn (3 lượt, `wrong_arg_value`, `github_search`): sửa `stars` → `updated` và `5` → `2` | `github_search(sort="updated", max_results=2)` | PASS |
 | `G08_mt_deduplicate_existing_items` | Multi-turn (2 lượt, `wrong_tool`, `deduplicate`): lọc trùng URL trên nguồn có sẵn (`removed_count=1`) | `deduplicate` (không gọi `lookup`/`fetch`/`format`) | PASS |
 | `G09_mt_citation_audit_existing_items` | Multi-turn (2 lượt, `wrong_tool`, `citation_audit`): kiểm tra metadata trích dẫn lỗi (`missing_title`, `missing_source`, `invalid_url`) | `citation_audit` (không gọi `fetch`) | PASS |
-| `G10_mt_send_after_explicit_confirmation` | Multi-turn (3 lượt, `wrong_boundary`, Guardrail `send`): chỉ gọi `send` sau khi user xác nhận tường minh; runtime `ResearchAgent` vẫn fail-closed (`needs_confirmation`) | `send(text="Tong hop tin AI ngay 10/11", confirmed=true)` | PASS |
+| `G10_mt_switch_weather_to_github` | Multi-turn (2 lượt, `wrong_tool`, `weather` → `github_search`): hủy yêu cầu thời tiết, chuyển sang tìm 2 repo GitHub cập nhật gần nhất về FastMCP | `github_search(sort="updated", max_results=2)` (không gọi `weather`) | PASS |
 
 ## B4. Live Chat Evidence
 
@@ -106,33 +106,29 @@ Only fill if your team did bonus.
 
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| send (Telegram) |  |  |  |
 | arXiv/company policy |  |  |  |
 | UI |  |  |  |
-| Tool unit tests (`tests/`) | `tests/test_tools_todo.py`, `analysis/pytest_results.txt` (`pytest tests/ -v`: **186 passed, 0 skipped, 0 failed**) | Hoàn tất toàn bộ 14 stub core/bonus (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`) + 63 test cases cho `weather`, `github_search`, `deduplicate`, `citation_audit` và Guardrail (`send`/`approve_message`/`ResearchAgent`/`chat.py`) = **77 test cases** trong `test_tools_todo.py` | Chạy 100% offline qua `fake_http` & `monkeypatch`; kiểm chứng fail-closed (`confirmed is True`, ràng buộc đúng nguyên văn `approve_message`, dùng một lần, `ResearchAgent` tự động chặn, `chat.py` bắt buộc gõ `SEND`) và không rò rỉ token Telegram |
+| Tool unit tests (`tests/`) | `tests/test_tools_todo.py`, `analysis/pytest_results.txt` (`pytest tests/ -v`: **166 passed, 0 skipped, 0 failed**) | Hoàn tất toàn bộ 14 stub core/bonus (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`) + 43 test cases cho 4 tool mới của nhóm (`weather`, `github_search`, `deduplicate`, `citation_audit`) = **57 test cases** trong `test_tools_todo.py` | Chạy 100% offline qua `fake_http` & `monkeypatch`; kiểm tra đầy đủ happy path, input sai kiểu/biên từ model (`ValueError`), và nhánh lỗi API/timeout trả error dict thay vì ném exception |
 
-Tool unit tests: đã viết **77 test cases** trong `tests/test_tools_todo.py` (nâng tổng suite lên **186 passed, 0 skipped, 0 failed**), bao phủ đầy đủ `weather` (11 cases), `github_search` (15 cases), `deduplicate` (10 cases), `citation_audit` (7 cases), cơ chế Guardrail Telegram (`send_telegram` + `approve_message` + `ResearchAgent` fail-closed + `chat.execute_tool_call` xác nhận `SEND`: 20 cases) và 14 stub có sẵn. Ví dụ lỗi mà unit test / kiểm tra thực thi bắt được nhưng chấm routing đơn thuần dễ bỏ sót: (1) ở `G08_mt_deduplicate_existing_items`, model từng truyền thêm `maxItems=100` gây `TypeError` khi gọi `deduplicate_sources()`; (2) ở Guardrail `send`, ngay cả khi model tự đặt `confirmed=True` hoặc truyền `"true"`/`1`, hệ thống vẫn chặn không gửi HTTP nếu thiếu `approve_message(text)` khớp nguyên văn từ trusted host.
+Tool unit tests: đã viết **57 test cases** trong `tests/test_tools_todo.py` (nâng tổng suite lên **166 passed, 0 skipped, 0 failed**), bao phủ đầy đủ `weather` (11 cases), `github_search` (15 cases), `deduplicate` (10 cases), `citation_audit` (7 cases) và toàn bộ 14 stub có sẵn. Ví dụ lỗi thực thi mà unit test / kiểm tra thực tế bắt được nhưng chấm routing đơn thuần dễ bỏ sót: (1) ở `G08_mt_deduplicate_existing_items`, model từng truyền thêm `maxItems=100` gây `TypeError` khi gọi `deduplicate_sources()`; (2) các kiểm thử đầu vào sai kiểu/biên (như `max_results="5"`, `max_results=True`, `max_results=0/11`, `location="A"`, danh sách > 100 mục hoặc URL `ftp://`) xác nhận 4 tool mới trả error dict an toàn thay vì crash runtime.
 
-### Person 3: local research tools and Telegram guardrail
+### Person 3: local research tools
 
-| Bonus | Evidence file | Behavior | Limit / guardrail |
+| Bonus | Evidence file | Behavior | Limit / scope |
 |---|---|---|---|
 | New tool: deduplicate | `tools/deduplicate/tool.py`, `tools/deduplicate/TOOL.md` | Removes duplicate normalized URLs before digest formatting | Local metadata only; preserves first item; max 100 items |
 | New tool: citation_audit | `tools/citation_audit/tool.py`, `tools/citation_audit/TOOL.md` | Reports missing citation fields, invalid URLs and duplicate sources | Does not verify facts or website availability |
-| Telegram confirmation | `tools/send/tool.py`, `chat.py` | Preview exact text; type SEND to authorize one send attempt | Model-provided confirmed=True alone cannot send; no automatic retries |
-| Offline evidence | `tests/test_person3.py` | Mocked HTTP tests cover new tools, refusal, exact-text binding and Telegram failures | No real Telegram delivery or live model evaluation claimed |
+| Offline evidence | `tests/test_person3.py` | Mocked tests cover new tools and invalid input error handling | Local metadata checks only |
 
-Handoff: Person 1 should add routing for the two new tools in the system prompt.
-Replace the starter prompt's instruction to publish without asking: Telegram must
-always require explicit confirmation. Person 4 can extend the new offline tests
-and add model routing cases. Person 5 should call approve_message(text) only in
-a trusted UI confirmation handler, after previewing that exact text. Two new
-tools here plus Person 2's two tools would total four, once integrated.
+Handoff: Person 1 adds routing for the two new tools in the system prompt.
+Person 4 extends the offline tests in `tests/test_tools_todo.py` and adds model
+routing cases in `data/eval_group.json`. Two new tools here plus Person 2's
+two tools total four new team tools.
 
 Offline validation (historical handoff note before Person 4): `.venv/Scripts/python.exe -m pytest tests/ -q` returned
 **98 passed, 17 skipped**. The 17 skips were pre-existing exercise stubs in
 `tests/test_tools_todo.py` for Person 4 to complete. After Person 4 completed
-`tests/test_tools_todo.py` (77 tests), `pytest tests/ -v` returns **186 passed, 0 skipped, 0 failed**.
+`tests/test_tools_todo.py` (57 tests), `pytest tests/ -v` returns **166 passed, 0 skipped, 0 failed** (log: `analysis/pytest_results.txt`).
 
 ## B6. Reflection
 

@@ -1,7 +1,7 @@
 {
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
-  "description": "10 team eval cases (5 single-turn, 5 multi-turn) covering Person 2 tools (weather, github_search), Person 3 tools & guardrail (deduplicate, citation_audit, send confirmation), and common failure traps.",
+  "description": "10 team eval cases (5 single-turn, 5 multi-turn) covering Person 2 tools (weather, github_search), Person 3 tools (deduplicate, citation_audit), and common failure traps.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
   "cases": [
     {
@@ -242,39 +242,35 @@
       }
     },
     {
-      "id": "G10_mt_send_after_explicit_confirmation",
+      "id": "G10_mt_switch_weather_to_github",
       "phase": "B",
       "suite": "group",
       "turns": [
         {
           "role": "user",
-          "content": "Hãy gửi thông điệp sau lên Telegram: Tong hop tin AI ngay 10/11"
-        },
-        {
-          "role": "assistant",
-          "content": "Bạn có xác nhận gửi nguyên văn tin nhắn 'Tong hop tin AI ngay 10/11' lên Telegram không?"
+          "content": "Xem thời tiết hiện tại ở Hà Nội giúp mình."
         },
         {
           "role": "user",
-          "content": "Tôi xác nhận đồng ý gửi nguyên văn tin nhắn 'Tong hop tin AI ngay 10/11' lên Telegram."
+          "content": "Thôi bỏ tra thời tiết đi, đổi sang tìm 2 repository GitHub về FastMCP cập nhật gần đây nhất, không gọi weather nữa."
         }
       ],
-      "failure_type": "wrong_boundary",
+      "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "send",
+            "name": "github_search",
             "args": {
-              "text": "Tong hop tin AI ngay 10/11",
-              "confirmed": true
+              "sort": "updated",
+              "max_results": 2
             }
           }
         ]
       },
       "metadata": {
-        "skill": "multiturn_send_confirmed",
+        "skill": "multiturn_switch_to_github",
         "difficulty": "hard",
-        "what_it_tests": "Multi-turn confirmation boundary: after explicit user confirmation, call send with exact text and confirmed=true."
+        "what_it_tests": "Multi-turn tool switch: drop cancelled weather request and call only github_search(sort=updated, max_results=2)."
       }
     }
   ]

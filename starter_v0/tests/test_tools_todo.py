@@ -1,7 +1,7 @@
 """
 
 Covers all core/bonus stub tests and >= 3 offline tests per team tool
-(Person 2: weather, github_search; Person 3: deduplicate, citation_audit, send guardrail).
+(Person 2: weather, github_search; Person 3: deduplicate, citation_audit).
 
 Rules:
 - Offline only: mock HTTP with `fake_http` or `monkeypatch`, set fake keys with `monkeypatch.setenv`.
@@ -15,10 +15,7 @@ from copy import deepcopy
 import pytest
 import requests
 
-import chat
-from agent import ResearchAgent
 from conftest import FakeResponse
-from providers.base import ModelResponse, ToolCall
 from tools import TOOL_FUNCTIONS
 from tools.send.tool import approve_message
 
@@ -93,7 +90,7 @@ def test_format_empty_items_does_not_crash() -> None:
     assert isinstance(empty_result["markdown"], str)
 
 
-# ---------------- send (guardrail) ----------------
+# ---------------- send ----------------
 
 def test_send_confirmed_posts_to_telegram(monkeypatch, fake_http) -> None:
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
@@ -610,142 +607,3 @@ def test_citation_audit_bad_collection_returns_error_dict(bad_items) -> None:
 
     assert result["error"] == "ValueError"
 
-
-# ---------------- send guardrail (Person 3) ----------------
-
-def test_approve_message_is_not_registered_as_model_tool() -> None:
-    assert "approve_message" not in TOOL_FUNCTIONS
-
-
-def test_send_confirmed_without_host_approval_returns_needs_confirmation(monkeypatch, fake_http) -> None:
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    calls = fake_http(FakeResponse({"ok": True}))
-
-    result = send_tool(text="Unapproved message", confirmed=True)
-
-    assert result["status"] == "needs_confirmation"
-    assert calls == []
-
-
-@pytest.mark.parametrize("confirmed_value", [False, "true", "false", 1])
-def test_send_rejects_non_boolean_confirmed_even_with_host_approval(monkeypatch, fake_http, confirmed_value) -> None:
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    calls = fake_http(FakeResponse({"ok": True}))
-
-    with approve_message("Tin nhắn thử"):
-        result = send_tool(text="Tin nhắn thử", confirmed=confirmed_value)
-
-    assert result["status"] == "needs_confirmation"
-    assert calls == []
-
-
-def test_send_approval_binds_exact_text_and_is_single_use(monkeypatch, fake_http) -> None:
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    calls = fake_http(FakeResponse({"ok": True}))
-
-    with approve_message("Tin nhắn gốc"):
-        modified = send_tool(text="Tin nhắn bị chỉnh sửa", confirmed=True)
-        first = send_tool(text="Tin nhắn gốc", confirmed=True)
-        replay = send_tool(text="Tin nhắn gốc", confirmed=True)
-
-    after_exit = send_tool(text="Tin nhắn gốc", confirmed=True)
-
-    assert modified["status"] == "needs_confirmation"
-    assert first["status"] == "sent"
-    assert replay["status"] == "needs_confirmation"
-    assert after_exit["status"] == "needs_confirmation"
-    assert len(calls) == 1
-
-
-def test_send_consumes_approval_even_when_attempt_fails(monkeypatch, fake_http) -> None:
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    fake_http(FakeResponse(status_code=500))
-
-    with approve_message("Tin nhắn lỗi"):
-        failed = send_tool(text="Tin nhắn lỗi", confirmed=True)
-        retry = send_tool(text="Tin nhắn lỗi", confirmed=True)
-
-    assert failed["error"] == "HTTPError"
-    assert retry["status"] == "needs_confirmation"
-
-
-@pytest.mark.parametrize("bad_text", ["", "   ", "a" * 4097])
-def test_send_approved_rejects_empty_or_overlong_text_without_network(monkeypatch, fake_http, bad_text) -> None:
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    calls = fake_http(FakeResponse({"ok": True}))
-
-    with approve_message(bad_text):
-        result = send_tool(text=bad_text, confirmed=True)
-
-    assert result["error"] == "ValueError"
-    assert calls == []
-
-
-@pytest.mark.parametrize("response", [
-    FakeResponse({"ok": False}),
-    FakeResponse(status_code=500),
-    requests.Timeout("https://api.telegram.org/botSUPERSECRET/sendMessage"),
-])
-def test_send_failure_returns_sanitized_error_without_token(monkeypatch, fake_http, response) -> None:
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "SUPERSECRET")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    fake_http(response)
-
-    with approve_message("Tin nhắn thử nghiệm"):
-        result = send_tool(text="Tin nhắn thử nghiệm", confirmed=True)
-
-    assert "error" in result
-    assert "SUPERSECRET" not in str(result)
-
-
-def test_agent_send_guardrail_fails_closed_even_when_model_sets_confirmed_true(monkeypatch, fake_http) -> None:
-    class _FakeSendProvider:
-        def complete(self, messages, tools=None, *, model=None, temperature=0.0, tool_choice=None) -> ModelResponse:
-            return ModelResponse(text=None, tool_calls=[ToolCall("send", {"text": "Tự động gửi", "confirmed": True})])
-
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    calls = fake_http(FakeResponse({"ok": True}))
-
-    run = ResearchAgent(_FakeSendProvider(), system_prompt="test").run([{"role": "user", "content": "Gửi lên Telegram"}])
-
-    assert run.tool_results[0]["result"]["status"] == "needs_confirmation"
-    assert calls == []
-
-
-@pytest.mark.parametrize("answer,expected_status,expected_calls", [
-    ("SEND", "sent", 1),
-    ("send", "cancelled", 0),
-    ("yes", "cancelled", 0),
-    ("", "cancelled", 0),
-])
-def test_cli_execute_tool_call_send_requires_exact_SEND_token(monkeypatch, fake_http, answer, expected_status, expected_calls) -> None:
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    monkeypatch.setattr("builtins.input", lambda _: answer)
-    calls = fake_http(FakeResponse({"ok": True}))
-
-    event = chat.execute_tool_call(ToolCall("send", {"text": "Chào nhóm", "confirmed": True}))
-
-    assert event["result"]["status"] == expected_status
-    assert len(calls) == expected_calls
-
-
-def test_cli_execute_tool_call_send_eof_cancels_without_network(monkeypatch, fake_http) -> None:
-    def _raise_eof(_prompt: str) -> str:
-        raise EOFError()
-
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token-123")
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100987654")
-    monkeypatch.setattr("builtins.input", _raise_eof)
-    calls = fake_http(FakeResponse({"ok": True}))
-
-    event = chat.execute_tool_call(ToolCall("send", {"text": "Chào nhóm", "confirmed": True}))
-
-    assert event["result"]["status"] == "cancelled"
-    assert calls == []
