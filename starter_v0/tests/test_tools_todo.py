@@ -111,12 +111,46 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
 def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+    deduplicate = TOOL_FUNCTIONS["research_deduplicate"]
 
+    items = [
+        {"title": "Article A", "url": "https://EXAMPLE.com/page/"},
+        {"title": "Duplicate A", "url": "https://example.com/page"},
+        {"title": "Article B", "url": "https://example.com/other"},
+        {"title": "No URL"},
+    ]
+
+    result = deduplicate(items=items)
+
+    assert "error" not in result
+    assert result["original_count"] == 4
+    assert result["unique_count"] == 3
+    assert result["removed_count"] == 1
+    assert [item["title"] for item in result["items"]] == [
+        "Article A",
+        "Article B",
+        "No URL",
+    ]
+
+    assert len(items) == 4
 
 def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+    deduplicate = TOOL_FUNCTIONS["research_deduplicate"]
+
+    result = deduplicate(items="not-a-list")
+
+    assert result["error"] == "TypeError"
+    assert "message" in result
 
 
 def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+    deduplicate = TOOL_FUNCTIONS["research_deduplicate"]
+
+    items = [
+        {"title": "Article A", "url": 123}
+    ]
+
+    result = deduplicate(items=items)
+
+    assert result["error"] == "TypeError"
+    assert "message" in result

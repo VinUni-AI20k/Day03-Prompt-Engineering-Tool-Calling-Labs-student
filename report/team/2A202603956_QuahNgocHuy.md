@@ -1,4 +1,4 @@
-# Báo cáo cá nhân — HoVaTen-MSSV
+# Báo cáo cá nhân — QuachNgocHuy-2A202603956
 
 Đổi tên file theo quy tắc `MSSV_HoTen.md`.
 
@@ -6,9 +6,9 @@ Ví dụ: `20241234_NguyenVanAn.md`.
 
 ## 1. Thông tin thành viên
 
-- Họ tên:
-- MSSV:
-- Email:
+- Họ tên: Quách Ngọc Huy
+- MSSV: 2A202603956
+- Email: zellsed123@gmail.com
 
 ## 2. Phần việc phụ trách
 
