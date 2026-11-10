@@ -11,12 +11,24 @@ Mới nhất ở trên cùng. Chỉ ghi những gì đã làm và đo thật.
 |---|---|---|---|---|
 | v0 | QuanNH | Chưa sửa gì (đo mốc ban đầu) | 13/20 | `starter_v0/runs/v0_B_base_openai_20261110T173801779394.json` |
 | v1 | QuanNH | Sửa lời dặn cho trợ lý: hỏi lại khi thiếu thông tin, xin xác nhận trước khi gửi | 18/20 | `starter_v0/runs/v1_B_base_openai_20261110T175732383834.json` |
-| v2 | | | | |
+| v2 | QuanNH | Sửa lời dặn: nói rõ công cụ nào dùng cho việc nào, từ chối việc ngoài phạm vi, xin xác nhận dạng có/không | 18/20 | `starter_v0/runs/v2_B_base_openai_20261110T181054950591.json` |
 | v3 | | | | |
 
 Số liệu chi tiết: `starter_v0/artifacts/version_log.csv`. Bảng lỗi từng tình huống: `starter_v0/analysis/v0.csv`, `v1.csv`.
 
 ## Chi tiết
+
+### v2 — Dặn rõ công cụ nào dùng cho việc nào
+
+- **Sửa file nào:** `starter_v0/artifacts/system_prompt.md` (vẫn chưa sửa mô tả công cụ).
+- **Vì sao sửa:** sau v1 còn 2 tình huống sai. R12: trợ lý hỏi "bạn muốn đăng nội dung gì?" thay vì hỏi có đồng ý đăng không. M02: ở lượt cuối trợ lý đi tìm trên mạng xã hội thay vì tìm tin tức.
+- **Đã làm:** thêm mục "chọn công cụ" (tin tức thì dùng `lookup`, bài đăng của một người thì dùng `timeline`, bài đăng theo chủ đề thì dùng `social_search`, đọc link thì dùng `fetch`), dặn giữ công cụ cũ khi người dùng chỉ đổi chủ đề, dặn từ chối việc ngoài phạm vi, và dặn hỏi xác nhận dạng có/không ngay cả khi chưa có nội dung để gửi.
+- **Kết quả:** vẫn 18/20, không tiến thêm.
+  - Tốt lên: M02 đúng lại (trợ lý giữ đúng công cụ tìm tin tức).
+  - Vẫn sai (R12): trợ lý vẫn hỏi "bạn muốn đăng nội dung gì?" dù đã dặn rõ. Lời dặn này xung đột với lời dặn "thiếu thông tin thì hỏi lại", và mô hình chọn hỏi thông tin.
+  - Mới sai (M06): người dùng bảo "bỏ Twitter, chuyển sang tìm tin tức", trợ lý tìm tin tức nhưng vẫn gọi thêm tìm trên Twitter. Rất có thể do lời dặn "giữ công cụ cũ" mới thêm bị hiểu quá rộng.
+- **Bài học:** sửa một chỗ có thể làm hỏng chỗ khác, nên mỗi lần chỉ nên đổi ít. Lời dặn mâu thuẫn nhau thì mô hình chọn theo một bên. Chỉ chạy một lần nên chưa chắc M06 do lời dặn mới hay do mô hình lúc đúng lúc sai.
+- **Việc tiếp theo (v3):** sửa mô tả công cụ trong `tools.yaml` (khi nào dùng, khi nào không), đặc biệt mô tả `clarify` (dùng dạng có/không để xin xác nhận) và `social_search`.
 
 ### v1 — Dặn trợ lý hỏi lại và xin xác nhận
 
