@@ -4,7 +4,7 @@
 
 - Họ tên: Trần Thị Hà Anh
 - MSSV: 2A202603887
-- Email: anhtth.it.work@gmail.com
+- Email: tranthihaanh200204@gmail.com
 - GitHub: `hnha02`
 
 ## 2. Phần việc phụ trách
@@ -54,10 +54,10 @@
 
 ### Commit/PR
 
-- `ff72034` — hoàn thành tool mới bắt buộc, unit test, registry, declaration, eval và bằng chứng CP3.
-- `21e9423` — bổ sung ba tool và chín unit test để đạt bonus ≥4 tool tự viết.
-- `64abe65` — bổ sung/đồng bộ code và `TOOL.md` của bốn tool CP3.
-- `fa038dc` — đưa run baseline v0 vào repo.
+- `ff72034`: hoàn thành tool mới bắt buộc, unit test, registry, declaration, eval và bằng chứng CP3.
+- `21e9423`: bổ sung ba tool và chín unit test để đạt bonus ≥4 tool tự viết.
+- `64abe65`: bổ sung/đồng bộ code và `TOOL.md` của bốn tool CP3.
+- `fa038dc`: đưa run baseline v0 vào repo.
 - PR [#2 — tranthihaanh](https://github.com/trongnghia2304/K5-L3B-DAY03-Hehehe-ResearchAgentToolEval/pull/2), merge commit `96196bd`.
 
 ### AI/công cụ và cách tự kiểm tra
