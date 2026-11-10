@@ -144,25 +144,28 @@ def _resolve(decision: str, edited_text: str) -> None:
 def _render_event(event: dict[str, Any], event_number: int) -> None:
     name = event.get("tool", "unknown")
     args = event.get("args", {})
-    st.markdown(f"**Tool {event_number}: `{name}`**")
-    st.json(args, expanded=True)
     result = event.get("result", {})
-    if isinstance(result, dict) and ("error" in result or str(result.get("status", "")).lower() in {"error", "failed", "failure"}):
-        detail = result.get("message") or result.get("error") or result.get("status")
-        st.error(f"Lỗi tool `{name}`: {detail}")
-    with st.expander(f"Kết quả tool: {name}", expanded=False):
-        st.json(result, expanded=True)
-    gate = event.get("ui_gate")
-    if gate:
-        st.caption(
-            "UI gate: intercepted={intercepted}, model_confirmed_flag={model_flag}, "
-            "user_decision={decision}, text_edited_by_user={edited}".format(
-                intercepted=gate.get("intercepted"),
-                model_flag=gate.get("model_confirmed_flag"),
-                decision=gate.get("user_decision"),
-                edited=gate.get("text_edited_by_user"),
+    status = result.get("status") if isinstance(result, dict) else None
+    with st.container(border=True):
+        st.markdown(f"**Tool {event_number}: `{name}`**")
+        st.json(args, expanded=True)
+        if isinstance(result, dict) and ("error" in result or str(status).lower() in {"error", "failed", "failure"}):
+            detail = result.get("message") or result.get("error") or status
+            st.error(f"Lỗi tool `{name}`: {detail}")
+        elif status == "awaiting_confirmation":
+            st.warning("Đã chặn tool; đang chờ bạn xem lại và quyết định.")
+        elif status == "cancelled_by_user":
+            st.info("Đã hủy theo lựa chọn của bạn.")
+        with st.expander(f"Kết quả tool: {name}", expanded=False):
+            st.json(result, expanded=True)
+        gate = event.get("ui_gate")
+        if gate:
+            decision = gate.get("user_decision") or "đang chờ"
+            st.caption(
+                f"Chốt UI: đã chặn · model gửi confirmed={str(gate.get('model_confirmed_flag')).lower()} "
+                f"· quyết định: {decision} · đã sửa nội dung: "
+                f"{str(gate.get('text_edited_by_user')).lower()}"
             )
-        )
 
 
 def _render_turn(turn: dict[str, Any]) -> None:
@@ -170,6 +173,12 @@ def _render_turn(turn: dict[str, Any]) -> None:
         st.markdown(turn.get("user", ""))
     with st.chat_message("assistant"):
         st.markdown(turn.get("assistant_text") or "")
+        status_messages = {
+            "waiting_for_user": "Đang chờ bạn bổ sung thông tin.",
+            "awaiting_confirmation": "Đang chờ bạn xem lại và xác nhận tác vụ.",
+        }
+        if turn.get("status") in status_messages:
+            st.info(status_messages[turn["status"]])
         if turn.get("status") == "provider_error":
             st.error(f"Lỗi provider: {turn.get('error', 'Không rõ lỗi')}")
         if turn.get("status") == "max_tool_rounds":
@@ -180,12 +189,17 @@ def _render_turn(turn: dict[str, Any]) -> None:
         if pending and not round_records:
             round_records = [pending["round_record"]]
         for round_record in round_records:
-            for call in round_record.get("tool_calls", []):
-                st.markdown(f"**Tool call:** `{call.get('name', 'unknown')}`")
-                st.json(call.get("args", {}), expanded=True)
-            for event in round_record.get("tool_results", []):
-                event_num += 1
-                _render_event(event, event_num)
+            calls = round_record.get("tool_calls", [])
+            events = round_record.get("tool_results", [])
+            for call_index, call in enumerate(calls):
+                if call_index < len(events) and events[call_index].get("tool") == call.get("name"):
+                    event_num += 1
+                    _render_event(events[call_index], event_num)
+                else:
+                    with st.container(border=True):
+                        st.markdown(f"**Tool chưa chạy: `{call.get('name', 'unknown')}`**")
+                        st.caption("Lượt đã tạm dừng trước khi tới tool này.")
+                        st.json(call.get("args", {}), expanded=True)
 
 
 def main() -> None:
@@ -194,6 +208,7 @@ def main() -> None:
     load_lab_env(ROOT)
     st.set_page_config(page_title="Research Agent", page_icon="🔎", layout="wide")
     st.title("Research Agent")
+    st.caption("Tra cứu tin, bài đăng, URL và tài liệu; xem rõ từng tool trước khi quyết định tác vụ có tác dụng phụ.")
 
     default_provider = os.getenv("UI_PROVIDER", "openrouter").lower()
     if default_provider not in PROVIDERS:
@@ -239,17 +254,19 @@ def main() -> None:
     if pending:
         gate_event = next((event for event in reversed(pending.get("tool_events", [])) if event.get("ui_gate", {}).get("intercepted")), {})
         original_text = str(gate_event.get("args", {}).get("text", ""))
-        st.warning("Tool sắp thực hiện tác dụng phụ. Hãy kiểm tra nội dung trước khi xác nhận.")
-        edited_text = st.text_area("Nội dung sẽ gửi (có thể sửa)", value=original_text, key="confirmation_text")
-        confirm_col, cancel_col = st.columns(2)
-        with confirm_col:
-            if st.button("Xác nhận gửi", type="primary", key="confirm_send"):
-                _resolve("confirmed", edited_text)
-                st.rerun()
-        with cancel_col:
-            if st.button("Hủy", key="cancel_send"):
-                _resolve("cancelled", edited_text)
-                st.rerun()
+        with st.container(border=True):
+            st.subheader("Cần bạn xác nhận")
+            st.warning("Tool có tác dụng phụ đang bị giữ lại. Kiểm tra nội dung; chỉ xác nhận nếu muốn thực hiện.")
+            edited_text = st.text_area("Nội dung sẽ gửi (có thể sửa)", value=original_text, key="confirmation_text")
+            confirm_col, cancel_col = st.columns(2)
+            with confirm_col:
+                if st.button("Xác nhận gửi", type="primary", key="confirm_send"):
+                    _resolve("confirmed", edited_text)
+                    st.rerun()
+            with cancel_col:
+                if st.button("Hủy", key="cancel_send"):
+                    _resolve("cancelled", edited_text)
+                    st.rerun()
 
     waiting_turn = next((t for t in reversed(st.session_state.transcript["turns"]) if t.get("status") == "waiting_for_user"), None) if st.session_state.transcript else None
     clarify_event = None
