@@ -1,0 +1,173 @@
+# Bàn giao và checklist chung — Day 03 Research Agent Tool Eval
+
+Cập nhật: **10/11/2026**. Phân công gốc: [TASK_ASSIGNMENT.md](TASK_ASSIGNMENT.md).
+Đây là file theo dõi tiến độ hiện tại; phân công và phạm vi sở hữu file vẫn theo
+`TASK_ASSIGNMENT.md`. Mỗi thành viên cập nhật phần của mình khi có kết quả mới.
+
+## 1. Tình trạng hiện tại và việc cần làm ngay
+
+| Thành viên | Phần việc | Trạng thái đã biết | Việc tiếp theo |
+|---|---|---|---|
+| **Trần Minh Tân** — 2A202603688 | Tool mới và unit test | Đã commit/push `8682c8d` trên `feature/new-tool-tests-03688`; Tân xác nhận đã merge vào `main` | Hỗ trợ tích hợp, kiểm tra arguments và sửa regression nếu có |
+| **Nguyễn Nho Trọng** — 2A202603666 | Prompt, routing, tối ưu v0–v3 | Chưa có bằng chứng cập nhật trong phiên bàn giao này | Lấy code từ `main`, review `source_check`, cập nhật routing và chạy eval |
+| **Vũ Quang Minh** — 2A202603657 | Eval, UI, live chat, report | Chưa có bằng chứng cập nhật trong phiên bàn giao này | Lấy code từ `main`, thêm eval cho tool mới, hoàn thiện UI/report |
+
+**Bước bàn giao tool đầu tiên đã hoàn tất theo xác nhận của Tân.** Tiếp theo,
+Trọng tích hợp prompt/routing; Minh có thể viết eval và dựng UI song song, rồi
+chạy group eval sau khi có bản prompt tích hợp. Tân chưa cần chờ để hỗ trợ review.
+
+Thông tin merge vào `main` ở trên do Tân xác nhận; chưa kiểm tra lại remote ở
+lần cập nhật tài liệu này. Trạng thái của Trọng/Minh là **chưa cập nhật**, không
+có nghĩa hai bạn chưa làm. Mỗi bạn bổ sung branch, commit và bằng chứng bên dưới.
+
+## 2. Gói bàn giao của Tân
+
+- Tool: **`source_check(items=...)`**, kiểm tra cấu trúc URL HTTP(S) và trường
+  `source`; chạy offline, không cần key, không xác minh sự thật hoặc uy tín nguồn.
+- Đầu ra: `results` báo lỗi từng item; `items` chỉ giữ item hợp lệ;
+  `valid_count`, `invalid_count`, `all_valid` tóm tắt kết quả.
+- Input thiếu/sai kiểu list hoặc lỗi nội bộ trả error dict. Item lỗi trong list
+  được báo riêng, không làm mất item tốt. List rỗng có `all_valid=false`.
+- Đã đồng bộ implementation, frontmatter, registry và declaration YAML.
+- Đã thay toàn bộ **17 test stub**; lần kiểm tra ở commit bàn giao đạt
+  **122 passed, 0 failed, 0 skipped** (60 contract, 7 example, 55 tool cases;
+  trong đó 38 cases dành cho `source_check`). Đây là kết quả offline trước tích
+  hợp, cần chạy lại sau khi nhận thay đổi mới.
+- Có 1 warning deprecation từ plugin `anyio` trong môi trường hệ thống.
+
+Tài liệu để hai bạn dùng trực tiếp:
+
+| Nội dung | Đường dẫn |
+|---|---|
+| Contract input/output/error và ví dụ gọi tool | [TOOL.md](starter_v0/tools/source_check/TOOL.md) |
+| Gợi ý routing, mẫu eval JSON và đoạn nội dung cho REPORT B5 | [HANDOFF.md](starter_v0/tools/source_check/HANDOFF.md) |
+| Output thật của bộ test | [pytest-output.txt](starter_v0/tools/source_check/pytest-output.txt) |
+| Implementation | [tool.py](starter_v0/tools/source_check/tool.py) |
+| Unit test | [test_tools_todo.py](starter_v0/tests/test_tools_todo.py) |
+
+`HANDOFF.md` của tool ghi trạng thái tại thời điểm bàn giao trước merge.
+Thông tin merge mới nhất được theo dõi trong file chung này.
+
+## 3. Checklist của Trọng — prompt và routing
+
+- [ ] Cập nhật `main` vào nhánh làm việc; điền tên branch thực tế ở mục 8.
+- [ ] Đọc contract `source_check` và review block khai báo mới trong `artifacts/tools.yaml`.
+- [ ] Kiểm tra baseline `v0`: có run JSON và đúng prompt/tools hash của lần chạy.
+- [ ] Phân loại lỗi baseline từ log thật: sai tool, sai args, thiếu thông tin hoặc sai boundary.
+- [ ] Sửa chỉ dẫn đoán username/URL; dùng `clarify` khi thiếu dữ liệu.
+- [ ] Bổ sung routing cho `timeline`, `social_search`, `lookup`, `fetch`, `format`, `source_check`.
+- [ ] Chỉ cho phép `send` sau khi người dùng xác nhận rõ; khai báo `confirmed=true` tương ứng.
+- [ ] Làm rõ convention args: handle không có `@`, `topic`, `timeframe`, `Top/Latest`.
+- [ ] Chạy `v1`, ghi giả thuyết, một thay đổi chính, metric và đường dẫn run.
+- [ ] Chạy `v2`, ghi bằng chứng tương ứng.
+- [ ] Chạy `v3`, ghi bằng chứng tương ứng.
+- [ ] Điền đủ `v0`–`v3` trong `artifacts/version_log.csv`; không tạo metric hoặc log giả.
+- [ ] Chạy lại test sau thay đổi YAML; bàn giao commit/PR prompt cho cả nhóm.
+- [ ] Review REPORT B1/B2 và mô tả prompt/tool declaration sau khi Minh tổng hợp.
+
+Files chính: `starter_v0/artifacts/system_prompt.md`, `tools.yaml`, `version_log.csv`.
+Nếu chưa có baseline trước khi thêm tool, ghi rõ bộ artifact thực tế dùng cho
+baseline mới; không gọi kết quả đó là phép đo của code cũ chưa từng chạy.
+
+## 4. Checklist của Minh — eval, UI, live chat và report
+
+- [ ] Cập nhật `main` vào nhánh làm việc; điền tên branch thực tế ở mục 8.
+- [ ] Đọc mẫu eval `source_check` trong tài liệu bàn giao của Tân.
+- [ ] Hoàn thành `data/eval_group.json` với **5 single-turn + 5 multi-turn**.
+- [ ] Có ít nhất 1 case kiểm tra routing/args của `source_check` trong 10 case.
+- [ ] Mỗi case có ID riêng, `phase=B`, `failure_type` hợp lệ, `expect`, `metadata.what_it_tests`.
+- [ ] Dựng `app.py`: ô nhập, nút gửi, kết quả và tool calls; cấu hình dependency UI nếu cần.
+- [ ] Hoàn thành REPORT phần A: khả năng, danh sách tool, câu hỏi mẫu và link dùng thử.
+- [ ] Nhận bản prompt/routing tích hợp từ Trọng; chạy group eval trên đúng artifact đã ghi nhận.
+- [ ] Lưu run JSON thật và điền metric/report từ log, ghi rõ provider errors nếu có.
+- [ ] Chạy ít nhất 3 lượt live: nghiên cứu bình thường, thiếu dữ liệu rồi bổ sung, yêu cầu gửi cần xác nhận.
+- [ ] Có transcript JSON thật; phối hợp với Tân kiểm tra args, với Trọng kiểm tra routing.
+- [ ] UI chạy được bằng `streamlit run app.py`; ghi cách chạy/link demo vào report.
+- [ ] Hoàn thiện REPORT B1–B6; B5 lấy kết quả test hiện tại và mô tả tool từ Tân.
+- [ ] Kiểm tra report/transcript/screenshot không chứa secret trước khi bàn giao PR.
+
+Files chính: `starter_v0/data/eval_group.json`, `app.py`, `artifacts/REPORT.md`,
+`runs/`, `transcripts/`. Không sửa `data/eval_base.json` để làm tăng điểm eval.
+
+## 5. Checklist của Tân — phần đã bàn giao và kiểm tra tích hợp
+
+- [x] Chốt contract tool mới `source_check`.
+- [x] Tạo `tool.py` và `TOOL.md` đúng frontmatter.
+- [x] Đăng ký `TOOL_FUNCTIONS` và bổ sung declaration trong `tools.yaml`.
+- [x] Viết test happy path, bad/missing input và failure trả error dict.
+- [x] Hoàn thành các test TODO; test offline bằng mock.
+- [x] Lưu bằng chứng **122 passed, 0 failed, 0 skipped** tại commit bàn giao.
+- [x] Chuẩn bị mẫu eval và nội dung REPORT B5 cho nhóm.
+- [x] Commit/push `8682c8d`; merge vào `main` theo xác nhận của Tân.
+- [ ] Sau khi phần Trọng/Minh merge, cập nhật `main` vào nhánh làm việc.
+- [ ] Chạy lại toàn bộ test và ghi kết quả của bản tích hợp mới.
+- [ ] Kiểm tra tool call thật truyền đúng `items`; item thiếu URL/source vẫn được báo lỗi.
+- [ ] Nếu có bug, sửa tool và bổ sung regression test; ghi evidence trước/sau.
+- [ ] Review REPORT B5: test count, mô tả tool, giới hạn metadata-only và bằng chứng.
+
+## 6. Checklist chung trước khi chốt bài
+
+- [ ] Cả ba thành viên xác nhận setup; provider preflight thành công trên môi trường chạy eval.
+- [ ] `main` chứa tool/test của Tân, prompt/routing của Trọng và eval/UI/report của Minh.
+- [ ] Bản tích hợp cuối chạy `pytest`: **0 failed, 0 skipped**; lưu output mới.
+- [ ] Contract khớp tên tool, function signature, YAML và `TOOL.md`.
+- [ ] Có run JSON thật cho `v0`, `v1`, `v2`, `v3` và đủ 4 dòng version log.
+- [ ] Group eval đủ 10 case, đúng tỷ lệ 5/5, có case tool mới và run JSON.
+- [ ] Có transcript ít nhất 3 lượt live, thể hiện clarification và confirmation.
+- [ ] UI chạy được; có hướng dẫn chạy và link dùng thử theo yêu cầu bài lab.
+- [ ] REPORT phần A và B1–B6 hoàn chỉnh, đối chiếu được tới evidence.
+- [ ] Không commit `.env`, API key hoặc Telegram token; kiểm tra cả log/transcript.
+- [ ] Các PR cần thiết đã review/merge; cả nhóm dùng cùng bản `main` để demo/nộp.
+
+Setup/provider ở máy Tân chưa được xác nhận: lần kiểm tra trước không có `.env`
+hoặc `OPENROUTER_API_KEY`. Mỗi thành viên tự ghi trạng thái môi trường của mình;
+không suy ra máy khác cũng thiếu key.
+
+## 7. Cách lấy code và kiểm chứng
+
+Chạy từ thư mục gốc repo, khi đã commit hoặc xử lý các thay đổi đang làm.
+Giữ nguyên nhánh riêng của mình:
+
+```powershell
+git status
+git fetch origin
+git merge origin/main
+```
+
+Nếu có conflict, chủ file phối hợp xử lý rồi chạy lại test trước khi push.
+Không dùng force push hay reset để bỏ thay đổi của thành viên khác.
+
+Các lệnh kiểm chứng chạy tại `starter_v0/`, sau khi kích hoạt môi trường đã cài
+dependencies theo README. Eval/preflight cần provider key; pytest chạy offline:
+
+```powershell
+python -m pytest -v
+python scripts/preflight_provider.py --provider openrouter
+python run_eval.py --provider openrouter --version v0 --suite base --eval-cases data/eval_base.json
+```
+
+Trọng chạy lại lệnh base eval với từng `--version v1`, `v2`, `v3` sau thay đổi
+thực tế tương ứng; không chạy bốn nhãn trên cùng code rồi coi là bốn lần tối ưu.
+Sau khi tích hợp bản v3 và eval nhóm, Minh chạy:
+
+```powershell
+python run_eval.py --provider openrouter --version v3 --suite group --eval-cases data/eval_group.json
+python chat.py --provider openrouter --version v3
+streamlit run app.py
+```
+
+## 8. Nhật ký bàn giao chung
+
+Mỗi lần bàn giao, thêm một dòng vào bảng; đánh dấu checklist liên quan kèm đường
+dẫn evidence và commit. Người sở hữu phần việc cập nhật trước; Minh tổng hợp
+checkpoint chung sau review. Khi cùng sửa file này, fetch/merge trước khi push.
+
+| Ngày | Người | Branch / commit hoặc PR | Nội dung bàn giao | Kiểm chứng / evidence | Việc tiếp theo |
+|---|---|---|---|---|---|
+| 10/11/2026 | Tân | `feature/new-tool-tests-03688` / `8682c8d` | `source_check`, registry, YAML, test; đã merge main theo Tân xác nhận | [122 passed](starter_v0/tools/source_check/pytest-output.txt) | Trọng cập nhật routing; Minh tích hợp eval/UI/report |
+| Chưa cập nhật | Trọng | Điền branch / commit / PR thực tế | Điền phần đã hoàn thành | Lệnh, kết quả, đường dẫn run JSON | Điền người nhận và bước tiếp theo |
+| Chưa cập nhật | Minh | Điền branch / commit / PR thực tế | Điền phần đã hoàn thành | Eval, UI, transcript, report | Điền người nhận và bước tiếp theo |
+
+Quy ước: `[x]` là đã có bằng chứng hoặc xác nhận được ghi rõ; `[ ]` là chưa xác
+nhận hoàn tất. Bỏ tick nếu thay đổi mới làm điều kiện không còn đúng. Hoàn thành
+phần của một người không tự động có nghĩa hoàn thành checkpoint chung.
