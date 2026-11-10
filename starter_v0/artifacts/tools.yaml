@@ -123,3 +123,70 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: semantic_scholar
+    description: >
+      Search for academic papers using the Semantic Scholar Academic Graph API.
+      Use this tool when the user wants to find scientific papers, research
+      publications, citation information, authors, abstracts, DOI, or open-access
+      PDF links from Semantic Scholar. Use it for academic literature discovery
+      and citation-based research. Do NOT use it for general web searches,
+      news, social media posts, or retrieving the full text of an arXiv paper;
+      use lookup, social_search, or paper_text when appropriate.
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          default: ""
+          description: >
+            Required academic search query. Use concise research keywords,
+            paper titles, or scientific topics. Do not leave empty.
+        max_results:
+          type: integer
+          default: 5
+          description: >
+            Maximum number of papers to return. Valid range: 1-100.
+        sort_by:
+          type: string
+          enum: [relevance, citationCount, publicationDate]
+          default: relevance
+          description: >
+            Sorting method. Use relevance for best matching papers,
+            citationCount for the most cited papers, or publicationDate
+            for the newest publications.
+      required: [query]
+
+  - name: openalex
+    description: >
+      Search for academic works using the OpenAlex API. Use this tool when
+      the user wants to discover scholarly publications, research papers,
+      authors, abstracts, DOI, publication venues, citation counts, or
+      open-access links. It is useful for broad academic literature searches
+      and cross-checking research publications from other scholarly sources.
+      Do NOT use it for general web searches, news, social media content,
+      or retrieving the full text of an arXiv paper; use lookup,
+      social_search, or paper_text when appropriate.
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          default: ""
+          description: >
+            Required academic search query. Use research keywords,
+            paper titles, or scientific topics. Do not leave empty.
+        max_results:
+          type: integer
+          default: 5
+          description: >
+            Maximum number of scholarly works to return. Valid range: 1-100.
+        sort_by:
+          type: string
+          enum: [relevance, publication_date, cited_by_count]
+          default: relevance
+          description: >
+            Sorting method. Use relevance for the most relevant works,
+            publication_date for the newest publications, or cited_by_count
+            for the most cited works.
+      required: [query]
