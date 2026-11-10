@@ -12,23 +12,23 @@
   ],
   "cases": [
     {
-      "id": "G01_calculator_growth",
+      "id": "G01_github_repo_whisper",
       "phase": "B",
       "suite": "group",
-      "query": "Doanh thu quý này đạt 150 triệu, quý trước là 120 triệu. Hãy tính giúp mình tỷ lệ tăng trưởng phần trăm.",
+      "query": "Kiểm tra thông tin và số lượng star của repository openai/whisper trên GitHub giúp mình.",
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "calculator",
+            "name": "github_repo",
             "args": {
-              "expression": "(150 - 120) / 120 * 100"
+              "repo": "openai/whisper"
             }
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Single-turn: Yêu cầu tính tỷ lệ tăng trưởng số học → định tuyến đúng tool mới calculator với biểu thức chính xác."
+        "what_it_tests": "Single-turn: Yêu cầu tra cứu kho lưu trữ GitHub → định tuyến đúng tool mới github_repo với repo='openai/whisper'."
       }
     },
     {
@@ -107,32 +107,32 @@
       }
     },
     {
-      "id": "G06_multi_calc_context",
+      "id": "G06_multi_pypi_package",
       "phase": "B",
       "suite": "group",
       "turns": [
         {
           "role": "user",
-          "content": "Sản phẩm A bán được 200 chiếc vào tháng trước, tháng này bán được 280 chiếc."
+          "content": "Mình đang tìm kiếm thư viện Python để xây dựng REST API nhanh chóng."
         },
         {
           "role": "user",
-          "content": "Hãy tính tốc độ tăng trưởng doanh số của sản phẩm A giúp mình."
+          "content": "Tra cứu thông tin phiên bản mới nhất và lệnh cài đặt của package fastapi trên PyPI giúp mình nhé."
         }
       ],
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "calculator",
+            "name": "pypi_package",
             "args": {
-              "expression": "(280 - 200) / 200 * 100"
+              "package": "fastapi"
             }
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Multi-turn: Giữ ngữ cảnh số liệu ở lượt 1 để đưa vào biểu thức tính toán của calculator ở lượt 2."
+        "what_it_tests": "Multi-turn: Lượt 1 nêu ngữ cảnh tìm thư viện Python, lượt 2 chỉ định cụ thể package fastapi → định tuyến đúng tool mới pypi_package với package='fastapi'."
       }
     },
     {

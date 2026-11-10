@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Poster - Day 03 Research Agent - Team BAAE</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #202124;
+            --border: #dadce0;
+            --accent: #34a853;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .poster-container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        header {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 26px;
+            color: var(--primary);
+        }
+
+        .badge {
+            background: #e8f0fe;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            background: #fafafa;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-top: 0;
+            color: #1a73e8;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #eef2f6;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        ul,
+        ol {
+            margin: 8px 0;
+            padding-left: 20px;
+            font-size: 14px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        .run-box {
+            background: #282c34;
+            color: #61afef;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="poster-container">
+        <header>
+            <div>
+                <h1>🔎 Research Agent — Assistant & Fact-Checker</h1>
+                <p style="margin: 4px 0 0 0; color: #5f6368;">Day 03 Tool Eval — Team BAAE (Lớp L3B)</p>
+            </div>
+            <div class="badge">Accuracy: 100% (v3)</div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🎯 A1. Giới thiệu Agent</h2>
+                <p>Trợ lý nghiên cứu chuyên sâu: tự động tìm kiếm tin tức trên web/mạng xã hội Twitter, đọc tài liệu
+                    URL, tính toán phân tích dữ liệu an toàn và thực thi guardrail xác nhận trước khi phát tán tin.</p>
+                <div style="margin-top: 12px;">
+                    <strong>Lệnh chạy UI:</strong>
+                    <div class="run-box">streamlit run app.py</div>
+                </div>
+                <div style="margin-top: 8px;">
+                    <strong>Link dùng thử:</strong> <code>https://baae-research-agent.trycloudflare.com</code>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🚀 B1. Lộ trình tối ưu (v0 → v3)</h2>
+                <ul>
+                    <li><strong>v0 (65.0%):</strong> Baseline gặp lỗi ép tool và đoán bừa thông tin.</li>
+                    <li><strong>v1 (90.0%):</strong> Loại bỏ chỉ dẫn xấu, thêm luật No-tool và clarify.</li>
+                    <li><strong>v2 (95.0%):</strong> Chuẩn hóa mô tả công cụ và tham số convention trong tools.yaml.
+                    </li>
+                    <li><strong>v3 (100.0%):</strong> Thêm ràng buộc triệt để khi đổi nguồn dữ liệu đa lượt (Multi-turn
+                        switch).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>🔧 A2. Hệ thống công cụ cốt lõi & Tool mới</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên tool</th>
+                        <th>Chức năng chính</th>
+                        <th>Loại</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>clarify</code></td>
+                        <td>Hỏi lại khi thiếu thông tin hoặc xin xác nhận trước hành động</td>
+                        <td>Core Guardrail</td>
+                    </tr>
+                    <tr>
+                        <td><code>lookup</code></td>
+                        <td>Tìm tin tức, bài viết trên web (hỗ trợ lọc theo topic, timeframe)</td>
+                        <td>Core Search</td>
+                    </tr>
+                    <tr>
+                        <td><code>fetch</code></td>
+                        <td>Đọc toàn bộ nội dung văn bản từ URL cụ thể</td>
+                        <td>Core Extraction</td>
+                    </tr>
+                    <tr>
+                        <td><code>timeline</code> / <code>social_search</code></td>
+                        <td>Tra cứu bài đăng theo tài khoản cụ thể hoặc tìm kiếm theo từ khóa</td>
+                        <td>Social Media</td>
+                    </tr>
+                    <tr>
+                        <td><code>send</code></td>
+                        <td>Gửi bản tin lên Telegram (yêu cầu người dùng xác nhận trước)</td>
+                        <td>Action Guardrail</td>
+                    </tr>
+                    <tr>
+                        <td><code>github_repo</code></td>
+                        <td>Tra cứu thông tin kho lưu trữ GitHub (stars, forks, open issues, license)</td>
+                        <td><span class="highlight">Tool mới của nhóm</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>pypi_package</code></td>
+                        <td>Tra cứu package Python trên PyPI và lấy câu lệnh pip install</td>
+                        <td><span class="highlight">Tool mới của nhóm</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>💡 A3. Câu hỏi mẫu để trải nghiệm Agent</h2>
+            <ol>
+                <li><strong>Tra cứu tin tức:</strong> <em>"Tin tức AI hôm nay có gì nổi bật trên web?"</em> → Gọi
+                    <code>lookup(query='AI', topic='news', timeframe='day')</code>.
+                </li>
+                <li><strong>Tra cứu GitHub:</strong> <em>"Kiểm tra thông tin và số star của repository openai/whisper trên GitHub giúp mình."</em> → Gọi <code>github_repo(repo='openai/whisper')</code>.</li>
+                <li><strong>Tra cứu PyPI:</strong> <em>"Tra cứu thông tin và cách cài đặt package fastapi trên PyPI giúp mình."</em> → Gọi <code>pypi_package(package='fastapi')</code>.</li>
+                <li><strong>Guardrail thiếu URL:</strong> <em>"Tóm tắt bài này giúp mình với!"</em> → Gọi
+                    <code>clarify(response_type='text')</code> hỏi link bài viết.
+                </li>
+                <li><strong>Guardrail phát tán tin:</strong> <em>"Gửi bản tin này lên kênh Telegram nhé!"</em> → Gọi
+                    <code>clarify(response_type='yes_no')</code> xác nhận trước.
+                </li>
+            </ol>
+        </div>
+    </div>
+
+</body>
+
+</html>
