@@ -1,13 +1,13 @@
 # Khai báo tool mà MODEL nhìn thấy (model KHÔNG đọc được code Python trong tools/).
 # Model chọn tool và điền args chỉ dựa vào `description` của tool và của từng tham số.
 #
-# Thay đổi so với v2 (Người 2 - BuiDangNhatNguyen):
+# Thay đổi (Người 2 - BuiDangNhatNguyen):
 #   - Tinh chỉnh `clarify` và `send` để khi người dùng ở lượt mới nhất ĐÃ xác nhận đồng ý gửi
 #     thì gọi ngay `send(confirmed=true)`, không gọi `clarify` hỏi lại lần nữa (sửa regression GM02).
 #   - Bỏ câu gợi ý gọi song song trong `lookup`/`social_search` gây gọi thừa tool cũ khi chuyển nguồn
 #     trong hội thoại nhiều lượt (sửa regression M06).
 #   - Viết tổng quát hóa toàn bộ quy tắc (không trích câu chữ cụ thể của bộ eval).
-#   - Khai báo thêm tool mới `github_search` (CP3) ở cuối file.
+#   - Khai báo đầy đủ 4 tool mới của nhóm (`github_search`, `hf_models`, `hn_search`, `pypi_info`).
 tools:
   # ---------------- Core tools ----------------
 
@@ -75,7 +75,8 @@ tools:
       KHÔNG DÙNG KHI: (1) ở lượt tin nhắn mới nhất người dùng đã chuyển sang yêu cầu xem trên X/Twitter
       (khi đó chỉ gọi social_search hoặc timeline, không gọi lại lookup của lượt trước);
       (2) người dùng đã đưa URL cụ thể (dùng fetch);
-      (3) cần tìm bài báo khoa học trên arXiv (dùng papers) hoặc tìm kho mã nguồn trên GitHub (dùng github_search);
+      (3) cần tìm bài báo khoa học trên arXiv (dùng papers), kho mã nguồn trên GitHub (dùng github_search),
+      model trên Hugging Face (dùng hf_models), thảo luận trên Hacker News (dùng hn_search), hoặc thông tin gói PyPI (dùng pypi_info);
       (4) câu hỏi ngoài phạm vi nghiên cứu như giải toán, viết code hoặc câu xã giao (trả lời trực tiếp, không gọi tool).
     parameters:
       type: object
@@ -188,15 +189,16 @@ tools:
         max_chars: {type: integer, default: 8000, description: "Số ký tự tối đa trả về, mặc định 8000."}
       required: [arxiv_url]
 
-  # ---------------- New tool (CP3) ----------------
-  # github_search: công cụ mới do nhóm tự phát triển ở CP3 để tìm kiếm kho mã nguồn mở trên GitHub.
+  # ---------------- New tools (CP3 + Bonus >= 4 custom tools) ----------------
+  # 1. github_search: tìm kiếm kho mã nguồn mở trên GitHub.
   - name: github_search
     description: >-
       Tìm repository mã nguồn mở công khai trên GitHub theo từ khóa và ngôn ngữ lập trình, sắp xếp theo số sao (stars).
       DÙNG KHI: người dùng hỏi về repository GitHub, mã nguồn mở (open-source repo/project/library) trên GitHub,
       hoặc muốn tìm các repo nhiều sao nhất về một chủ đề.
       KHÔNG DÙNG KHI: tìm tin tức web chung (dùng lookup), tìm bài báo khoa học arXiv (dùng papers),
-      hoặc tìm bài đăng trên X/Twitter (dùng social_search).
+      tìm model trên Hugging Face (dùng hf_models), tìm thảo luận Hacker News (dùng hn_search),
+      tra cứu gói PyPI (dùng pypi_info), hoặc tìm bài đăng trên X/Twitter (dùng social_search).
     parameters:
       type: object
       properties:
@@ -204,3 +206,47 @@ tools:
         language: {type: string, default: "", description: "Lọc theo ngôn ngữ lập trình chính (ví dụ: 'python', 'typescript'). Để chuỗi rỗng '' nếu người dùng không yêu cầu ngôn ngữ cụ thể."}
         limit: {type: integer, default: 5, description: "Số lượng repository tối đa cần lấy (từ 1 đến 10, mặc định 5)."}
       required: [query]
+
+  # 2. hf_models: tìm kiếm model AI/LLM open-weight trên Hugging Face Hub.
+  - name: hf_models
+    description: >-
+      Tìm model AI/LLM open-weight công khai trên Hugging Face Hub theo từ khóa và tác vụ (pipeline task), sắp xếp theo lượt tải giảm dần.
+      DÙNG KHI: người dùng hỏi tìm model AI, checkpoint, hoặc LLM trên Hugging Face (Hugging Face Hub),
+      có thể kèm theo loại tác vụ như 'text-generation', 'sentence-similarity', 'text-classification'.
+      KHÔNG DÙNG KHI: tìm repository code trên GitHub (dùng github_search), tìm bài báo arXiv (dùng papers),
+      tìm thảo luận Hacker News (dùng hn_search), tra cứu gói PyPI (dùng pypi_info), hoặc tìm tin tức chung trên web (dùng lookup).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa tên model hoặc chủ đề cần tìm trên Hugging Face (ví dụ: 'Qwen', 'Llama', 'reranker')."}
+        task: {type: string, default: "", description: "Lọc theo pipeline_tag của Hugging Face (ví dụ: 'text-generation', 'sentence-similarity', 'text-classification'). Để chuỗi rỗng '' nếu không lọc theo tác vụ."}
+        limit: {type: integer, default: 5, description: "Số lượng model tối đa cần lấy (từ 1 đến 10, mặc định 5)."}
+      required: [query]
+
+  # 3. hn_search: tìm kiếm bài đăng và thảo luận kỹ thuật trên Hacker News.
+  - name: hn_search
+    description: >-
+      Tìm bài đăng và thảo luận công nghệ của cộng đồng kỹ thuật trên Hacker News (HN / Y Combinator) theo từ khóa.
+      DÙNG KHI: người dùng chỉ định rõ muốn tìm thảo luận, bài viết hoặc ý kiến trên Hacker News (HN).
+      KHÔNG DÙNG KHI: tìm tweet trên X/Twitter (dùng social_search), tìm tin tức web chung (dùng lookup),
+      tìm repo GitHub (dùng github_search), hoặc tìm model Hugging Face (dùng hf_models).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa chủ đề cần tìm trên Hacker News (ví dụ: 'RAG', 'AI agents', 'SQLite')."}
+        sort_by: {type: string, enum: [points, date], default: "points", description: "Chọn 'points' khi tìm bài nổi bật / nhiều điểm bình chọn nhất (mặc định); chọn 'date' khi tìm bài thảo luận mới nhất trên Hacker News."}
+        limit: {type: integer, default: 5, description: "Số lượng bài thảo luận tối đa cần lấy (từ 1 đến 10, mặc định 5)."}
+      required: [query]
+
+  # 4. pypi_info: tra cứu thông tin phát hành chính thức của gói thư viện Python trên PyPI.
+  - name: pypi_info
+    description: >-
+      Tra cứu thông tin phát hành chính thức của một gói thư viện Python cụ thể trên PyPI (phiên bản mới nhất, tóm tắt, yêu cầu phiên bản Python, giấy phép).
+      DÙNG KHI: người dùng hỏi thông tin một package/thư viện Python cụ thể trên PyPI hoặc pip (ví dụ kiểm tra phiên bản mới nhất, requires_python của gói 'ragas', 'langgraph', 'pydantic'...).
+      KHÔNG DÙNG KHI: tìm danh sách các repo theo chủ đề trên GitHub (dùng github_search), tìm model trên Hugging Face (dùng hf_models),
+      hoặc tìm tin tức chung trên web (dùng lookup).
+    parameters:
+      type: object
+      properties:
+        package_name: {type: string, default: "", description: "Tên định danh chính xác của gói thư viện trên PyPI (ví dụ: 'ragas', 'langgraph', 'fastapi')."}
+      required: [package_name]
