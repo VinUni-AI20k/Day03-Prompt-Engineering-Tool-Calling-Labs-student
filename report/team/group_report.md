@@ -37,15 +37,15 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| openalex |Tìm kiếm và truy xuất thông tin nghiên cứu từ OpenAlex API | đúng |
+| semantic_scholar | Tìm kiếm bài báo khoa học từ Semantic Scholar API | đúng |
 
 ### A3. Câu hỏi mẫu để thử
 
 > 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
 
-1.
-2.
+1. Câu hỏi test OpenAlex: Tìm kiếm 10 bài báo khoa học về ứng dụng Machine Learning trong dự đoán giá nhà (House Price Prediction). Trả về tiêu đề, tên tác giả, năm xuất bản, số lượt trích dẫn và DOI của mỗi bài báo.
+2. Câu hỏi test Semantic Scholar: Tìm kiếm 10 bài báo khoa học về Deep Learning trong lĩnh vực xử lý ngôn ngữ tự nhiên (NLP), ưu tiên các bài báo có số lượt trích dẫn cao. Trả về tiêu đề, tác giả, năm xuất bản, abstract, số lượt trích dẫn và đường dẫn PDF nếu có.
 3.
 
 ## 3. Giải pháp
@@ -95,8 +95,8 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | tools/openalex/tool.py, tools/openalex/TOOL.md; tools/semantic_scholar/tool.py, tools/semantic_scholar/TOOL.md | Tạo thành công 2 tool tìm kiếm bài báo khoa học thông qua OpenAlex API và Semantic Scholar API. Có khả năng truy xuất, chuẩn hóa thông tin bài báo như tiêu đề, tác giả, năm xuất bản, abstract, DOI và số lượt trích dẫn. | Phụ thuộc vào API bên ngoài nên có thể gặp lỗi kết nối, giới hạn số request hoặc thiếu dữ liệu ở một số bài báo. Có xử lý lỗi và giới hạn số lượng kết quả trả về. |
+| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) | Kiểm thử các trường hợp tìm kiếm thành công (Happy Path), dữ liệu đầu vào không hợp lệ (Bad Input) và API gặp lỗi (Failure Case). | Cần kiểm tra kết quả pytest thực tế. Unit test sử dụng dữ liệu giả lập nên chưa đảm bảo hoàn toàn khả năng hoạt động với API thực tế. |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
