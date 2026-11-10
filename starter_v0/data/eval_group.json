@@ -3,5 +3,184 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_timeline_name_to_handle_limit",
+      "phase": "B",
+      "suite": "group",
+      "query": "Cho mình xem 3 bài đăng gần nhất của Yann LeCun trên X",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {"name": "timeline", "args": {"screenname": "ylecun", "limit": 3}}
+        ]
+      },
+      "metadata": {
+        "skill": "name_to_handle",
+        "difficulty": "medium",
+        "what_it_tests": "Map tên người (Yann LeCun) sang handle không có @ (ylecun) — tên chưa xuất hiện trong base eval — và giữ đúng limit=3; 'trên X' phải route tới timeline, không phải social_search."
+      }
+    },
+    {
+      "id": "G02_news_timeframe_month",
+      "phase": "B",
+      "suite": "group",
+      "query": "Có tin tức gì mới về Nvidia trong tháng này không?",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {"name": "lookup", "args": {"topic": "news", "timeframe": "month"}}
+        ]
+      },
+      "metadata": {
+        "skill": "arg_convention_timeframe",
+        "difficulty": "easy",
+        "what_it_tests": "'Tin tức' phải set topic=news và 'tháng này' phải map sang timeframe=month (base chỉ test day/week)."
+      }
+    },
+    {
+      "id": "G03_smalltalk_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "query": "Cảm ơn nhé, hôm nay vậy là đủ rồi.",
+      "failure_type": "unnecessary_tool",
+      "expect": {"no_tool": true, "behavior": "answer_without_tool"},
+      "metadata": {
+        "skill": "no_tool_smalltalk",
+        "difficulty": "easy",
+        "what_it_tests": "Câu chào/cảm ơn kết thúc hội thoại: agent trả lời trực tiếp, không gọi clarify hay bất kỳ tool nào."
+      }
+    },
+    {
+      "id": "G04_out_of_scope_booking",
+      "phase": "B",
+      "suite": "group",
+      "query": "Đặt giúp mình vé máy bay Hà Nội đi Đà Nẵng tối thứ 6 này.",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "refuse"},
+      "metadata": {
+        "skill": "out_of_scope_action",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu hành động ngoài phạm vi research (đặt vé): agent từ chối lịch sự, không gọi lookup để 'tìm vé' và không gọi send."
+      }
+    },
+    {
+      "id": "G05_route_new_tool",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm giúp mình 3 paper arXiv mới nộp gần đây nhất về diffusion models.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {"name": "papers", "args": {"max_results": 3, "sort_by": "submittedDate"}}
+        ]
+      },
+      "metadata": {
+        "skill": "route_new_tool",
+        "difficulty": "medium",
+        "placeholder": true,
+        "what_it_tests": "PLACEHOLDER — thay bằng case route tới tool mới của Thành viên 2 khi tool đã được đăng ký trong tools.yaml. Tạm thời: 'paper arXiv' phải route tới papers (không phải lookup), max_results=3, 'mới nộp' -> sort_by=submittedDate."
+      }
+    },
+    {
+      "id": "G06_clarify_then_handle",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Xem giúp mình tài khoản này dạo này đăng gì"},
+        {"role": "user", "content": "Tài khoản của Demis Hassabis nhé"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {"name": "timeline", "args": {"screenname": "demishassabis"}}
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_clarify_fill",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt 1 thiếu tài khoản; lượt 2 bổ sung tên -> agent gọi timeline với handle demishassabis (không @), không hỏi lại thêm lần nữa."
+      }
+    },
+    {
+      "id": "G07_send_needs_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Làm giúp mình bản tin AI hôm nay"},
+        {"role": "user", "content": "Ok, gửi bản tin đó lên Telegram luôn đi"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {"name": "clarify", "args": {"response_type": "yes_no"}}
+        ]
+      },
+      "metadata": {
+        "skill": "confirm_before_send",
+        "difficulty": "hard",
+        "what_it_tests": "User nói 'gửi luôn' nhưng chưa thấy/duyệt nội dung cuối -> agent phải hỏi xác nhận yes_no trước, không gọi send(confirmed=true) ngay."
+      }
+    },
+    {
+      "id": "G08_send_after_explicit_confirm",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Soạn tin Telegram với nội dung: 'Nhóm đã hoàn thành Lab Day03 v3'"},
+        {"role": "user", "content": "Nội dung đúng rồi, mình xác nhận gửi lên Telegram"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {"name": "send", "args": {"confirmed": true}}
+        ]
+      },
+      "metadata": {
+        "skill": "send_after_confirm",
+        "difficulty": "medium",
+        "what_it_tests": "Mặt còn lại của boundary: khi user đã xác nhận rõ nội dung, agent gọi send với confirmed=true thay vì hỏi lại vô hạn."
+      }
+    },
+    {
+      "id": "G09_switch_social_to_papers",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm các tweet nổi bật nhất về Claude"},
+        {"role": "user", "content": "Thôi, bỏ Twitter đi, tìm paper arXiv về chủ đề đó"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {"name": "papers", "args": {}}
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_switch_tool",
+        "difficulty": "medium",
+        "what_it_tests": "User đổi nguồn ở lượt sau: agent phải chuyển từ social_search sang papers, không gọi lại social_search."
+      }
+    },
+    {
+      "id": "G10_carryover_change_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tin tức về OpenAI trong tuần này"},
+        {"role": "user", "content": "Mở rộng ra cả tháng nhé"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {"name": "lookup", "args": {"topic": "news", "timeframe": "month"}}
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_carryover",
+        "difficulty": "hard",
+        "what_it_tests": "Lượt 2 chỉ đổi timeframe: agent giữ topic=news + chủ đề OpenAI từ lượt 1 và đổi timeframe week -> month."
+      }
+    }
+  ]
 }

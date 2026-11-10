@@ -10,43 +10,53 @@
 
 - Tên nhóm:
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: OpenRouter · `openai/gpt-4o-mini` (mặc định của provider)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+**Research agent cho tin AI/công nghệ:** tìm tin trên web (có lọc tin tức theo ngày/tuần/tháng), xem bài đăng của một tài khoản X hoặc tìm bài theo từ khóa, đọc và tóm tắt một URL, tìm và đọc paper arXiv, tra policy nội bộ công ty, gom kết quả thành digest markdown và **chỉ gửi lên Telegram sau khi người dùng xác nhận**. Khi thiếu thông tin (không rõ tài khoản nào, link nào), agent hỏi lại thay vì tự đoán.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+```bash
+cd starter_v0
+pip install -r requirements.txt      # đã thêm streamlit
+streamlit run app.py                 # http://localhost:8501
+cloudflared tunnel --url http://localhost:8501   # lấy link public
+```
+
+UI (`starter_v0/app.py`) dùng chung vòng lặp tool với `chat.py`, hiện đầy đủ tool call, kết quả và lỗi tool cho từng lượt, đồng thời ghi transcript vào `starter_v0/transcripts/*_ui_*.transcript.json`.
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
->
-> URL:
+> URL: `https://<điền-link>.trycloudflare.com` _(link tạm thời, chỉ sống khi lệnh `cloudflared` còn chạy)_
 
 ### A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | Hỏi lại người dùng khi thiếu thông tin (tài khoản, URL) hoặc xin xác nhận yes/no trước khi gửi | không |
+| timeline | Lấy các bài đăng gần đây của **một tài khoản X** (handle không có `@`, vd `sama`, `karpathy`) | không |
+| social_search | Tìm bài đăng X theo **từ khóa**, sắp xếp `Latest` (mới nhất) hoặc `Top` (nổi bật) | không |
+| lookup | Tìm trên web qua Tavily; `topic=news` cho tin tức, `timeframe` = day/week/month/year | không |
+| fetch | Đọc nội dung một URL cụ thể (Firecrawl) để tóm tắt | không |
+| format | Trình bày các kết quả đã thu thập thành digest markdown (brief/sections/bullets/thread) | không |
+| send | Gửi văn bản lên Telegram channel riêng của nhóm, **chỉ khi `confirmed=true`** | không |
+| policy | Tra cứu company policy nội bộ (nguồn, trích dẫn, bảo mật dữ liệu, xuất bản) | không |
+| papers | Tìm paper trên arXiv | không |
+| paper_text | Tải PDF arXiv và trích text vài trang đầu | không |
+| _&lt;tool mới&gt;_ | _&lt;Thành viên 2 điền: làm gì, khi nào agent gọi&gt;_ | **có** |
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. `Tin tức AI hôm nay có gì nổi bật?` → `lookup(topic=news, timeframe=day)`
+2. `Lấy 5 tweet mới nhất của Andrej Karpathy` → `timeline(screenname=karpathy, limit=5)`
+3. `Tóm tắt bài này giúp mình` → agent **hỏi lại** link nào; trả lời bằng một URL → `fetch`
+4. `Tìm paper arXiv mới về AI agent evaluation` → `papers`
+5. `Đăng bản tin này lên Telegram giúp mình` → agent **xin xác nhận** trước, không gửi ngay
+6. _&lt;câu hỏi dùng tool mới của nhóm&gt;_
 
 ## 3. Giải pháp
 
@@ -79,9 +89,20 @@ Lấy từ `results[*].result.failures` trong run JSON.
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
 
+> Cột Result sinh tự động sau khi chạy `--suite group`: `python scripts/report_tables.py --only B3` (chạy trong `starter_v0/`).
+
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_timeline_name_to_handle_limit (single) | Map "Yann LeCun" → handle `ylecun`, giữ `limit=3`; "trên X" → timeline | `timeline(screenname=ylecun, limit=3)` |  |
+| G02_news_timeframe_month (single) | "tin tức … tháng này" → `topic=news`, `timeframe=month` | `lookup(topic=news, timeframe=month)` |  |
+| G03_smalltalk_no_tool (single) | Câu cảm ơn/kết thúc không cần tool | no tool (answer) |  |
+| G04_out_of_scope_booking (single) | Đặt vé máy bay là ngoài phạm vi research | no tool (refuse) |  |
+| G05_route_new_tool (single) | Route tới tool mới của nhóm _(đang tạm dùng `papers`, thay khi tool mới được merge)_ | `papers(max_results=3, sort_by=submittedDate)` |  |
+| G06_clarify_then_handle (multi) | Lượt 1 thiếu tài khoản, lượt 2 bổ sung "Demis Hassabis" | `timeline(screenname=demishassabis)` |  |
+| G07_send_needs_confirmation (multi) | "Gửi luôn" khi chưa duyệt nội dung → vẫn phải xác nhận | `clarify(response_type=yes_no)` |  |
+| G08_send_after_explicit_confirm (multi) | User đã xác nhận rõ → gửi, không hỏi lại vô hạn | `send(confirmed=true)` |  |
+| G09_switch_social_to_papers (multi) | Đổi nguồn từ Twitter sang arXiv ở lượt sau | `papers` |  |
+| G10_carryover_change_timeframe (multi) | Giữ `topic=news`, đổi `timeframe` week → month | `lookup(topic=news, timeframe=month)` |  |
 
 ### B4. Live Chat Evidence
 
