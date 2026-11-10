@@ -8,7 +8,7 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm:team3nguoi
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
 - Provider/model dùng cho v0–v3: OpenRouter · `openai/gpt-4o-mini` (mặc định của provider)
 
@@ -22,7 +22,7 @@
 
 ```bash
 cd starter_v0
-pip install -r requirements.txt      # đã thêm streamlit
+pip install -r requirements.txt
 streamlit run app.py                 # http://localhost:8501
 cloudflared tunnel --url http://localhost:8501   # lấy link public
 ```
@@ -37,72 +37,77 @@ UI (`starter_v0/app.py`) dùng chung vòng lặp tool với `chat.py`, hiện đ
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | Hỏi lại người dùng khi thiếu thông tin (tài khoản, URL) hoặc xin xác nhận yes/no trước khi gửi | không |
-| timeline | Lấy các bài đăng gần đây của **một tài khoản X** (handle không có `@`, vd `sama`, `karpathy`) | không |
-| social_search | Tìm bài đăng X theo **từ khóa**, sắp xếp `Latest` (mới nhất) hoặc `Top` (nổi bật) | không |
-| lookup | Tìm trên web qua Tavily; `topic=news` cho tin tức, `timeframe` = day/week/month/year | không |
-| fetch | Đọc nội dung một URL cụ thể (Firecrawl) để tóm tắt | không |
-| format | Trình bày các kết quả đã thu thập thành digest markdown (brief/sections/bullets/thread) | không |
-| send | Gửi văn bản lên Telegram channel riêng của nhóm, **chỉ khi `confirmed=true`** | không |
-| policy | Tra cứu company policy nội bộ (nguồn, trích dẫn, bảo mật dữ liệu, xuất bản) | không |
-| papers | Tìm paper trên arXiv | không |
-| paper_text | Tải PDF arXiv và trích text vài trang đầu | không |
-| _&lt;tool mới&gt;_ | _&lt;Thành viên 2 điền: làm gì, khi nào agent gọi&gt;_ | **có** |
+| clarify | Hỏi lại khi thiếu thông tin hoặc xin xác nhận yes/no trước khi gửi | không |
+| timeline | Lấy bài đăng gần đây của một tài khoản X (handle không có `@`) | không |
+| social_search | Tìm bài đăng X theo từ khóa (`Latest` / `Top`) | không |
+| lookup | Tìm trên web (Tavily); `topic=news`, `timeframe` | không |
+| fetch | Đọc nội dung một URL (Firecrawl) | không |
+| format | Gom kết quả thành digest markdown | không |
+| send | Gửi văn bản lên Telegram, chỉ khi `confirmed=true` | không |
+| policy | Tra cứu policy nội bộ | không |
+| papers | Tìm paper arXiv | không |
+| paper_text | Tải PDF arXiv và trích text | không |
+| research_deduplicate | Loại các kết quả trùng URL (chuẩn hóa URL) trong danh sách kết quả đã có | **có** |
 
 ### A3. Câu hỏi mẫu để thử
 
 1. `Tin tức AI hôm nay có gì nổi bật?` → `lookup(topic=news, timeframe=day)`
 2. `Lấy 5 tweet mới nhất của Andrej Karpathy` → `timeline(screenname=karpathy, limit=5)`
-3. `Tóm tắt bài này giúp mình` → agent **hỏi lại** link nào; trả lời bằng một URL → `fetch`
+3. `Tóm tắt bài này giúp mình` → agent hỏi lại link; trả lời bằng URL → `fetch`
 4. `Tìm paper arXiv mới về AI agent evaluation` → `papers`
-5. `Đăng bản tin này lên Telegram giúp mình` → agent **xin xác nhận** trước, không gửi ngay
-6. _&lt;câu hỏi dùng tool mới của nhóm&gt;_
+5. `Đăng bản tin này lên Telegram giúp mình` → agent xin xác nhận trước, không gửi ngay
+
 
 ## 3. Giải pháp
 
-> Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
-
--
+- **`system_prompt.md` (giữ ở bản v1):** bỏ các chỉ dẫn xấu của starter ("đừng hỏi, cứ đoán", "gửi luôn", "chỉ một bước"); thay bằng: thiếu thông tin thì gọi `clarify`; gửi phải xác nhận; không gọi tool khi không cần.
+- **`tools.yaml` (v2 → v4):** viết lại mô tả mỗi tool theo dạng "dùng khi nào / không dùng khi nào"; ghi rõ quy ước tham số (handle không có `@`, `topic=news`, `timeframe`, `search_type=Top|Latest`); làm rõ ranh giới xác nhận của `send` (hỏi `clarify` yes_no trước, `confirmed=true` chỉ sau khi người dùng đồng ý); mapping tên → handle (vd Yann LeCun → `ylecun`); `clarify.response_type` là bắt buộc.
+- **Tool mới `research_deduplicate`:** nhận danh sách kết quả, loại bỏ trùng theo URL đã chuẩn hóa, giữ bản đầu tiên, giữ item không có URL, không sửa danh sách đầu vào, trả error dict khi dữ liệu sai kiểu. Agent nên gọi khi đã có nhiều kết quả từ `lookup`/`social_search`/`fetch` và cần gộp bài trùng.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
 ### B1. Version Evidence
 
-Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. Chỉ dùng run có `provider_error_cases == 0` và `measured_cases == total_cases`.
+Metric là `case_accuracy` trên bộ `eval_base` (20 case). Tất cả run có `provider_error_cases == 0` và `measured_cases == total_cases`.
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo hành vi trước khi sửa | – | 0.70 | `runs/v0_B_base_openrouter_20261110T182631564136.json` |
+| v1 | system_prompt.md | Bỏ chỉ dẫn xấu, thêm "thiếu thì clarify", "gửi phải xác nhận" | 0.70 | 0.80 | `runs/v1_B_base_openrouter_20261110T184106278929.json` |
+| v2a (loại) | system_prompt.md | Thêm rule routing vào prompt | 0.80 | 0.75 | `runs/v2_B_base_openrouter_20261110T184722003498.json` |
+| v2 | tools.yaml | Mô tả tool rõ "dùng/không dùng" + quy ước tham số, prompt về v1 | 0.80 | 0.90 | `runs/v2_B_base_openrouter_20261110T185151086231.json` |
+| v3 | tools.yaml | Thêm tool `research_deduplicate` | 0.90 | 0.90 | `runs/v3_B_base_openrouter_20261110T185727578233.json` |
+| v4 | tools.yaml | Làm rõ ranh giới xác nhận, mapping tên → handle, `response_type` bắt buộc | 0.90 | 0.95 | `runs/v4_B_base_openrouter_20261110T192002429743.json` |
+| v5 (loại) | system_prompt.md | Rule xác nhận mạnh hơn trong prompt | 0.95 | 0.85 | `runs/v5_B_base_openrouter_20261110T192201652942.json` |
+
+Kết quả trên `eval_group` (10 case): v3 = 0.80 (`runs/v3_B_group_openrouter_20261110T185805644931.json`), v4 = 0.90 (`runs/v4_B_group_openrouter_20261110T192038241104.json`), v5 = 0.80 (`runs/v5_B_group_openrouter_20261110T192220185840.json`).
+
 
 ### B2. Failure Analysis
 
-Lấy từ `results[*].result.failures` trong run JSON.
-
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R08_out_of_scope | out_of_scope | `send` | Gọi `send` dù không cần tool | v1: bỏ "just go ahead" → pass |
+| R14_out_of_scope_coding | out_of_scope | `send` | Gọi `send` cho câu hỏi lập trình | v1 → pass |
+| R10_missing_handle | missing_info | `timeline` | Đoán handle thay vì hỏi lại | v2: mô tả tool + `clarify` → pass |
+| R11_missing_url | missing_info | `fetch` | Đoán URL thay vì hỏi lại | v2 → pass |
+| R12_confirm_before_send | wrong_boundary | `send` | Gửi ngay không xin xác nhận | v1/v2 chuyển sang `clarify`, nhưng v4 vẫn đặt `response_type=text` thay vì `yes_no` → **chưa pass** |
+| R13_parallel_web_and_tweets | wrong_tool | `lookup` + `social_search` | Sai args: `query="AI news"`, thiếu `topic=news` | v1/v2 → pass |
 
 ### B3. Team Eval Cases
 
-Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
-
-> Cột Result sinh tự động sau khi chạy `--suite group`: `python scripts/report_tables.py --only B3` (chạy trong `starter_v0/`).
-
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-| G01_timeline_name_to_handle_limit (single) | Map "Yann LeCun" → handle `ylecun`, giữ `limit=3`; "trên X" → timeline | `timeline(screenname=ylecun, limit=3)` |  |
-| G02_news_timeframe_month (single) | "tin tức … tháng này" → `topic=news`, `timeframe=month` | `lookup(topic=news, timeframe=month)` |  |
-| G03_smalltalk_no_tool (single) | Câu cảm ơn/kết thúc không cần tool | no tool (answer) |  |
-| G04_out_of_scope_booking (single) | Đặt vé máy bay là ngoài phạm vi research | no tool (refuse) |  |
-| G05_route_new_tool (single) | Route tới tool mới của nhóm _(đang tạm dùng `papers`, thay khi tool mới được merge)_ | `papers(max_results=3, sort_by=submittedDate)` |  |
-| G06_clarify_then_handle (multi) | Lượt 1 thiếu tài khoản, lượt 2 bổ sung "Demis Hassabis" | `timeline(screenname=demishassabis)` |  |
-| G07_send_needs_confirmation (multi) | "Gửi luôn" khi chưa duyệt nội dung → vẫn phải xác nhận | `clarify(response_type=yes_no)` |  |
-| G08_send_after_explicit_confirm (multi) | User đã xác nhận rõ → gửi, không hỏi lại vô hạn | `send(confirmed=true)` |  |
-| G09_switch_social_to_papers (multi) | Đổi nguồn từ Twitter sang arXiv ở lượt sau | `papers` |  |
-| G10_carryover_change_timeframe (multi) | Giữ `topic=news`, đổi `timeframe` week → month | `lookup(topic=news, timeframe=month)` |  |
+| G01_timeline_name_to_handle_limit (single) | "Yann LeCun" → `ylecun`, `limit=3` | `timeline(screenname=ylecun, limit=3)` | PASS |
+| G02_news_timeframe_month (single) | tin tức tháng này → `topic=news`, `timeframe=month` | `lookup(topic=news, timeframe=month)` | PASS |
+| G03_smalltalk_no_tool (single) | Câu cảm ơn không cần tool | no tool | PASS |
+| G04_out_of_scope_booking (single) | Đặt vé ngoài phạm vi | no tool (refuse) | PASS |
+| G05_route_new_tool (single) | **[TODO]** hiện dùng `papers`; cần đổi sang tool mới | `papers(max_results=3, sort_by=submittedDate)` | PASS (chưa kiểm tra tool mới) |
+| G06_clarify_then_handle (multi) | Lượt 1 thiếu tài khoản, lượt 2 bổ sung tên | `timeline(screenname=demishassabis)` | PASS |
+| G07_send_needs_confirmation (multi) | "Gửi luôn" khi chưa duyệt → vẫn xác nhận | `clarify(response_type=yes_no)` | PASS |
+| G08_send_after_explicit_confirm (multi) | User đã xác nhận rõ → gửi | `send(confirmed=true)` | **FAIL** (agent gọi `clarify` thêm lần nữa thay vì `send`) |
+| G09_switch_social_to_papers (multi) | Đổi nguồn ở lượt sau | `papers` | PASS |
+| G10_carryover_change_timeframe (multi) | Giữ `topic=news`, đổi `timeframe` | `lookup(topic=news, timeframe=month)` | PASS |
 
 ### B4. Live Chat Evidence
 
@@ -116,9 +121,12 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| Tool mới `research_deduplicate` | `starter_v0/tools/research_deduplicate/tool.py`, `TOOL.md` | Loại trùng URL chuẩn hóa, giữ thứ tự, không sửa đầu vào | Trả error dict khi `items` không phải list hoặc `url` không phải chuỗi |
+| Unit test tool mới | `starter_v0/tests/test_tools_todo.py` — `pytest`: 70 passed, 14 skipped, 0 failed | 3 test: happy path, input sai kiểu, URL không phải chuỗi | 14 skip còn lại là stub của tool có sẵn |
+| UI | `starter_v0/app.py` | Streamlit dùng chung vòng lặp tool với `chat.py` | **[TODO]** link dùng thử |
+
+Tool unit tests: 3 test cho tool mới; ví dụ lỗi unit test bắt được mà eval không bắt: `item["url"] = 123` phải trả `{"error": "TypeError"}` (đầu vào model không bao giờ gửi qua eval).
+
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
 
@@ -163,9 +171,12 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 ## 5. Khó khăn và cách xử lý
 
-> Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
+- **Python 3.15 không cài được PyYAML** (không có wheel, cần build tools). Cài thêm Python 3.12 và dùng bản này cho mọi lệnh.
+- **Thêm rule routing vào prompt làm giảm điểm (v2a: 0.80 → 0.75):** model hỏi lại quá mức (R01, M06). Chuyển rule sang mô tả tool (v2) thì tăng lên 0.90.
+- **Mô tả tool tự mâu thuẫn:** bản v2 vừa ghi "không dùng `clarify` để xin xác nhận" vừa ghi "dùng yes_no cho việc đó"; sửa ở v4.
+- **Kết quả không ổn định giữa các lần chạy** với cùng cấu hình (một case có thể pass rồi fail), nên chênh 0.05 chỉ là 1 case.
+- **v5 (rule xác nhận mạnh hơn trong prompt) làm kết quả xấu hơn** (base 0.85, group 0.80), nên hoàn lại prompt v1.
 
--
 
 ## 6. Tổng hợp đóng góp
 
@@ -173,11 +184,13 @@ Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEA
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
-- Fix nào thuộc `system_prompt.md`?
-- Fix nào thuộc `tools.yaml`?
-- Failure nào cần review thủ công thay vì chấm tự động?
-- Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?
+- **Fix thuộc `system_prompt.md`:** bỏ chỉ dẫn xấu của starter (đoán thay vì hỏi, gửi không cần xác nhận, ép một bước) — v1 tăng 0.70 → 0.80.
+- **Fix thuộc `tools.yaml`:** mô tả "dùng/không dùng", quy ước tham số, mapping tên → handle, ranh giới xác nhận — v2 và v4 tăng 0.80 → 0.90 → 0.95.
+- **Failure cần review thủ công:** R12 (base) và G08 (group). R12 kỳ vọng `response_type=yes_no` nhưng model hỏi "bạn muốn đăng nội dung nào?" bằng `text`, điều này hợp lý khi chưa có nội dung. G08 cho thấy agent hỏi thêm một lần dù người dùng đã xác nhận.
+- **Nếu có thêm một vòng:** chạy lặp R12 và G08 nhiều lần để đo độ dao động; sửa G05 để route tới `research_deduplicate`; thử làm rõ trong mô tả `send` khi nào câu trả lời của người dùng được coi là đã xác nhận.
+
 
 ## 8. Tài liệu tham khảo
 
--
+- `starter_v0/artifacts/version_log.csv`, `starter_v0/runs/*.json`, `starter_v0/tests/test_tools_todo.py`
+- [RUBRIC.md](../../RUBRIC.md), [CHECKPOINTS.md](../../CHECKPOINTS.md)
