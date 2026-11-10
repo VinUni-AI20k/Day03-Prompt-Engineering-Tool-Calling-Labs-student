@@ -2,6 +2,265 @@
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_topic_radar_monthly_robotics",
+      "phase": "B",
+      "query": "Compare news coverage and public discussion on X about robotics from the past month. Return up to 4 news results and 4 posts. Do not scrape or enrich article pages.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "topic_radar",
+            "args": {
+              "query": "robotics",
+              "timeframe": "month",
+              "limit": 4,
+              "include_social": true,
+              "enrich_articles": false
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes a cross-platform news-and-X comparison to topic_radar, preserves the one-month window and per-source limit, and disables optional article extraction."
+      }
+    },
+    {
+      "id": "G02_evidence_finder_snippets",
+      "phase": "B",
+      "query": "Find evidence from 4 different websites for this claim: 'Urban tree cover can lower neighborhood surface temperatures during heat waves.' Return the most relevant passages, but use search snippets only and do not extract full pages.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "evidence_finder",
+            "args": {
+              "claim": "Urban tree cover can lower neighborhood surface temperatures during heat waves.",
+              "max_sources": 4,
+              "deep_read": false
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tests claim extraction, requested number of distinct-domain sources, and disabling deep page extraction."
+      }
+    },
+    {
+      "id": "G03_source_deduplicator_local",
+      "phase": "B",
+      "query": "Remove duplicate sources from this list before I prepare the report. Use only local URL and title comparison; do not fetch page contents or call extraction APIs. Results: (1) title 'Climate report 2026', URL https://example.com/climate-report?utm_source=mail; (2) title 'Climate report 2026', URL https://www.example.com/climate-report; (3) title 'Battery recycling policy', URL https://example.org/battery-policy.",
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "source_deduplicator",
+            "args": {
+              "verify_content": false
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes an already-collected source list to source_deduplicator and respects the user's explicit no-extraction/no-credit boundary. The evaluator checks verify_content but cannot compare the items array of objects."
+      }
+    },
+    {
+      "id": "G04_format_existing_sources_brief",
+      "phase": "B",
+      "query": "Turn these already-collected notes into a concise research brief titled 'AI Governance Brief'. Do not search for more information. Sources: (1) 'EU adopts new AI Act rules', https://example.com/ai-act, summary: 'The report describes obligations under the AI Act.' (2) 'New AI rules for providers', https://example.org/ai-rules, summary: 'The article explains compliance duties for providers.' (3) 'Research labs update safety practices', https://example.net/ai-safety, summary: 'The article describes updated safety processes.'",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "format",
+            "args": {
+              "template": "brief",
+              "headline": "AI Governance Brief"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Uses the local formatter on information already supplied by the user, choosing the brief template and preserving the requested headline instead of searching again."
+      }
+    },
+    {
+      "id": "G05_lookup_general_documentation",
+      "phase": "B",
+      "query": "Find authoritative general documentation explaining OAuth 2.0 authorization code flow with PKCE. I want technical references, not current news.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "OAuth 2.0 PKCE",
+              "topic": "general"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tests that a request for evergreen technical documentation uses general web lookup rather than a news search."
+      }
+    },
+    {
+      "id": "GM01_source_deduplicator_local_followup",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "I collected these results. Please remove duplicates: (1) title 'Climate report 2026', URL https://example.com/climate-report?utm_source=mail; (2) title 'Climate report 2026', URL https://www.example.com/climate-report; (3) title 'Battery recycling policy', URL https://example.org/battery-policy."
+        },
+        {
+          "role": "user",
+          "content": "Use only local URL/title comparison. Do not read page contents or call any extraction API."
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "source_deduplicator",
+            "args": {
+              "verify_content": false
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tests multi-turn retention of the supplied result list and obeying a follow-up restriction against paid content extraction. The evaluator checks verify_content but cannot compare the items array of objects."
+      }
+    },
+    {
+      "id": "GM02_topic_radar_carryover_weekly",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Compare news coverage and discussion on X about robotics."
+        },
+        {
+          "role": "user",
+          "content": "Use the last week, return 3 examples from each source, and do not enrich or scrape article pages."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "topic_radar",
+            "args": {
+              "query": "robotics",
+              "timeframe": "week",
+              "limit": 3,
+              "include_social": true,
+              "enrich_articles": false
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tests carrying the original topic into a follow-up while applying the requested timeframe, result limit, and no-enrichment setting."
+      }
+    },
+    {
+      "id": "GM03_evidence_finder_carryover_claim",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Find relevant evidence for this claim: Remote work can reduce commuter traffic congestion."
+        },
+        {
+          "role": "user",
+          "content": "Use up to 5 distinct websites, and use search snippets only rather than extracting full pages."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "evidence_finder",
+            "args": {
+              "claim": "Remote work can reduce commuter traffic congestion.",
+              "max_sources": 5,
+              "deep_read": false
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tests retention of the claim across turns and application of the follow-up source-count and shallow-read constraints."
+      }
+    },
+    {
+      "id": "GM04_format_bullets_followup",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "I already collected these sources for my report: (1) title 'AI safety evaluation update', URL https://example.com/safety, summary 'New evaluation methods are discussed.'; (2) title 'Model governance overview', URL https://example.org/governance, summary 'The source explains governance controls.'"
+        },
+        {
+          "role": "user",
+          "content": "Format those notes as bullet points under the headline 'AI Research Source Notes'. Do not run another search."
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "format",
+            "args": {
+              "template": "bullets",
+              "headline": "AI Research Source Notes"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tests retaining user-provided source material and selecting the bullets formatter with the follow-up headline, without performing another search."
+      }
+    },
+    {
+      "id": "GM05_paper_text_page_limit_correction",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Please extract the text from arXiv paper 2307.09288."
+        },
+        {
+          "role": "user",
+          "content": "Only extract the first 3 pages."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "paper_text",
+            "args": {
+              "arxiv_url": "2307.09288",
+              "max_pages": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tests retaining the arXiv identifier and applying a page-limit correction from the latest turn."
+      }
+    }
+  ]
 }
