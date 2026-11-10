@@ -66,14 +66,21 @@ Thông tin merge mới nhất được theo dõi trong file chung này.
 - [x] Bổ sung routing cho `timeline`, `social_search`, `lookup`, `fetch`, `format`, `source_check`.
 - [x] Chỉ cho phép `send` sau khi người dùng xác nhận rõ; khai báo `confirmed=true` tương ứng.
 - [x] Làm rõ convention args: handle không có `@`, `topic`, `timeframe`, `Top/Latest`.
-- [ ] Chạy `v1`, ghi giả thuyết, một thay đổi chính, metric và đường dẫn run.
-- [ ] Chạy `v2`, ghi bằng chứng tương ứng.
-- [ ] Chạy `v3`, ghi bằng chứng tương ứng.
-- [ ] Điền đủ `v0`–`v3` trong `artifacts/version_log.csv`; không tạo metric hoặc log giả.
-- [ ] Chạy lại test sau thay đổi YAML; bàn giao commit/PR prompt cho cả nhóm. **Chưa chạy được:** `.venv` thiếu `pytest` và `PyYAML`; pip bị chặn mạng (`WinError 10013`). Kiểm tra tĩnh `compileall` đã PASS.
+- [x] Chạy `v1`, ghi giả thuyết, một thay đổi chính, metric và đường dẫn run. Evidence: `runs/v1_B_base_openai_20261110T121418398315.json`; 18/20 PASS, accuracy 0.90, routing 0.95, arguments 0.90, multiturn 1.0; v0 0.65 → v1 0.90. Còn R12 boundary args và R13 thiếu `social_search`.
+- [x] Chạy `v2`, ghi bằng chứng tương ứng. Evidence: `runs/v2_B_base_openai_20261110T122124813813.json`; 18/20 PASS, accuracy 0.90; không cải thiện so với v1.
+- [x] Chạy `v3`, ghi bằng chứng tương ứng. Evidence: `runs/v3_B_base_openai_20261110T122544614376.json`; 17/19 measured PASS, accuracy 0.8947; 1 provider error do model.
+- [x] Điền đủ `v0`–`v3` trong `artifacts/version_log.csv`; không tạo metric hoặc log giả.
+- [ ] Chạy lại test sau thay đổi YAML; bàn giao commit/PR prompt cho cả nhóm. **Test đã đạt 122 passed, 0 failed, 0 skipped khi chạy lại; tài liệu bàn giao mới chưa commit/PR.**
 - [ ] Review REPORT B1/B2 và mô tả prompt/tool declaration sau khi Minh tổng hợp.
 
 Files chính: `starter_v0/artifacts/system_prompt.md`, `tools.yaml`, `version_log.csv`.
+Tiến độ mới nhất: đã kiểm chứng baseline Groq `v0_B_base_openai_20261110T114359700556.json`
+với snapshot starter (hai hash khớp), 13/20 PASS, 0 provider errors; đã ghi v0
+vào version log. Phân tích 7 case lỗi và review sơ bộ REPORT B1/B2 ở
+[TRONG_HANDOFF.md](starter_v0/artifacts/TRONG_HANDOFF.md).
+v1–v3 chưa đo: môi trường hiện thiếu SDK `openai`, `OPENAI_API_KEY` và endpoint
+Groq; thử cài SDK chưa thành công. Cần cấu hình trên máy chạy eval rồi đo v1
+với prompt hiện tại; chọn thay đổi v2/v3 từ log từng vòng.
 Nếu chưa có baseline trước khi thêm tool, ghi rõ bộ artifact thực tế dùng cho
 baseline mới; không gọi kết quả đó là phép đo của code cũ chưa từng chạy.
 
@@ -86,8 +93,8 @@ baseline mới; không gọi kết quả đó là phép đo của code cũ chưa
 - [x] Mỗi case có ID riêng, `phase=B`, `failure_type` hợp lệ, `expect`, `metadata.what_it_tests`. Đã kiểm tra offline bằng `load_cases` + `validate_expected_tools` của `run_eval.py`, và chấm thử với "đáp án lý tưởng": 10/10 PASS, không crash.
 - [x] Dựng `app.py`: ô nhập, nút gửi, kết quả và tool calls; cấu hình dependency UI nếu cần. Thêm `streamlit>=1.30.0` vào `requirements.txt`. Smoke test offline (`streamlit.testing`, fake provider): gọi tool, lỗi provider, nút câu hỏi mẫu đều đạt; `streamlit run app.py` health `ok`.
 - [ ] Hoàn thành REPORT phần A: khả năng, danh sách tool, câu hỏi mẫu và link dùng thử. **Đã điền Team, A1, A2 (11 tool), A3 (5 câu mẫu); còn thiếu link demo** (điền khi mở Cloudflare Tunnel).
-- [x] Nhận bản prompt/routing tích hợp từ Trọng; chạy group eval trên đúng artifact đã ghi nhận. Prompt PR #3 (`pr3+pc58791a20353+tb792b413ece1`), Groq `openai/gpt-oss-120b`: `runs/pr3_B_group_openai_20261110T115325390297.json`.
-- [x] Lưu run JSON thật và điền metric/report từ log, ghi rõ provider errors nếu có. 4 run Groq (v0/pr3 × base/group) trong `runs/`; REPORT B1, B2, B3, B6 (manual review) điền từ log; provider error G01/G02 ghi rõ nguyên nhân.
+- [ ] Nhận bản prompt/routing tích hợp từ Trọng; chạy group eval trên đúng artifact đã ghi nhận.
+- [ ] Lưu run JSON thật và điền metric/report từ log, ghi rõ provider errors nếu có.
 - [ ] Chạy ít nhất 3 lượt live: nghiên cứu bình thường, thiếu dữ liệu rồi bổ sung, yêu cầu gửi cần xác nhận.
 - [ ] Có transcript JSON thật; phối hợp với Tân kiểm tra args, với Trọng kiểm tra routing.
 - [x] UI chạy được bằng `streamlit run app.py`; ghi cách chạy/link demo vào report. Cách chạy đã ghi ở REPORT A1; link demo điền khi chạy tunnel.
@@ -115,12 +122,12 @@ Files chính: `starter_v0/data/eval_group.json`, `app.py`, `artifacts/REPORT.md`
 
 ## 6. Checklist chung trước khi chốt bài
 
-- [x] Cả ba thành viên xác nhận setup; provider preflight thành công trên môi trường chạy eval. Trọng đã xác nhận Gemini preflight PASS trên máy chạy eval.
+- [ ] Cả ba thành viên xác nhận setup; provider preflight thành công trên môi trường chạy eval. Đã có xác nhận Gemini của Trọng; chưa đủ xác nhận cả ba thành viên. Groq tại môi trường hiện tại của Trọng chưa cấu hình.
 - [ ] `main` chứa tool/test của Tân, prompt/routing của Trọng và eval/UI/report của Minh.
 - [ ] Bản tích hợp cuối chạy `pytest`: **0 failed, 0 skipped**; lưu output mới.
 - [ ] Contract khớp tên tool, function signature, YAML và `TOOL.md`.
 - [ ] Có run JSON thật cho `v0`, `v1`, `v2`, `v3` và đủ 4 dòng version log.
-- [ ] Group eval đủ 10 case, đúng tỷ lệ 5/5, có case tool mới và run JSON.
+- [x] Group eval đủ 10 case, đúng tỷ lệ 5/5, có case tool mới và run JSON. Evidence: `runs/v3_B_group_openai_20261110T122840577449.json`; 2 provider errors được ghi nhận.
 - [ ] Có transcript ít nhất 3 lượt live, thể hiện clarification và confirmation.
 - [ ] UI chạy được; có hướng dẫn chạy và link dùng thử theo yêu cầu bài lab.
 - [ ] REPORT phần A và B1–B6 hoàn chỉnh, đối chiếu được tới evidence.
