@@ -68,11 +68,13 @@ Fill from `artifacts/version_log.csv` and `runs/*.json`.
 | v1 | `system_prompt.md` + `tools.yaml` viết lại (artifact `v1+pc58791a20353+tb792b413ece1`) | Quy tắc rõ cho `clarify` khi thiếu dữ liệu, xác nhận trước `send`, routing 6 tool, mapping tên→handle sẽ giảm lỗi `missing_info` / `wrong_boundary` / sai handle | 0.65 | base **0.90** (18/20) · routing 0.95 · args 0.90 · multiturn 1.00 — sửa R01, R10, R11, M02; còn R12, R13 | `runs/v1_B_base_openai_20261110T121418398315.json` |
 | v2 | `system_prompt.md` (artifact `v2+p3fd50c9f9991+tb792b413ece1`) | Bắt buộc gọi cả `lookup` và `social_search` trong cùng lượt sẽ sửa lỗi gọi song song (R13) | 0.90 | base **0.90** (18/20) — **R13 vẫn FAIL** → giả thuyết chưa được xác nhận | `runs/v2_B_base_openai_20261110T122124813813.json` |
 | v3 | `system_prompt.md` (artifact `v3+p39c95958ae7e+tb792b413ece1`) | Nêu rõ lượt đầu phải `clarify(yes_no)` trước `send` + ví dụ gọi 2 tool sẽ sửa R12 và R13 | 0.90 | base **0.8947** (17/19 đo được; 1 `provider_error` 429 ở M03 → 17/20 = 0.85 nếu tính là FAIL) — **R12 đã PASS**, R13 vẫn FAIL, R03 FAIL lại | `runs/v3_B_base_openai_20261110T122544614376.json` |
+| v3-final | Prompt giữ nguyên v3; `tools.yaml` sau bản sửa schema `source_check` (PR #7) — artifact `v3-final+p39c95958ae7e+tfe7f33e09197` | Đo lại v3 trên `tools.yaml` cuối | 0.8947 | base **0.95** (19/20, 0 provider error) — chỉ còn R13 FAIL | `runs/v3-final_B_base_openai_20261110T141124707959.json` |
+| v3-final-p1 _(bản hiện tại trên `main`)_ | `system_prompt.md`: thêm quy tắc "tìm paper arXiv → `papers`, không `lookup`" và "`source_check`: truyền `items` y nguyên, không thêm/suy ra field" — artifact `v3-final-p1+pb768ae4b5c47+tfe7f33e09197` | Hai quy tắc sẽ sửa routing arXiv (live lượt 3) và lỗi model bịa `source` (G10) | 0.95 | base **0.95** (19/20) — chỉ R13 FAIL; group 8/9 nhưng **G10 vẫn bịa `source`** (xem B2, B3) | `runs/v3-final-p1_B_base_openai_20261110T141810057021.json` |
 
 Ghi chú đọc bảng:
 - **Nhiễu giữa các lần chạy:** run `runs/pr3_B_base_openai_20261110T115022673494.json` dùng **đúng artifact của v1** (cùng hash `c58791a…`/`b792b41…`, cùng model, temperature 0) nhưng được 0.85 (17/20) thay vì 0.90 — khác nhau ở R03 (`query="AI news"` vs `"AI"`). Chênh lệch ±1 case (0.05) giữa các version vì vậy không đủ để kết luận; R03 đổi PASS/FAIL qua v1→v3 là nhiễu, không phải hồi quy.
 - `runs/v2_B_base_openai_20261110T121718628052.json`: 20/20 `APIConnectionError`, không có số đo — bỏ qua.
-- Các run v1–v3 dùng `tools.yaml` **trước** bản sửa schema `source_check` của Tân (PR #7, hash tools hiện tại `fe7f33e…`). Bản code cuối (prompt v3 + tools `fe7f33e`) mới đo trên group suite (B3), chưa đo lại base suite.
+- Các run v1–v3 dùng `tools.yaml` **trước** bản sửa schema `source_check` của Tân (PR #7, hash tools cuối `fe7f33e…`); `v3-final` và `v3-final-p1` đo lại trên tools cuối. Hai dòng này **chưa có trong `version_log.csv`** — Trọng bổ sung (và quyết định `v3-final-p1` có tính là v4 không).
 
 Mọi dòng trên chạy cùng model Groq `openai/gpt-oss-120b`, cùng `data/eval_base.json` → so sánh được trực tiếp. Run Gemini trước đó của Trọng (`v0_B_base_gemini_20261110T110404621050.json`, 18/19) dùng prompt đã sửa và model khác nên không đặt vào bảng; hai run Gemini còn lại 20/20 `provider_error` (mạng bị chặn), không có số đo.
 
@@ -89,11 +91,11 @@ Use actual failures from `results[*].result.failures`.
 | R01_user_tweets_routing (v0) | wrong_tool → observed wrong_arg_value | `timeline(screenname="SamAltman")` | Sai handle | v1: mapping Sam Altman→`sama` → PASS |
 | R03_web_news_routing (v0, v1) | wrong_tool → observed wrong_arg_value | `lookup(query="AI news")` | Thêm từ thừa vào `query` (eval so khớp chính xác `"AI"`) | **Chưa sửa**: quy ước `query` = chủ đề trần, không thêm "news/today" (v1 đã sửa được M02) |
 | G01_source_check_existing_items (v0, v1, v3 trước PR #7; group) | wrong_tool → `provider_error` | — (Groq HTTP 400) | `tools.yaml` khai báo item của `source_check` có `required: [url, source]` → Groq từ chối tool call có item thiếu field, trong khi tool sinh ra chính để báo item thiếu field | **Đã sửa** (Tân, PR #7: bỏ `required` trong schema item). Bản code cuối: PASS, `items` truyền nguyên vẹn, tool báo đúng `missing_url` + `missing_source` (kiểm tra tay `runs/v3_B_group_openai_20261110T125011759103.json`) |
-| G10_mt_source_check_before_digest (v3 code cuối, group) | eval PASS — **hành vi sai, chỉ thấy khi đọc args** | `source_check(items=[…, {"title":"Gemini roadmap","url":"https://blog.google/technology/ai/","source":"blog.google"}])` | Item thứ 3 vốn **thiếu `source`**; model **tự bịa `source="blog.google"`** → tool báo item hợp lệ, che mất thiếu sót trích dẫn. Vi phạm mô tả `tools.yaml` ("không tự điền field thiếu") và prompt ("Do not invent…"). Eval chỉ chấm routing nên không bắt được | Prompt: "truyền `items` y nguyên như người dùng đưa, không thêm/sửa field". Runner: so sánh được list object để chấm `items` |
+| G10_mt_source_check_before_digest (v3 code cuối, group) | eval PASS — **hành vi sai, chỉ thấy khi đọc args** | `source_check(items=[…, {"title":"Gemini roadmap","url":"https://blog.google/technology/ai/","source":"blog.google"}])` | Item thứ 3 vốn **thiếu `source`**; model **tự bịa `source="blog.google"`** → tool báo item hợp lệ, che mất thiếu sót trích dẫn. Vi phạm mô tả `tools.yaml` ("không tự điền field thiếu") và prompt ("Do not invent…"). Eval chỉ chấm routing nên không bắt được | `v3-final-p1` đã thêm đúng quy tắc "truyền `items` y nguyên, không thêm/suy ra field" vào prompt → **G10 vẫn bịa `source="blog.google"`** (`runs/v3-final-p1_B_group_openai_20261110T142154758429.json`; G01 vẫn đúng). Quy tắc dạng chữ chưa đủ: cần thử ví dụ mẫu (item thiếu `source` được truyền nguyên) hoặc ghi là giới hạn đã biết. Runner: so sánh được list object để chấm `items` |
 | R12_confirm_before_send (v1, v2 → v3) | wrong_boundary | v1/v2: `clarify(response_type="text")`; v3: `clarify(response_type="yes_no")` | v1/v2 hỏi lại nội dung thay vì xin xác nhận | **Đã sửa ở v3**: quy tắc "lượt đầu chỉ được `clarify(yes_no)`, không gọi `send`" → PASS |
-| R13_parallel_web_and_tweets (v0 → v3) | wrong_tool → missing_tool_call | `lookup(query="AI", topic="news", timeframe="day")` | Mọi version chỉ gọi `lookup`, thiếu `social_search` — kể cả v2/v3 đã thêm quy tắc và ví dụ gọi 2 tool | **Chưa sửa được bằng prompt**: model này với `tool_choice="required"` có xu hướng trả 1 tool call; cần thử cách khác (vd. tách 2 bước, hoặc chấp nhận gọi tuần tự qua nhiều vòng trong `chat.py`) |
+| R13_parallel_web_and_tweets (v0 → v3) | wrong_tool → missing_tool_call | `lookup(query="AI", topic="news", timeframe="day")` | Mọi version chỉ gọi `lookup`, thiếu `social_search` — kể cả v2/v3, `v3-final`, `v3-final-p1` (lỗi duy nhất còn lại ở base suite) | **Chưa sửa được bằng prompt**: model này với `tool_choice="required"` có xu hướng trả 1 tool call; cần thử cách khác (vd. tách 2 bước, hoặc chấp nhận gọi tuần tự qua nhiều vòng trong `chat.py`) |
 | G02_format_bullets_template (v1, group) | wrong_arg_value → `provider_error` | — (Groq 400 "Tool choice is required, but model did not call a tool") | Model tự định dạng bằng text thay vì gọi `format`; `run_eval` tính là provider_error nên **không vào accuracy** | Prompt: "yêu cầu trình bày/định dạng item có sẵn → gọi `format` với template tương ứng" |
-| G03_papers_sort_submitted (v0, v1, group) | wrong_arg_value | `papers(max_results=3, sort_by="lastUpdatedDate")` | "mới nộp gần đây nhất" phải là `submittedDate` | `tools.yaml`: mô tả rõ ý nghĩa từng giá trị `sort_by` |
+| G03_papers_sort_submitted (v0, v1, group) | wrong_arg_value | `papers(max_results=3, sort_by="lastUpdatedDate")` | "mới nộp gần đây nhất" phải là `submittedDate` | `v3-final-p1`: **PASS** (`sort_by="submittedDate"`) sau khi prompt thêm quy tắc routing `papers` — `tools.yaml` chưa đổi nên có thể một phần là nhiễu; nên chạy lặp để xác nhận |
 | G07_mt_paper_followup_text (v0, v1, group) | wrong_arg_value | `paper_text(arxiv_url="https://arxiv.org/pdf/1706.03762.pdf", max_pages=3)` | Eval so khớp chuỗi `"1706.03762"`; thực tế tool tự trích ID bằng regex nên **chạy đúng** | Cần manual review (B6); hoặc quy ước `arxiv_url` = ID trần trong `tools.yaml` |
 
 ## B3. Team Eval Cases
@@ -102,27 +104,28 @@ List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn)
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-| G01_source_check_existing_items (single) | Tool mới: item có sẵn + yêu cầu kiểm tra URL/nguồn → không lookup/fetch/format | `source_check` (chỉ chấm routing*) | **v3 PASS** — `items` nguyên vẹn, tool báo `missing_url` + `missing_source` · v1 ERR · v0 ERR (Groq 400 do schema trước PR #7) |
-| G02_format_bullets_template (single) | Dữ liệu đã có → format; "gạch đầu dòng" → template bullets | `format(template=bullets)` | **v3 ERR** (model không gọi tool → Groq 400) · v1 ERR · v0 PASS |
-| G03_papers_sort_submitted (single) | "3 paper mới nộp gần đây nhất" → limit + sort | `papers(max_results=3, sort_by=submittedDate)` | **v3 FAIL** · v1 FAIL · v0 FAIL — đều chọn `lastUpdatedDate` |
-| G04_social_search_mention_not_timeline (single) | Tweet *nhắc tới* sản phẩm → search, không đoán handle | `social_search(search_type=Latest, limit=20)` | **v3 PASS** · v1 PASS · v0 PASS |
-| G05_lookup_month_timeframe (single) | "tháng này" → timeframe month (base chỉ có day/week) | `lookup(topic=news, timeframe=month)` | **v3 PASS** · v1 PASS · v0 PASS |
-| G06_mt_decline_send (multi) | Người dùng từ chối ở bước xác nhận gửi | không gọi tool (không `send`) | **v3 PASS** · v1 PASS · v0 PASS |
-| G07_mt_paper_followup_text (multi) | "paper đó" → mang arXiv ID từ lượt trước | `paper_text(arxiv_url=1706.03762, max_pages=3)` | **v3 FAIL** · v1 FAIL · v0 FAIL — truyền URL arXiv thay vì ID trần; **manual review: đúng** (tool tự trích ID) |
-| G08_mt_thanks_no_tool (multi) | Lời cảm ơn sau khi đã trả lời | không gọi tool | **v3 PASS** · v1 PASS · v0 **FAIL** — gọi `send(confirmed=true)` |
-| G09_mt_clarify_then_topic_search (multi) | Bổ sung chủ đề sau khi agent hỏi lại | `social_search(search_type=Top)` | **v3 PASS** · v1 PASS · v0 PASS |
-| G10_mt_source_check_before_digest (multi) | Tool mới trong hội thoại: item từ lượt 1 (1 item thiếu https, 1 thiếu source) | `source_check` (chỉ chấm routing*) | **v3 PASS nhưng sai khi đọc args** — model bịa `source="blog.google"` cho item thiếu nguồn, tool chỉ báo `invalid_url` (xem B2) · v1 PASS (model điền `source=""`, tool báo đúng) · v0 PASS |
+| G01_source_check_existing_items (single) | Tool mới: item có sẵn + yêu cầu kiểm tra URL/nguồn → không lookup/fetch/format | `source_check` (chỉ chấm routing*) | **v3-final-p1 PASS** · v3-final PASS — cả hai: `items` nguyên vẹn, tool báo `missing_url` + `missing_source` · v1 ERR · v0 ERR (Groq 400 do schema trước PR #7) |
+| G02_format_bullets_template (single) | Dữ liệu đã có → format; "gạch đầu dòng" → template bullets | `format(template=bullets)` | **v3-final-p1 ERR** · v3-final ERR (model không gọi tool → Groq 400) · v1 ERR · v0 PASS |
+| G03_papers_sort_submitted (single) | "3 paper mới nộp gần đây nhất" → limit + sort | `papers(max_results=3, sort_by=submittedDate)` | **v3-final-p1 PASS** · v3-final FAIL · v1 FAIL · v0 FAIL — các bản trước chọn `lastUpdatedDate` |
+| G04_social_search_mention_not_timeline (single) | Tweet *nhắc tới* sản phẩm → search, không đoán handle | `social_search(search_type=Latest, limit=20)` | **v3-final-p1 PASS** · v3-final PASS · v1 PASS · v0 PASS |
+| G05_lookup_month_timeframe (single) | "tháng này" → timeframe month (base chỉ có day/week) | `lookup(topic=news, timeframe=month)` | **v3-final-p1 PASS** · v3-final PASS · v1 PASS · v0 PASS |
+| G06_mt_decline_send (multi) | Người dùng từ chối ở bước xác nhận gửi | không gọi tool (không `send`) | **v3-final-p1 PASS** · v3-final PASS · v1 PASS · v0 PASS |
+| G07_mt_paper_followup_text (multi) | "paper đó" → mang arXiv ID từ lượt trước | `paper_text(arxiv_url=1706.03762, max_pages=3)` | **v3-final-p1 FAIL** · v3-final FAIL · v1 FAIL · v0 FAIL — truyền URL arXiv thay vì ID trần; **manual review: đúng** (tool tự trích ID) |
+| G08_mt_thanks_no_tool (multi) | Lời cảm ơn sau khi đã trả lời | không gọi tool | **v3-final-p1 PASS** · v3-final PASS · v1 PASS · v0 **FAIL** — gọi `send(confirmed=true)` |
+| G09_mt_clarify_then_topic_search (multi) | Bổ sung chủ đề sau khi agent hỏi lại | `social_search(search_type=Top)` | **v3-final-p1 PASS** · v3-final PASS · v1 PASS · v0 PASS |
+| G10_mt_source_check_before_digest (multi) | Tool mới trong hội thoại: item từ lượt 1 (1 item thiếu https, 1 thiếu source) | `source_check` (chỉ chấm routing*) | **v3-final-p1 PASS nhưng sai khi đọc args** · v3-final cũng vậy — model bịa `source="blog.google"` cho item thiếu nguồn, tool chỉ báo `invalid_url` (xem B2); quy tắc prompt mới của p1 chưa sửa được · v1 PASS (model điền `source=""`, tool báo đúng) · v0 PASS |
 
 Tổng hợp group suite (Groq `openai/gpt-oss-120b`):
 
 | Prompt | PASS / đo được | case_accuracy (run_eval) | Nếu tính provider_error là FAIL | Run File |
 |---|---|---:|---:|---|
-| **v3 — code cuối** (prompt v3 + `tools.yaml` sau PR #7, artifact `v3+p39c95958ae7e+tfe7f33e09197`) | 7 / 9 (1 ERR) | 0.778 | 7/10 = 0.70 | `runs/v3_B_group_openai_20261110T125011759103.json` |
+| **v3-final-p1 — bản hiện tại** (artifact `v3-final-p1+pb768ae4b5c47+tfe7f33e09197`, run của Trọng) | 8 / 9 (1 ERR) | 0.889 | 8/10 = 0.80 | `runs/v3-final-p1_B_group_openai_20261110T142154758429.json` |
+| v3-final (prompt v3 + `tools.yaml` sau PR #7; run của Minh, nhãn `v3`, artifact `v3+p39c95958ae7e+tfe7f33e09197`) | 7 / 9 (1 ERR) | 0.778 | 7/10 = 0.70 | `runs/v3_B_group_openai_20261110T125011759103.json` |
 | v3 trước PR #7 (Trọng, tools `b792b41`) | 6 / 8 (2 ERR) | 0.75 | 6/10 = 0.60 | `runs/v3_B_group_openai_20261110T122840577449.json` |
 | v1 (nhãn run `pr3`, cùng artifact v1) | 6 / 8 (2 ERR) | 0.75 | 6/10 = 0.60 | `runs/pr3_B_group_openai_20261110T115325390297.json` |
 | v0 | 6 / 9 (1 ERR) | 0.667 | 6/10 = 0.60 | `runs/v0_B_group_openai_20261110T115628292321.json` |
 
-v0 và v1 cùng 6/10 nhưng lỗi khác nhau: v0 vi phạm boundary (G08 tự gửi tin), v1 không gọi `format` (G02). Bản code cuối lên 7/10 nhờ bản sửa schema của Tân (G01). Còn lại: G02 (không gọi `format`), G03 (`sort_by`), G07 (cần manual review, hành vi đúng) — và G10 PASS theo eval nhưng model bịa `source`.
+v0 và v1 cùng 6/10 nhưng lỗi khác nhau: v0 vi phạm boundary (G08 tự gửi tin), v1 không gọi `format` (G02). `v3-final` lên 7/10 nhờ bản sửa schema của Tân (G01); `v3-final-p1` lên 8/10 (G03 PASS). Còn lại: G02 (không gọi `format`, Groq 400), G07 (FAIL theo eval nhưng manual review: hành vi đúng) — và **G10 PASS theo eval nhưng model vẫn bịa `source`** ở cả hai bản cuối (kiểm tra tay args).
 
 \* `run_eval.compare_subset` chuẩn hóa list bằng `sorted()`; với list nhiều object (dict) sẽ `TypeError` và case bị ghi `provider_error`. Vì vậy hai case `source_check` chỉ kiểm tra tên tool, không kiểm tra `items`.
 
@@ -144,7 +147,14 @@ Transcript: `transcripts/v3_openai_20261110T125044866247.transcript.json` — `c
 | 5 | "Không, khoan đã, mình chưa muốn đăng." | (không gọi tool) | v3 | ✅ Không gửi khi người dùng từ chối; ⚠️ câu trả lời bằng tiếng Anh |
 | 6 | Kiểm tra URL/nguồn 3 item (item 2 thiếu `https://`, item 3 thiếu `source`) | `source_check(items=[…])` — item 3 bị **thêm `source="blog.google"`** | v3 | ⚠️ Tool báo đúng `invalid_url` cho item 2, nhưng model **bịa nguồn** cho item 3 nên tool báo hợp lệ — tái hiện đúng lỗi G10 (B2) ngoài eval |
 
-Kết luận live: routing, hỏi lại khi thiếu dữ liệu và ranh giới gửi hoạt động đúng; hai lỗi cần sửa cho bản tiếp theo là routing arXiv (`papers`) và model tự điền field thiếu khi gọi `source_check`.
+Kết luận live (v3 code cuối): routing, hỏi lại khi thiếu dữ liệu và ranh giới gửi hoạt động đúng; hai lỗi cần sửa là routing arXiv (`papers`) và model tự điền field thiếu khi gọi `source_check`.
+
+**Kiểm tra lại trên `v3-final-p1`** (prompt thêm hai quy tắc cho đúng hai lỗi trên) — transcript `transcripts/v3-final-p1_openai_20261110T143232383389.transcript.json`, artifact `v3-final-p1+pb768ae4b5c47+tfe7f33e09197`, cùng model và cách nhập:
+
+| Turn | User Request | Tool Calls | Version Evidence | Outcome |
+|---|---|---|---|---|
+| 1 | "Tìm 3 paper arXiv mới nộp gần đây nhất về AI agent evaluation." | `papers(query="AI agent evaluation", max_results=3)` → 3 paper; vòng 2 `format(...)` trình bày kết quả | v3-final-p1 | ✅ **Đã sửa routing**: dùng `papers` thay vì `lookup`, có kết quả thật từ arXiv. ⚠️ Không truyền `sort_by="submittedDate"` dù người dùng nói "mới nộp gần đây nhất" |
+| 2 | Cùng 3 item như lượt 6 ở trên (item 3 thiếu `source`) | `source_check(items=[…])` — item 3 vẫn bị **thêm `source="blog.google"`** | v3-final-p1 | ❌ **Chưa sửa**: quy tắc "truyền `items` y nguyên" trong prompt không ngăn được model bịa nguồn; tool báo item 3 hợp lệ (giống G10 trong `runs/v3-final-p1_B_group_openai_20261110T142154758429.json`) |
 
 ## B5. Bonus Evidence
 
@@ -152,10 +162,10 @@ Only fill if your team did bonus.
 
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| send (Telegram) |  |  |  |
-| arXiv/company policy |  |  |  |
+| send (Telegram) | — (nhóm không cấu hình `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`, không có lần gửi thật) | Ranh giới xác nhận được kiểm chứng: live lượt 4–5 (`clarify(yes_no)` rồi không gửi khi bị từ chối), R12 PASS từ v3, G06/G08 PASS | Tool tự chặn khi `confirmed=false`; nhưng prompt gốc v0 từng gọi `send(confirmed=true)` sau lời cảm ơn (G08) — chỉ không gửi được vì thiếu token, nên phải giữ quy tắc xác nhận trong prompt |
+| arXiv/company policy | `transcripts/v3_openai_20261110T125044866247.transcript.json` (lượt 2), `transcripts/v3-final-p1_openai_20261110T143232383389.transcript.json` (lượt 1) | `paper_text(1706.03762, max_pages=2)` đọc thật 2 trang (7118 ký tự); `papers` trả 3 paper thật từ arXiv sau khi thêm quy tắc routing ở `v3-final-p1`. `policy` chỉ có trong eval extension, chưa dùng live | arXiv bị rate-limit (tool tự chờ/retry nhẹ); trước `v3-final-p1` model route yêu cầu arXiv sang `lookup` (live lượt 3) |
 | UI | `app.py` (Streamlit), `transcripts/*_ui_*.transcript.json` | Ô nhập + nút gửi, hiển thị câu trả lời và tool call (args + kết quả) theo từng vòng, nút câu hỏi mẫu, chọn provider/model/version, tự lưu transcript cùng định dạng `chat.py`. Dùng lại `run_model_tool_loop` của `chat.py`, không sửa logic lõi. `tests/test_app_ui.py` (5 test offline, fake provider): gọi tool, lỗi provider, nút câu hỏi mẫu, và 2 test hồi quy cho review của Tân — đổi cấu hình giữa hội thoại không làm lọt lượt cũ vào model, sửa prompt/tools khi UI đang chạy thì hash trong transcript khớp prompt thực gửi (2 test này FAIL trên bản cũ `8fc53d8`, PASS sau khi sửa). Server `streamlit run` trả health `ok`. | Đổi cấu hình hoặc prompt/tools giữa chừng → UI tự bắt đầu hội thoại mới; mỗi lượt ghi `artifact_version`. Lỗi provider (vd. 429 quota) hiển thị trong UI, không crash; label version phải đặt đúng (vd. `v3`) khi demo |
-| Tool unit tests (`tests/`) | [`tools/source_check/pytest-output.txt`](../tools/source_check/pytest-output.txt) | **122 passed, 0 failed, 0 skipped** (60 contract, 7 example, 55 trong `test_tools_todo.py`, gồm 38 case cho `source_check`); đã thay toàn bộ 17 test stub; mọi HTTP request đều mock | Test chỉ đo code của tool, không đo model chọn tool đúng không — phần đó do eval đo |
+| Tool unit tests (`tests/`) | [`tools/source_check/schema-fix-test-output.txt`](../tools/source_check/schema-fix-test-output.txt) (bản cuối); [`pytest-output.txt`](../tools/source_check/pytest-output.txt) là số lịch sử lúc bàn giao tool (122) | **131 passed, 0 failed, 0 skipped**: 60 contract + 7 example + 59 trong `test_tools_todo.py` (gồm **42** case `source_check`, có 4 regression cho bản sửa schema PR #7) + 5 UI (`tests/test_app_ui.py`). Đã thay toàn bộ 17 test stub; mọi HTTP request đều mock. Chạy lại trên `main` `5f19ef9`: 131 passed | Test chỉ đo code của tool, không đo model chọn tool/args đúng không — phần đó do eval và đọc args trong log (vd. G10 model tự thêm `source`, unit test không thể bắt) |
 
 Tool unit tests: Trần Minh Tân bổ sung tool offline `source_check` để kiểm tra URL HTTP(S) và trường nguồn của item nghiên cứu, trả trạng thái từng item và danh sách item có metadata hợp lệ. Chưa tìm thấy bug trong tool có sẵn. Ví dụ lỗi unit test bắt được mà eval không bắt được: model có thể gọi đúng `source_check(items=...)` (eval PASS), nhưng implementation vẫn có thể nhận nhầm URL có port sai hoặc không báo `missing_source` — unit test kiểm tra trực tiếp các output đó.
 
@@ -173,8 +183,9 @@ Tool unit tests: Trần Minh Tân bổ sung tool offline `source_check` để ki
 - What would you improve next?
   - Runner: so sánh được list object (để chấm `items` của `source_check`, bắt được lỗi G10 bịa `source`) và tính "model không gọi tool" (HTTP 400 khi `tool_choice=required`) là FAIL thay vì `provider_error`.
   - Chạy mỗi version ít nhất 2 lần: cùng artifact v1 cho 0.85 và 0.90 → chênh lệch 1 case là nhiễu.
-  - Prompt: "truyền `items` y nguyên, không thêm/sửa field" (G10); `tools.yaml`: mô tả `sort_by` (G03); thử cách khác cho R13.
-  - Đo lại base suite trên bản code cuối (prompt v3 + tools sau PR #7) để B1 có dòng khớp đúng artifact đang demo.
+  - G10 (model bịa `source`): quy tắc dạng chữ "truyền `items` y nguyên" đã thử ở `v3-final-p1` và **không hiệu quả** (eval + live). Bước tiếp: ví dụ mẫu cụ thể trong prompt (item thiếu `source` được truyền nguyên và tool báo `missing_source`), hoặc ghi là giới hạn của model — không sửa tool để "đoán" field nào do model thêm vì tool không có dữ liệu gốc.
+  - `tools.yaml`: mô tả `sort_by` của `papers` (live `v3-final-p1` vẫn bỏ qua "mới nộp"); thử cách khác cho R13 (lỗi duy nhất còn lại ở base).
+  - Đã đo lại base suite trên bản code cuối (`v3-final`, `v3-final-p1`: 0.95) — cần ghi vào `version_log.csv`.
 
 ## B7. Small Local Model Challenge (bonus)
 
