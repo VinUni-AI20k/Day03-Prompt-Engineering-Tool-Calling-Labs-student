@@ -35,7 +35,7 @@ Thông tin Bình đã được Bình xác nhận trong phiên hoàn thiện CP5;
 - Nhờ Codex đối chiếu run JSON, ghi version log và soạn phân tích 6 case lỗi. Codex chạy lại pytest offline và lưu output; chưa áp dụng thay đổi v1.
 - Trong CP5, Codex trực tiếp triển khai UI trên main `a557a55`, dùng đủ 14 tool và giữ các phần CP2–CP4 của nhóm. Bản local tự thử trước đó được giữ riêng trong stash, không dùng thay bài nhóm.
 - Kiểm tra mới: pytest 102 passed, 14 skipped, 0 failed; base 17/20 và group 10/10, đều 0 provider errors. Transcript CLI mới có 5 lượt qua API/tool thật, gồm hỏi thiếu tài khoản, bổ sung và hủy gửi.
-- Bình cần tự review, giải thích code/bằng chứng và nhờ người ngoài nhóm dùng thử; không ghi các thao tác Codex thực hiện là thao tác cá nhân tự làm.
+
 
 ### Bằng chứng
 
