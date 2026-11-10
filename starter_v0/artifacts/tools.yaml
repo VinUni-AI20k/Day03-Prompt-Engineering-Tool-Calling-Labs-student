@@ -151,3 +151,45 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team custom tools ----------------
+  - name: github_search
+    description: "Tìm kiếm kho mã nguồn mở (repository) trên GitHub theo từ khóa, ngôn ngữ lập trình và tiêu chí sắp xếp. KHÔNG dùng khi người dùng nhờ viết code hay giải bài tập lập trình."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa tìm kiếm repository trên GitHub"}
+        language: {type: string, default: "", description: "Ngôn ngữ lập trình lọc tùy chọn (ví dụ: python, typescript)"}
+        sort: {type: string, enum: [stars, updated, help-wanted-issues], default: "stars", description: "Tiêu chí sắp xếp"}
+        max_results: {type: integer, default: 5, description: "Số lượng repository trả về (1-30)"}
+      required: [query]
+
+  - name: citation_check
+    description: "Kiểm duyệt một đoạn văn bản nháp (draft_text) do người dùng đưa vào để kiểm tra xem đã có link trích dẫn nguồn (http/https) chưa và có làm lộ dữ liệu nhạy cảm (email, API key) không. KHÔNG dùng để tra cứu quy định công ty (tra cứu quy định dùng policy)."
+    parameters:
+      type: object
+      properties:
+        draft_text: {type: string, default: "", description: "Đoạn văn bản nháp cần kiểm tra"}
+        check_type: {type: string, enum: [all, citation, privacy], default: "all", description: "Chế độ kiểm tra: all, citation (link nguồn), hoặc privacy (email/API key)"}
+      required: [draft_text]
+
+  - name: currency_convert
+    description: "Quy đổi số tiền giữa hai loại ngoại tệ và tra tỷ giá thực tế theo mã tiền tệ 3 chữ cái (ví dụ USD sang VND, JPY sang VND)."
+    parameters:
+      type: object
+      properties:
+        amount: {type: number, default: 1.0, description: "Số tiền cần quy đổi (lớn hơn 0)"}
+        from_currency: {type: string, default: "USD", description: "Mã tiền tệ gốc 3 chữ cái in hoa (ví dụ: USD, EUR, JPY)"}
+        to_currency: {type: string, default: "VND", description: "Mã tiền tệ đích 3 chữ cái in hoa (ví dụ: VND, USD)"}
+      required: [amount, from_currency, to_currency]
+
+  - name: weather_forecast
+    description: "Xem thời tiết hiện tại và dự báo nhiệt độ, lượng mưa theo thành phố trong 1 đến 7 ngày tới."
+    parameters:
+      type: object
+      properties:
+        city: {type: string, default: "", description: "Tên thành phố (ví dụ: Hanoi, Ho Chi Minh, Da Nang, Tokyo)"}
+        days: {type: integer, default: 1, description: "Số ngày dự báo (1-7)"}
+        unit: {type: string, enum: [celsius, fahrenheit], default: "celsius", description: "Đơn vị nhiệt độ"}
+      required: [city]
+
