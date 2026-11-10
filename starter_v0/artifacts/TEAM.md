@@ -27,6 +27,31 @@
 
 ## Phạm vi phần Phạm Đức Hồng Đức - 2A202603558
 
+1. Thiết lập baseline và phân tích lỗi v0
+- Chạy đủ 20 case của bộ `base`, lưu kết quả tại `runs/v0_B_base_openai_20261110T110804866669.json`; baseline đạt 14/20 case, case accuracy 0.70.
+- Liệt kê và đối chiếu sáu case thất bại của v0: `R08`, `R10`, `R11`, `R12`, `R13`, `R14`; phân loại theo `out_of_scope`, `missing_info`, `wrong_boundary`, `wrong_tool` và kiểm tra thêm `observed_mismatch` để xác định lỗi argument thực tế.
+- Ghi mốc baseline, artifact hash, giả thuyết và metric vào `artifacts/version_log.csv`.
+
+2. Tối ưu system prompt ở v1
+- Chỉnh sửa `artifacts/system_prompt.md`, loại bỏ các chỉ dẫn xấu của starter như tự đoán thông tin còn thiếu, gửi khi chưa xác nhận và ép mọi yêu cầu vào một bước.
+- Bổ sung giới hạn phạm vi research; quy tắc hỏi lại khi thiếu handle/URL; routing giữa `timeline`, `social_search`, `lookup`, `fetch`; xử lý nhiều tool và xác nhận trước hành động gửi.
+- Chạy lại bộ base và lưu `runs/v1_B_base_openai_20261110T135423515714.json`; kết quả tăng từ 0.70 lên 0.90, đạt 18/20 case.
+
+3. Hoàn thiện tool declaration ở v2
+- Viết lại mô tả các tool trong `artifacts/tools.yaml`, nêu rõ chức năng, khi nào dùng và khi nào không dùng.
+- Chuẩn hóa contract tham số: handle không có `@`, `topic=news` cho tin tức, quy ước `timeframe`, `search_type=Top|Latest`, bắt buộc `clarify.response_type`, và `send` chỉ được gọi với `confirmed=true` sau xác nhận.
+- Chạy và lưu `runs/v2_B_base_openai_20261110T144126484826.json`; kết quả 18/20 case, case accuracy 0.90.
+
+4. Sửa các lỗi còn lại ở v3
+- Cập nhật `artifacts/system_prompt.md` và `artifacts/tools.yaml` để lệnh hủy/chuyển nguồn mới nhất được ưu tiên hơn yêu cầu cũ, không gọi thừa tool đã bị loại bỏ.
+- Quy định xác nhận `yes_no` phải diễn ra trước khi hỏi nội dung gửi, khắc phục lỗi boundary của `send`.
+- Chạy và lưu `runs/v3_B_base_openai_20261110T144745860762.json`; đạt 20/20 case và 1.00 ở case accuracy, tool routing, argument accuracy và multi-turn accuracy.
+
+5. Quản lý bằng chứng eval và đóng góp báo cáo
+- Hoàn thiện các dòng v0 → v3 trong `artifacts/version_log.csv`, gồm artifact version/hash, lý do thay đổi, giả thuyết, metric trước/sau và đường dẫn run.
+- Khởi tạo/bổ sung bộ case nhóm trong `data/eval_group.json`, chạy v3 và lưu bằng chứng tại `runs/v3_B_group_openai_20261110T151111781188.json`; run này đạt 6/10 case và được phân tích theo từng mismatch.
+
+
 
 ## Phạm vi phần Vũ Đức Tâm - 2A202603522
 
