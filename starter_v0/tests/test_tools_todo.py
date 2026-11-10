@@ -19,6 +19,12 @@ TODO = "TODO CP3 (student): implement this test"
 
 deduplicate_tool = TOOL_FUNCTIONS["deduplicate_sources"]
 
+
+def _source_audit_tool():
+    tool = TOOL_FUNCTIONS.get("source_audit")
+    assert callable(tool), "source_audit is not registered"
+    return tool
+
 # ---------------- clarify ----------------
 
 def test_clarify_choice_returns_options_and_awaits_user() -> None:
@@ -147,3 +153,55 @@ def test_deduplicate_sources_invalid_items_returns_error_dict() -> None:
 
     assert result["error"] == "TypeError"
     assert "items must be a list" in result["message"]
+def test_source_audit_accepts_complete_http_citations() -> None:
+    result = _source_audit_tool()(items=[{
+        "title": "Research report",
+        "url": "https://example.org/report",
+        "source": "Example",
+        "summary": "A short summary.",
+    }])
+
+    assert result == {
+        "tool": "source_audit",
+        "checked_count": 1,
+        "valid_count": 1,
+        "ok": True,
+        "issues": [],
+    }
+
+
+def test_source_audit_reports_missing_title_and_invalid_url() -> None:
+    result = _source_audit_tool()(items=[
+        {"url": "https://example.org/no-title"},
+        {"title": "FTP source", "url": "ftp://example.org/report"},
+    ])
+
+    assert result["ok"] is False
+    assert result["checked_count"] == 2
+    assert result["valid_count"] == 0
+    assert result["issues"] == [
+        {"index": 0, "title": None, "problems": ["missing_title"]},
+        {"index": 1, "title": "FTP source", "problems": ["invalid_url"]},
+    ]
+
+
+def test_source_audit_rejects_non_numeric_url_port() -> None:
+    result = _source_audit_tool()(items=[
+        {"title": "Bad port", "url": "https://example.org:abc/report"},
+    ])
+
+    assert result["ok"] is False
+    assert result["valid_count"] == 0
+    assert result["issues"] == [
+        {"index": 0, "title": "Bad port", "problems": ["invalid_url"]},
+    ]
+
+
+def test_source_audit_wrong_items_type_returns_error_dict() -> None:
+    result = _source_audit_tool()(items="not a list")
+
+    assert result == {
+        "tool": "source_audit",
+        "error": "TypeError",
+        "message": "items must be a list of objects",
+    }

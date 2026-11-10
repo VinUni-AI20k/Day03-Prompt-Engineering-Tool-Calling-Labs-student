@@ -37,6 +37,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
+| source_audit | kiểm tra title và URL HTTP(S) trong danh sách nguồn trước khi trình bày digest | có |
 |  |  |  |
 |  |  |  |
 
@@ -52,7 +53,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- Thêm `source_audit` (`starter_v0/tools/source_audit/`): kiểm tra title và URL HTTP(S) cho từng citation, trả danh sách lỗi theo index; tool không tải URL và không xác minh claim.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -95,11 +96,13 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/source_audit/tool.py`, `TOOL.md`; đăng ký tại `starter_v0/tools/__init__.py` và `starter_v0/artifacts/tools.yaml` | 4 test xác nhận citation HTTP hợp lệ, thiếu title/URL FTP và cổng URL sai bị báo lỗi, input `items` sai kiểu trả error dict | Chỉ kiểm tra metadata/cú pháp URL; không xác nhận URL truy cập được hay claim chính xác |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` — `source_audit`: 4 passed; `starter_v0/tests/test_tool_contract.py`: 60 passed | Bắt được title thiếu, scheme FTP và cổng URL sai, là lỗi dữ liệu citation ở tầng tool | Đây là unit/contract tests, chưa chứng minh model tự route đúng tới tool |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+
+Eval routing: hiện chưa có case nhóm kiểm tra `source_audit`; `starter_v0/data/eval_group.json` đang có `cases: []`. Cần bổ sung theo phần CP4 trước khi kết luận model route tool đúng.
 
 ### B5. Bonus Evidence
 
@@ -125,6 +128,10 @@ Chỉ điền nếu nhóm làm bonus này.
 | v3-<model> | (ollama) | v3 |  |  |  |  |  |
 | v4-local |  |  |  |  |  |  |  |
 | v5-local |  |  |  |  |  |  |  |
+
+Bằng chứng setup local (chưa phải benchmark): preflight của repo với alias CPU `qwen2.5:3b-cpu` đã trả về tool call `social_search`; `ollama ps` xác nhận `100% CPU`. Chi tiết lệnh và kết quả: [local_cpu_preflight_2026-11-10.md](evidence/local_cpu_preflight_2026-11-10.md). Lỗi CUDA của lần preflight GPU trước vẫn được ghi nhận riêng, nhưng hiện đã có đường chạy CPU.
+
+B7 chưa có baseline local hợp lệ hoặc các vòng `v4-local`/`v5-local`: nhánh này vẫn đang ở prompt v0; PR của thành viên phụ trách prompt có run v3 nhưng gặp 1 provider error ở R09 (503), nên chưa đủ điều kiện làm bản đối chiếu. Model thứ hai hiện có là `llama3.2:1b`, nằm ngoài khoảng 3B–8B nêu trong hướng dẫn. Preflight CPU chỉ chứng minh provider nhận tool call, không được tính là eval. Cần có run v3 hợp lệ, hai model phù hợp và run JSON đầy đủ trước khi điền điểm.
 
 Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
