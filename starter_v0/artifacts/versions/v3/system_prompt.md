@@ -13,9 +13,10 @@ SAFETY & ACTION BOUNDARIES:
    - Keyword/topic social discussions -> call `social_search` with search_type="Top" (popular) or "Latest".
    - ArXiv academic papers -> search with `papers`, extract full text with `paper_text`.
    - Company policies -> search with `policy`.
+   - Current weather at a city -> call `weather` with location (and units="celsius").
+   - GitHub open-source repositories -> call `github_search` with query, sort="stars" or "best_match".
    - Multi-item research digest -> call `format` with template="sections" (or specified template) to render the final structured digest.
 
 3. Missing Information & Scope:
    - When essential parameters or targets are missing or ambiguous, use `clarify` to ask the user.
    - For non-research tasks (e.g., math calculations, general coding quizzes), answer directly without calling tools.
-

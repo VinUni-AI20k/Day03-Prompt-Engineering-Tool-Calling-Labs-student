@@ -269,6 +269,10 @@ with st.sidebar:
                 cat_badge = "Policy"
             elif t_name == "clarify":
                 cat_badge = "Interactive"
+            elif t_name == "weather":
+                cat_badge = "Thời tiết"
+            elif t_name == "github_search":
+                cat_badge = "GitHub"
 
             st.markdown(f"""
             <div class="tool-row">
@@ -323,15 +327,18 @@ if not st.session_state.turns_display:
         ("Bài báo khoa học", "Tìm các bài arXiv về đánh giá khả năng gọi công cụ của agent."),
         ("Theo dõi chuyên gia", "Lấy 5 bài đăng gần đây của @sama và tóm tắt chủ đề chính."),
         ("Chính sách nội bộ", "Tra cứu quy định về gửi kết quả nghiên cứu ra bên ngoài."),
+        ("Thời tiết hiện tại", "Nhiệt độ và thời tiết hiện tại ở Hà Nội như thế nào?"),
+        ("Mã nguồn GitHub", "Tìm các repository GitHub về AI Agent RAG bằng Python có nhiều sao nhất."),
     ]
-    for pair_index in (0, 2):
+    for pair_index in range(0, len(examples), 2):
         columns = st.columns(2)
-        for offset, column in enumerate(columns):
-            title, prompt = examples[pair_index + offset]
-            with column:
-                if st.button(title, key=f"example_{pair_index + offset}", help=prompt, use_container_width=True):
-                    st.session_state.pending_prompt = prompt
-                st.caption(prompt)
+        for offset in range(2):
+            if pair_index + offset < len(examples):
+                title, prompt = examples[pair_index + offset]
+                with columns[offset]:
+                    if st.button(title, key=f"example_{pair_index + offset}", help=prompt, use_container_width=True):
+                        st.session_state.pending_prompt = prompt
+                    st.caption(prompt)
 
 for turn in st.session_state.turns_display:
     with st.chat_message("user"):
