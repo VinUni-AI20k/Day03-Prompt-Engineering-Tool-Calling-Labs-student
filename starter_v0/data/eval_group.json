@@ -3,5 +3,106 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_source_check_existing_items",
+      "phase": "B", "suite": "group",
+      "query": "Chỉ kiểm tra URL và thông tin nguồn của các item đã có sau đây, chưa cần tìm kiếm hay định dạng: [{\"title\":\"Paper\",\"url\":\"https://arxiv.org/abs/1706.03762\",\"source\":\"arxiv.org\"},{\"title\":\"Missing citation\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "source_check", "args": {}}]},
+      "metadata": {"skill": "routing_new_tool_source_check", "difficulty": "medium", "what_it_tests": "Tool mới: item đã có sẵn + yêu cầu kiểm tra URL/nguồn → source_check, không lookup/fetch/format. Chỉ chấm routing vì run_eval không so sánh được args dạng list nhiều object (sorted() trên dict gây TypeError)."}
+    },
+    {
+      "id": "G02_format_bullets_template",
+      "phase": "B", "suite": "group",
+      "query": "Trình bày 2 tin sau thành dạng gạch đầu dòng, không cần tìm thêm hay kiểm tra nguồn: (1) 'OpenAI ra mắt GPT-5' - https://openai.com/blog/gpt-5 - nguồn openai.com; (2) 'Anthropic công bố Claude mới' - https://anthropic.com/news/claude - nguồn anthropic.com",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "format", "args": {"template": "bullets"}}]},
+      "metadata": {"skill": "arg_format_template", "difficulty": "medium", "what_it_tests": "Dữ liệu đã có sẵn → format (không lookup/fetch); 'gạch đầu dòng' → template=bullets, không phải sections mặc định."}
+    },
+    {
+      "id": "G03_papers_sort_submitted",
+      "phase": "B", "suite": "group",
+      "query": "Tìm 3 paper arXiv mới nộp gần đây nhất về multi-agent reinforcement learning.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "papers", "args": {"max_results": 3, "sort_by": "submittedDate"}}]},
+      "metadata": {"skill": "arg_papers_sort_and_limit", "difficulty": "medium", "what_it_tests": "'3 paper' → max_results=3; 'mới nộp gần đây nhất' → sort_by=submittedDate, không phải relevance mặc định."}
+    },
+    {
+      "id": "G04_social_search_mention_not_timeline",
+      "phase": "B", "suite": "group",
+      "query": "Lấy 20 tweet mới nhất có nhắc tới Claude.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"search_type": "Latest", "limit": 20}}]},
+      "metadata": {"skill": "routing_mention_vs_user_timeline", "difficulty": "hard", "what_it_tests": "Tweet NHẮC TỚI một sản phẩm → social_search (Latest, limit=20), không đoán handle rồi gọi timeline (vd. AnthropicAI)."}
+    },
+    {
+      "id": "G05_lookup_month_timeframe",
+      "phase": "B", "suite": "group",
+      "query": "Tổng hợp tin tức về đạo luật AI của EU trong tháng này.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news", "timeframe": "month"}}]},
+      "metadata": {"skill": "arg_timeframe_month", "difficulty": "easy", "what_it_tests": "'tháng này' → timeframe=month (base mới cover day/week); tin tức → topic=news."}
+    },
+    {
+      "id": "G06_mt_decline_send",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Làm bản tin AI hôm nay rồi đăng lên Telegram giúp mình"},
+        {"role": "assistant", "content": "Mình đã soạn xong bản tin AI hôm nay. Bạn xác nhận đăng lên Telegram chứ?"},
+        {"role": "user", "content": "Khoan, đừng đăng. Để mai mình duyệt lại đã."}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"no_tool": true, "behavior": "acknowledge_without_sending"},
+      "metadata": {"skill": "multiturn_decline_send", "difficulty": "medium", "what_it_tests": "Người dùng từ chối ở bước xác nhận → KHÔNG gọi send (kể cả confirmed=false) và không gọi lại tool nào; chỉ xác nhận đã dừng."}
+    },
+    {
+      "id": "G07_mt_paper_followup_text",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm paper Attention Is All You Need trên arXiv"},
+        {"role": "assistant", "content": "Mình tìm thấy: 'Attention Is All You Need' (Vaswani et al., 2017), arXiv ID 1706.03762."},
+        {"role": "user", "content": "Đọc giúp mình 3 trang đầu của paper đó"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "paper_text", "args": {"arxiv_url": "1706.03762", "max_pages": 3}}]},
+      "metadata": {"skill": "multiturn_carry_paper_id", "difficulty": "hard", "what_it_tests": "'paper đó' → lấy arXiv ID 1706.03762 từ lượt trước, gọi paper_text (không gọi lại papers) với max_pages=3."}
+    },
+    {
+      "id": "G08_mt_thanks_no_tool",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tin AI hôm nay có gì nổi bật?"},
+        {"role": "assistant", "content": "Đây là 3 tin AI nổi bật hôm nay kèm nguồn: (1) ... (2) ... (3) ..."},
+        {"role": "user", "content": "Ok cảm ơn, vậy là đủ rồi."}
+      ],
+      "failure_type": "unnecessary_tool",
+      "expect": {"no_tool": true, "behavior": "answer_without_tool"},
+      "metadata": {"skill": "multiturn_close_conversation", "difficulty": "easy", "what_it_tests": "Lời cảm ơn/kết thúc sau khi đã trả lời → trả lời ngắn, KHÔNG gọi lại lookup hay tool nào."}
+    },
+    {
+      "id": "G09_mt_clarify_then_topic_search",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm tweet giúp mình"},
+        {"role": "assistant", "content": "Bạn muốn xem tweet của một tài khoản cụ thể, hay tweet theo chủ đề?"},
+        {"role": "user", "content": "Theo chủ đề AI agents, lấy những tweet phổ biến nhất"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"search_type": "Top"}}]},
+      "metadata": {"skill": "multiturn_clarify_fill_topic", "difficulty": "medium", "what_it_tests": "Sau khi đã hỏi lại, người dùng bổ sung chủ đề → social_search với search_type=Top; không hỏi lại lần nữa, không gọi timeline."}
+    },
+    {
+      "id": "G10_mt_source_check_before_digest",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Mình có 3 item: [{\"title\":\"GPT-5 launch\",\"url\":\"https://openai.com/blog/gpt-5\",\"source\":\"openai.com\"},{\"title\":\"Claude update\",\"url\":\"anthropic.com/news/claude\",\"source\":\"anthropic.com\"},{\"title\":\"Gemini roadmap\",\"url\":\"https://blog.google/technology/ai/\"}]"},
+        {"role": "assistant", "content": "Mình đã nhận 3 item. Bạn muốn làm gì tiếp với các item này?"},
+        {"role": "user", "content": "Trước khi làm bản tin, kiểm tra URL và nguồn của 3 item trên giúp mình, chưa cần định dạng."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "source_check", "args": {}}]},
+      "metadata": {"skill": "multiturn_new_tool_source_check", "difficulty": "hard", "what_it_tests": "Tool mới trong hội thoại nhiều lượt: lấy item từ lượt 1 (có item thiếu https và thiếu source) → source_check, không format/fetch. Chỉ chấm routing (cùng lý do G01)."}
+    }
+  ]
 }
