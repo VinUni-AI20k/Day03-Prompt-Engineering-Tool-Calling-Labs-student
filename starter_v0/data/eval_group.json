@@ -91,9 +91,9 @@
       }
     },
     {
-      "id": "G05_github_search_routing",
+      "id": "G05_custom_tools_routing",
       "phase": "B",
-      "query": "Tìm giúp mình 3 repo Python nhiều sao nhất về RAG evaluation trên GitHub",
+      "query": "Để khảo sát hệ sinh thái RAG evaluation, hãy làm 4 việc cùng lúc: (1) tìm 3 repo Python nhiều sao nhất về RAG evaluation trên GitHub, (2) tìm 3 model text-classification về reranker trên Hugging Face, (3) tìm 3 bài thảo luận nhiều điểm nhất về RAG trên Hacker News, và (4) tra cứu thông tin gói thư viện ragas trên PyPI.",
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
@@ -103,13 +103,33 @@
               "language": "python",
               "limit": 3
             }
+          },
+          {
+            "name": "hf_models",
+            "args": {
+              "task": "text-classification",
+              "limit": 3
+            }
+          },
+          {
+            "name": "hn_search",
+            "args": {
+              "sort_by": "points",
+              "limit": 3
+            }
+          },
+          {
+            "name": "pypi_info",
+            "args": {
+              "package_name": "ragas"
+            }
           }
         ]
       },
       "metadata": {
-        "skill": "custom_tool_github_search",
-        "difficulty": "easy",
-        "what_it_tests": "User hỏi tìm repo mã nguồn mở trên GitHub kèm ngôn ngữ và số lượng → route tới tool mới github_search(language='python', limit=3), không gọi lookup."
+        "skill": "custom_tools_parallel_routing",
+        "difficulty": "hard",
+        "what_it_tests": "User yêu cầu khảo sát trên cả 4 nguồn chuyên biệt (GitHub repo, Hugging Face model, Hacker News, PyPI package) -> route song song tới đủ 4 tool mới của nhóm (github_search, hf_models, hn_search, pypi_info), không gọi nhầm lookup."
       }
     },
     {

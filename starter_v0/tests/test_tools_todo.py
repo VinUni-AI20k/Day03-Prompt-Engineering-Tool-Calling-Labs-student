@@ -343,3 +343,236 @@ def test_github_search_malformed_payload_does_not_crash(fake_http) -> None:
     assert len(result["items"]) == 1
     assert result["items"][0]["stars"] == 0
     assert result["items"][0]["summary"] == "No description provided."
+
+
+# =====================================================================
+# BONUS: Unit test cho 3 tool mới bổ sung (hf_models, hn_search, pypi_info)
+# =====================================================================
+
+hf_models = TOOL_FUNCTIONS["hf_models"]
+hn_search = TOOL_FUNCTIONS["hn_search"]
+pypi_info = TOOL_FUNCTIONS["pypi_info"]
+
+
+# -------------------- Test cho tool `hf_models` --------------------
+
+def test_hf_models_sends_search_and_task_and_maps_models(fake_http) -> None:
+    """Happy path: gửi đúng tham số search + filter (task) lên HF API và map kết quả chuẩn."""
+    calls = fake_http(FakeResponse([
+        {
+            "id": "BAAI/bge-reranker-v2-m3",
+            "pipeline_tag": "text-classification",
+            "downloads": 420000,
+            "likes": 850,
+        }
+    ]))
+
+    result = hf_models(query="bge reranker", task="text-classification", limit=3)
+
+    assert len(calls) == 1
+    assert calls[0]["url"] == "https://huggingface.co/api/models"
+    assert calls[0]["params"]["search"] == "bge reranker"
+    assert calls[0]["params"]["filter"] == "text-classification"
+    assert calls[0]["params"]["limit"] == 3
+    assert calls[0]["params"]["sort"] == "downloads"
+    assert "error" not in result
+    assert result["items"] == [{
+        "title": "BAAI/bge-reranker-v2-m3",
+        "url": "https://huggingface.co/BAAI/bge-reranker-v2-m3",
+        "source": "huggingface.co",
+        "task": "text-classification",
+        "downloads": 420000,
+        "likes": 850,
+        "summary": "Hugging Face model (text-classification) — 420000 downloads, 850 likes.",
+    }]
+
+
+@pytest.mark.parametrize("bad_query", ["", "   ", None, 404])
+def test_hf_models_empty_or_wrong_type_query_returns_error_without_request(fake_http, bad_query) -> None:
+    """Input xấu: query rỗng hoặc sai kiểu -> trả error dict, không gọi mạng."""
+    calls = fake_http(FakeResponse([]))
+
+    result = hf_models(query=bad_query)
+
+    assert calls == []
+    assert result["items"] == []
+    assert result["error"].startswith("missing_required_param")
+    assert "clarify" in result["next_step"]
+
+
+@pytest.mark.parametrize("bad_limit", [0, -5])
+def test_hf_models_non_positive_limit_returns_error_without_request(fake_http, bad_limit) -> None:
+    """Input xấu: limit <= 0 -> trả error dict, không gọi mạng."""
+    calls = fake_http(FakeResponse([]))
+
+    result = hf_models(query="Qwen", limit=bad_limit)
+
+    assert calls == []
+    assert result["items"] == []
+    assert result["error"].startswith("invalid_param")
+
+
+def test_hf_models_clamps_excessive_limit_to_10(fake_http) -> None:
+    """Input biên: limit > 10 được ép về 10."""
+    calls = fake_http(FakeResponse([{"id": f"org/m{i}", "downloads": 100 - i} for i in range(15)]))
+
+    result = hf_models(query="Llama", limit=50)
+
+    assert calls[0]["params"]["limit"] == 10
+    assert len(result["items"]) == 10
+
+
+def test_hf_models_http_error_returns_error_dict_not_exception(fake_http) -> None:
+    """Nhánh lỗi API: HTTP 503 từ Hugging Face -> trả error dict, không raise exception."""
+    fake_http(FakeResponse({"error": "service unavailable"}, status_code=503))
+
+    result = hf_models(query="Qwen", limit=2)
+
+    assert result["items"] == []
+    assert "hf_api_error" in result["error"]
+    assert "503" in result["error"]
+
+
+# -------------------- Test cho tool `hn_search` --------------------
+
+def test_hn_search_sends_query_and_maps_hits_by_points(fake_http) -> None:
+    """Happy path: sort_by='points' gọi endpoint /api/v1/search và map đúng danh sách bài."""
+    calls = fake_http(FakeResponse({
+        "hits": [{
+            "objectID": "40001234",
+            "title": "Why RAG Evaluation Is Hard",
+            "url": "https://example.com/rag-eval",
+            "points": 320,
+            "num_comments": 145,
+            "author": "karpathy_fan",
+        }]
+    }))
+
+    result = hn_search(query="RAG evaluation", sort_by="points", limit=3)
+
+    assert len(calls) == 1
+    assert calls[0]["url"] == "https://hn.algolia.com/api/v1/search"
+    assert calls[0]["params"] == {"query": "RAG evaluation", "tags": "story", "hitsPerPage": 3}
+    assert "error" not in result
+    assert result["items"] == [{
+        "title": "Why RAG Evaluation Is Hard",
+        "url": "https://example.com/rag-eval",
+        "source": "news.ycombinator.com",
+        "points": 320,
+        "comments": 145,
+        "author": "karpathy_fan",
+        "summary": "HN story by karpathy_fan (320 points, 145 comments).",
+    }]
+
+
+def test_hn_search_sort_by_date_uses_search_by_date_endpoint(fake_http) -> None:
+    """Khi sort_by='date' phải gọi sang endpoint /api/v1/search_by_date và fallback URL thảo luận HN khi thiếu url ngoài."""
+    calls = fake_http(FakeResponse({
+        "hits": [{"objectID": "9999", "title": "Ask HN: Best local LLM?", "url": None, "points": 50, "num_comments": 20, "author": "alice"}]
+    }))
+
+    result = hn_search(query="local LLM", sort_by="date", limit=2)
+
+    assert len(calls) == 1
+    assert calls[0]["url"] == "https://hn.algolia.com/api/v1/search_by_date"
+    assert result["items"][0]["url"] == "https://news.ycombinator.com/item?id=9999"
+
+
+def test_hn_search_invalid_sort_by_returns_error_without_request(fake_http) -> None:
+    """Input xấu: sort_by ngoài enum ('points', 'date') -> trả error dict, không gọi mạng."""
+    calls = fake_http(FakeResponse({"hits": []}))
+
+    result = hn_search(query="AI agents", sort_by="viral")
+
+    assert calls == []
+    assert result["items"] == []
+    assert result["error"].startswith("invalid_param")
+    assert "sort_by" in result["error"]
+
+
+@pytest.mark.parametrize("kwargs", [{"query": ""}, {"query": "   "}, {"query": "AI", "limit": 0}])
+def test_hn_search_empty_query_or_non_positive_limit_returns_error(fake_http, kwargs) -> None:
+    """Input xấu: query rỗng hoặc limit <= 0 -> trả error dict, không gọi mạng."""
+    calls = fake_http(FakeResponse({"hits": []}))
+
+    result = hn_search(**kwargs)
+
+    assert calls == []
+    assert result["items"] == []
+    assert "error" in result
+
+
+def test_hn_search_http_error_returns_error_dict_not_exception(fake_http) -> None:
+    """Nhánh lỗi API: HTTP 500 từ Algolia -> trả error dict, không raise exception."""
+    fake_http(FakeResponse({"message": "server error"}, status_code=500))
+
+    result = hn_search(query="SQLite")
+
+    assert result["items"] == []
+    assert "hn_api_error" in result["error"]
+    assert "500" in result["error"]
+
+
+# -------------------- Test cho tool `pypi_info` --------------------
+
+def test_pypi_info_fetches_package_metadata_and_maps_item(fake_http) -> None:
+    """Happy path: gọi đúng URL PyPI JSON API và trích xuất version, requires_python, license, summary."""
+    calls = fake_http(FakeResponse({
+        "info": {
+            "name": "ragas",
+            "version": "0.2.10",
+            "summary": "Evaluation framework for RAG pipelines",
+            "requires_python": ">=3.9",
+            "license": "Apache-2.0",
+            "package_url": "https://pypi.org/project/ragas/",
+        }
+    }))
+
+    result = pypi_info(package_name="ragas")
+
+    assert len(calls) == 1
+    assert calls[0]["url"] == "https://pypi.org/pypi/ragas/json"
+    assert "error" not in result
+    assert result["items"] == [{
+        "title": "ragas==0.2.10",
+        "url": "https://pypi.org/project/ragas/",
+        "source": "pypi.org",
+        "version": "0.2.10",
+        "requires_python": ">=3.9",
+        "license": "Apache-2.0",
+        "summary": "Evaluation framework for RAG pipelines (latest: 0.2.10, requires_python: >=3.9)",
+    }]
+
+
+@pytest.mark.parametrize("bad_pkg", ["", "   ", None, "bad/pkg name", "../secret"])
+def test_pypi_info_empty_or_invalid_package_name_returns_error_without_request(fake_http, bad_pkg) -> None:
+    """Input xấu: tên gói rỗng, sai kiểu hoặc chứa ký tự lạ -> trả error dict, không gọi mạng."""
+    calls = fake_http(FakeResponse({}))
+
+    result = pypi_info(package_name=bad_pkg)
+
+    assert calls == []
+    assert result["items"] == []
+    assert "error" in result
+
+
+def test_pypi_info_http_404_returns_error_dict_not_exception(fake_http) -> None:
+    """Nhánh lỗi API: gói không tồn tại trên PyPI (HTTP 404) -> trả error dict, không raise exception."""
+    fake_http(FakeResponse({"message": "Not Found"}, status_code=404))
+
+    result = pypi_info(package_name="nonexistent-pkg-xyz-999")
+
+    assert result["items"] == []
+    assert "pypi_api_error" in result["error"]
+    assert "404" in result["error"]
+
+
+def test_pypi_info_malformed_payload_returns_safe_defaults(fake_http) -> None:
+    """Nhánh dữ liệu lạ: payload thiếu trường info -> dùng giá trị mặc định an toàn, không crash."""
+    fake_http(FakeResponse({"info": None}))
+
+    result = pypi_info(package_name="langgraph")
+
+    assert len(result["items"]) == 1
+    assert result["items"][0]["title"] == "langgraph==unknown"
+    assert result["items"][0]["url"] == "https://pypi.org/project/langgraph/"
