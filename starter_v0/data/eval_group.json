@@ -3,5 +3,33 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "group_dedup_single",
+      "phase": "B",
+      "query": "Chỉ loại nguồn trùng URL trong danh sách này, chưa cần format hay tìm kiếm thêm: [{\"title\":\"A\",\"url\":\"https://example.com/a?utm_source=chat\"},{\"title\":\"A copy\",\"url\":\"https://example.com/a\"},{\"title\":\"B\",\"url\":\"https://example.com/b\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "deduplicate_sources", "args": {}}]},
+      "metadata": {"what_it_tests": "Route an explicit duplicate-source request to the new tool. Argument contents and output correctness are covered by offline unit tests."}
+    },
+    {
+      "id": "group_dedup_missing_items",
+      "phase": "B",
+      "query": "Bỏ các nguồn trùng giúp mình. Mình chưa gửi danh sách nguồn; hãy hỏi mình để lấy danh sách trước.",
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {}}]},
+      "metadata": {"what_it_tests": "Ask for missing sources instead of inventing items or passing an empty list."}
+    },
+    {
+      "id": "group_dedup_multi",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Đây là các nguồn: [{\"title\":\"A\",\"url\":\"https://example.com/a\"},{\"title\":\"A copy\",\"url\":\"https://example.com/a?utm_source=chat\"}]."},
+        {"role": "user", "content": "Chỉ loại nguồn trùng trong danh sách mình vừa gửi. Chưa cần format và không tìm nguồn mới."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "deduplicate_sources", "args": {}}]},
+      "metadata": {"what_it_tests": "Use sources from an earlier user turn and route the latest deduplication request correctly; no additional research or formatting."}
+    }
+  ]
 }
