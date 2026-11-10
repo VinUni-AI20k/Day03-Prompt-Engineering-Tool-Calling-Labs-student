@@ -73,7 +73,12 @@ Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R08_out_of_scope | out_of_scope | `send(text="Nguyên hàm của x^2 là …")` | Câu hỏi toán nằm ngoài phạm vi research agent nhưng model gọi `send` thay vì từ chối (`unexpected_tool_call`). Nguyên nhân: prompt bảo "cứ làm ngay", không có rule phạm vi/từ chối. | Thêm vào prompt: ngoài phạm vi (toán, code, hỏi đáp chung) thì từ chối ngắn gọn, không gọi tool. |
+| R14_out_of_scope_coding | out_of_scope | `send(text="Dưới đây là một hàm Python tính Fibonacci …")` | Yêu cầu viết code bị coi như nội dung để gửi, gọi `send` (`unexpected_tool_call`). Cùng nguyên nhân với R08. | Cùng fix với R08 (rule phạm vi), mô tả `send` chỉ dùng khi user yêu cầu gửi/đăng bản tin. |
+| R10_missing_handle | missing_info | `timeline(screenname="sama")` | Câu hỏi không nói rõ tài khoản nhưng model tự chọn Sam Altman (`missing_tool_call: clarify`, thêm `timeline`). Nguyên nhân: prompt bảo "chọn một tài khoản nổi tiếng". | Xoá chỉ dẫn đoán; thêm rule: thiếu handle thì gọi `clarify` (`response_type=text`). |
+| R11_missing_url | missing_info | `fetch(url="https://example.com/article")` | Chỉ có "bài viết này" nhưng model tự bịa URL (`missing_tool_call: clarify`, thêm `fetch`). Nguyên nhân: prompt bảo "assume a likely URL". | Xoá chỉ dẫn đoán URL; thêm rule: thiếu URL thì gọi `clarify`. |
+| R12_confirm_before_send | wrong_boundary | `send(text="Bản tin này")` | Gọi `send` ngay, không hỏi xác nhận (`missing_tool_call: clarify`, thêm `send`). Nguyên nhân: prompt bảo "cứ gửi luôn"; `send` không mô tả điều kiện xác nhận. Guardrail của code chỉ trả `needs_confirmation`. | Prompt: gửi/đăng thì `clarify(response_type=yes_no)` trước, chỉ `send(confirmed=true)` sau khi user đồng ý; sửa description `send` trong `tools.yaml`. |
+| R13_parallel_web_and_tweets | wrong_tool (harness gán; `observed_mismatch` = `wrong_arg_value`) | `lookup(query="AI news", timeframe="day", max_results=5)` + `social_search(query="AI", search_type="Latest", limit=5)` | Chọn đúng cả hai tool (`routing_correct=True`) nhưng `lookup` sai args: `query` là "AI news" thay vì "AI" và thiếu `topic="news"`. Nguyên nhân: `tools.yaml` chưa nêu convention `topic=news` cho tin tức và `query` chỉ chứa từ khoá. | Sửa description/param của `lookup` trong `tools.yaml`: tin tức dùng `topic="news"`, `query` chỉ là từ khoá, không thêm "news". |
 
 ### B3. Team Eval Cases
 
