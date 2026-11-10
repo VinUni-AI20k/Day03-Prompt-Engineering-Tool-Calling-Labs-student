@@ -113,11 +113,28 @@ List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn)
 
 ## B4. Live Chat Evidence
 
-Use `transcripts/*.transcript.json`.
+Dẫn chứng từ các phiên tương tác trực tiếp thực tế qua giao diện chat / Streamlit UI:
+- **File transcript chính**: `starter_v0/transcripts/v0_openrouter_20261110T111753577673.transcript.json`
+- **File kết quả xuất bản**: `starter_v0/reports/openai_tweets_summary.md` (1,940 bytes)
+- **Model**: `openai/gpt-4o-mini` qua OpenRouter
+
+### Bảng minh chứng phiên tương tác Multi-turn (Session Evidence)
 
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| 1 | "Tóm tắt 5 tweet mới nhất giúp mình" | *Không gọi tool bừa bãi* (Agent chủ động clarify) | Khắc phục lỗi đoán mò ở v0 (`sama`). Agent nhận diện thiếu username nên không đoán mò hay bịa account, dừng lại hỏi user. | Phản hồi: *"Bạn có thể cho mình biết tài khoản Twitter nào mà bạn muốn tóm tắt 5 tweet mới nhất không?"* |
+| 2 | "của open ai" | `timeline(screenname="OpenAI", limit=5)` | Kế thừa ngữ cảnh multi-turn: trích xuất đúng account handle `OpenAI` từ "open ai", giữ nguyên số lượng `limit=5` từ lượt 1. | Lấy thành công 5 tweet thật từ API (Control Room, BioBasicsBench, GPT-6 Cyber...) và tóm tắt kèm link bài đăng. |
+| 3 | "tôi muốn xuất câu trả lời sang md" | `export_md(filename="openai_tweets_summary.md", content=..., title="Tóm tắt tweet OpenAI")` | Kích hoạt đúng tool mới `export_md` được thêm ở v2. Không gọi nhầm sang `lookup`/`timeline`. Tự sinh tên file `.md` chuẩn. | Xuất file báo cáo thành công ra `starter_v0/reports/openai_tweets_summary.md`, giao diện Streamlit hiển thị nút tải file markdown ngay lập tức. |
+
+### Phiên đối chứng bổ sung (Clarify Tool & Tin tức Web)
+- **File transcript**: `starter_v0/transcripts/v1_openrouter_20261110T123830856900.transcript.json`
+- **Lượt 1**: User hỏi *"tin tức hôm nay"* $\rightarrow$ Agent gọi tool `clarify(question="Bạn muốn tìm tin tức về chủ đề cụ thể nào như công nghệ, AI, kinh tế hay đời sống?", response_type="text")`.
+- **Lượt 2**: User chọn *"công nghệ"* $\rightarrow$ Agent gọi `lookup(query="công nghệ", topic="news", timeframe="day", max_results=5)`, trả về 5 bài báo thời sự công nghệ mới nhất hôm nay từ `daidoanket.vn`, `baovinhlong.com.vn`,...
+
+### Nhận xét trải nghiệm thực tế (User Experience Evaluation)
+1. **Khả năng làm rõ thông tin thiếu (Clarification)**: Agent không còn tình trạng "tự đoán mù quáng" hay gọi tool vô tội vạ khi người dùng cung cấp thiếu thông tin (như thiếu tên tài khoản Twitter hoặc chủ đề tìm kiếm). Việc chủ động hỏi lại giúp người dùng định hướng câu hỏi chính xác mà không gặp lỗi API 400/404.
+2. **Kế thừa ngữ cảnh hội thoại (Context Retention)**: Ở Turn 2, người dùng chỉ nhập vỏn vẹn "của open ai" nhưng Agent vẫn hiểu đầy đủ ý định "lấy 5 tweet mới nhất của tài khoản OpenAI" nhờ quản lý lịch sử hội thoại tốt.
+3. **Kích hoạt tool mới mượt mà**: Ở Turn 3, Agent nhận diện chính xác yêu cầu xuất file báo cáo để gọi tool `export_md`, tự động định dạng Markdown có tiêu đề và danh sách liên kết, đáp ứng trải nghiệm trọn vẹn từ tìm kiếm $\rightarrow$ tổng hợp $\rightarrow$ xuất bản tài liệu.
 
 ## B5. Bonus Evidence
 
