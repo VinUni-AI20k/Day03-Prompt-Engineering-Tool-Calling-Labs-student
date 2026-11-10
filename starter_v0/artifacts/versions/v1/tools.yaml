@@ -1,0 +1,110 @@
+# starter_v0 — tool declarations (v1)
+tools:
+  - name: clarify
+    description: "Gửi một câu hỏi cho người dùng khi thiếu thông tin quan trọng hoặc yêu cầu không rõ ràng."
+    parameters:
+      type: object
+      properties:
+        question: {type: string, default: "", description: "Câu hỏi cần làm rõ"}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
+        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
+      required: [question]
+
+  - name: timeline
+    description: "Lấy các bài đăng gần đây của một tài khoản Twitter/X cụ thể."
+    parameters:
+      type: object
+      properties:
+        screenname: {type: string, default: "", description: "Tên tài khoản (không bao gồm @)"}
+        limit: {type: integer, default: 5, description: "Số lượng bài đăng"}
+      required: [screenname]
+
+  - name: social_search
+    description: "Tìm kiếm bài đăng trên mạng xã hội Twitter/X theo từ khóa hoặc chủ đề."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa tìm kiếm"}
+        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp bài viết"}
+        limit: {type: integer, default: 5, description: "Số lượng kết quả"}
+      required: [query]
+
+  - name: lookup
+    description: "Tra cứu thông tin và tin tức tổng hợp trên internet."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Truy vấn tìm kiếm"}
+        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại: 'news' cho tin tức thời sự, 'general' cho thông tin chung"}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian: day (hôm nay), week (tuần này)"}
+        max_results: {type: integer, default: 5, description: "Số kết quả tối đa"}
+      required: [query]
+
+  - name: fetch
+    description: "Đọc và trích xuất nội dung từ một liên kết URL cụ thể."
+    parameters:
+      type: object
+      properties:
+        url: {type: string, default: "", description: "Địa chỉ liên kết URL đầy đủ"}
+      required: [url]
+
+  - name: format
+    description: "Trình bày và đóng gói dữ liệu nghiên cứu đã thu thập thành văn bản digest."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Danh sách item"
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+              section: {type: string}
+        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Khuôn mẫu digest"}
+        headline: {type: string, default: "", description: "Tiêu đề digest"}
+      required: [items, template]
+
+  - name: send
+    description: "Gửi một đoạn văn bản tin nhắn đi (Telegram)."
+    parameters:
+      type: object
+      properties:
+        text: {type: string, default: "", description: "Nội dung văn bản"}
+        confirmed: {type: boolean, default: false, description: "Cờ xác nhận"}
+      required: [text]
+
+  - name: policy
+    description: "Tìm kiếm trong tài liệu quy định và chính sách nội bộ của công ty."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Truy vấn chính sách"}
+        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Nhóm chính sách"}
+        top_k: {type: integer, default: 3, description: "Số lượng tài liệu"}
+      required: [query]
+
+  - name: papers
+    description: "Tìm bài báo khoa học nghiên cứu trên cơ sở dữ liệu arXiv."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa bài báo"}
+        max_results: {type: integer, default: 5, description: "Số bài báo"}
+        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "Sắp xếp"}
+      required: [query]
+
+  - name: paper_text
+    description: "Tải và trích xuất nội dung văn bản đầy đủ từ bài báo arXiv."
+    parameters:
+      type: object
+      properties:
+        arxiv_url: {type: string, default: "", description: "ArXiv ID hoặc URL bài báo"}
+        max_pages: {type: integer, default: 5, description: "Số trang trích xuất"}
+        max_chars: {type: integer, default: 8000, description: "Số ký tự tối đa"}
+      required: [arxiv_url]
+
