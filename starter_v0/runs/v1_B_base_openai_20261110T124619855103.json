@@ -1,39 +1,37 @@
 {
-  "run_id": "v0_B_base_openai_20261110T113203317281",
-  "version": "v0",
-  "artifact_version": "v0+peb1c8179815b+t5b22a2476d41",
-  "prompt_hash": "eb1c8179815bd79d34de7d326420bb99b3072e6e8ae96464c02d4411f905fc68",
-  "tools_hash": "5b22a2476d41b989d5dc1e54f24ce7890e781909deb2f7afafb856ab53a6d7c0",
+  "run_id": "v1_B_base_openai_20261110T124619855103",
+  "version": "v1",
+  "artifact_version": "v1+p10553f8df7e2+tfe54a9b90722",
+  "prompt_hash": "10553f8df7e20975cea1fe8d5074ad9693322b0cb79700ae2a6990eee46ee051",
+  "tools_hash": "fe54a9b907229c7f257b53b715f30a5124bbed7803ff33a1d507f799a57257b5",
   "phase": "B",
   "suite": "base",
   "provider": "openai",
   "model": "gpt-4o-mini",
-  "system_prompt": "C:\\Users\\daoki\\main_dkc\\ai_in_action_vinuni\\Day_3\\K5-L3-DAY03-DaoKienCuong-2A202603396-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
-  "tools": "C:\\Users\\daoki\\main_dkc\\ai_in_action_vinuni\\Day_3\\K5-L3-DAY03-DaoKienCuong-2A202603396-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "system_prompt": "C:\\Users\\daoki\\main_dkc\\ai_in_action_vinuni\\Day_3\\K5-L3-DAY03-DaoKienCuong-2A202603396-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt_v1.md",
+  "tools": "C:\\Users\\daoki\\main_dkc\\ai_in_action_vinuni\\Day_3\\K5-L3-DAY03-DaoKienCuong-2A202603396-ResearchAgentToolEval\\starter_v0\\artifacts\\tools_v1.yaml",
   "eval_cases": "data\\eval_base.json",
   "dataset_id": "day04_v2_research_base",
   "dataset_role": "base",
   "description": "Core eval cho research agent: routing đúng tool + đúng args, hỏi lại khi thiếu (ask_user), xác nhận trước khi gửi, và xử lý câu ngoài phạm vi / không cần tool. Chấm trên tool_calls + args (subset). KHÔNG sửa file này — chỉ thêm case vào eval_group.json.",
-  "generated_at": "2026-11-10T11:32:03",
+  "generated_at": "2026-11-10T12:46:19",
   "summary": {
     "total_cases": 20,
     "measured_cases": 20,
     "provider_error_cases": 0,
-    "passed_cases": 13,
-    "case_accuracy": 0.65,
-    "tool_routing_accuracy": 0.75,
-    "argument_accuracy": 0.65,
-    "multiturn_accuracy": 1.0,
+    "passed_cases": 16,
+    "case_accuracy": 0.8,
+    "tool_routing_accuracy": 0.85,
+    "argument_accuracy": 0.8,
+    "multiturn_accuracy": 0.8333,
     "failure_counts": {
       "wrong_tool": 2,
-      "out_of_scope": 2,
-      "missing_info": 2,
+      "wrong_arg_value": 1,
       "wrong_boundary": 1
     },
     "observed_mismatch_counts": {
-      "wrong_arg_value": 2,
-      "unexpected_tool_call": 2,
-      "missing_tool_call": 3
+      "extra_tool_call": 3,
+      "wrong_arg_value": 1
     }
   },
   "results": [
@@ -122,7 +120,6 @@
             "name": "social_search",
             "args": {
               "query": "GPT-5",
-              "search_type": "Latest",
               "limit": 5
             }
           }
@@ -138,7 +135,6 @@
           "tool": "social_search",
           "args": {
             "query": "GPT-5",
-            "search_type": "Latest",
             "limit": 5
           },
           "result": {
@@ -175,78 +171,95 @@
       },
       "result": {
         "passed": false,
-        "routing_correct": true,
+        "routing_correct": false,
         "args_correct": false,
         "actual_tool_calls": [
           {
             "name": "lookup",
             "args": {
-              "query": "AI news",
+              "query": "AI",
               "topic": "news",
-              "timeframe": "day",
-              "max_results": 5
+              "timeframe": "day"
+            }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "query": "AI",
+              "search_type": "Top"
             }
           }
         ],
         "actual_text": null,
         "case_failure_type": "wrong_tool",
-        "observed_mismatch": "wrong_arg_value",
+        "observed_mismatch": "extra_tool_call",
         "failure_type": "wrong_tool",
         "failures": [
-          "query: expected 'AI', got 'AI news'"
+          "extra tool call social_search"
         ]
       },
       "tool_results": [
         {
           "tool": "lookup",
           "args": {
-            "query": "AI news",
+            "query": "AI",
             "topic": "news",
-            "timeframe": "day",
-            "max_results": 5
+            "timeframe": "day"
           },
           "result": {
             "tool": "web_search",
-            "query": "AI news",
+            "query": "AI",
             "topic": "news",
             "timeframe": "day",
             "items": [
               {
-                "title": "Adobe Max 2026 Live Updates: All the AI, Photo and Video News - CNET",
-                "url": "https://www.cnet.com/news-live/adobe-max-2026-live-updates-all-the-ai-photo-and-video-news",
-                "source": "cnet.com",
-                "summary": "The biggest changes are the general release of AI assistants in Photoshop, Adobe Express and its AI hub, Firefly, first teased at last year’s conference. These assistants are similar to chatbots, where you enter your request and the AI does the editing for you. Adobe also released AI music generation tools and new photo editing modes. For video editors, too, there are the new Premiere mobile apps. [...] Adobe tech is also now showing up in ChatGPT and Claude; Disney is using Firefly to help design theme park rides. And from what CNET has heard from Adobe execs, the company isn’t planning to slow down its AI research any time soon. [...] Adobe’s flagship programs, like Photoshop, have undergone major AI makeovers, including recent developments like AI audio and soundtrack generation. This has been to the dismay of some of its creative customers who are wary of generative AI. This year is expected to be no different. But there are other tensions brewing, including Adobe’s $75 million settlement with the US Justice Department over subscription cancellations and new vibe-coded and free Adobe alternatives.",
-                "score": 0.6739432
+                "title": "AI and your job: Threat or opportunity?",
+                "url": "https://www.fox10tv.com/2026/11/10/ai-your-job-threat-or-opportunity",
+                "source": "fox10tv.com",
+                "summary": "MOBILE, Ala. (WALA) - Artificial intelligence is becoming a bigger part of everyday life, raising questions about what the technology could mean for workers and their jobs.\n\nSome economists believe AI poses a particular threat to entry-level and repetitive work, including call center, data entry and junior copywriting jobs, according to The Wall Street Journal. Those tasks may be easier to automate. [...] But AI could also create opportunities. A Bloomberg article points to potential job growth in construction and manufacturing as companies build data centers and produce the chips that power the technology. Some higher-skilled office workers could also benefit if AI helps them become more productive. [...] The long-term impact on jobs remains unclear, but workers can take steps to prepare. Exploring AI chatbots, writing assistants and other tools may help people find ways to work more efficiently and develop skills that complement the technology.",
+                "score": 0.42348245
               },
               {
-                "title": "AI industry security | 13 Action News Big Story",
-                "url": "https://www.13abc.com/2026/11/09/ai-industry-security-13-action-news-big-story",
-                "source": "13abc.com",
-                "summary": "TOLEDO, Ohio (WTVG) - A massive scandal has rocked a major tech company’s CEO, with fallout far beyond his personal life.\n\nNvidia is investigating reports that CEO Jensen Huang was the “target of a foreign intelligence effort,” the company’s board of directors said. Now the FBI is investigating, too.\n\nExperts warn the impact could extend to the entire AI industry.\n\nSo why are they concerned, and what’s next? AI industry security is the 13 Action News Big Story for Nov. 9, 2026.",
-                "score": 0.6326163
+                "title": "Opinion: AI cannot replace being human – The Battalion",
+                "url": "https://thebatt.com/opinion/opinion-ai-cannot-replace-being-human",
+                "source": "thebatt.com",
+                "summary": "I understand the appeal. College is busy. Between classes, jobs, extracurriculars, leadership positions and trying to maintain some semblance of a social life, there are never enough hours in the day. AI makes things easier. It can generate an outline, rewrite a paragraph, summarize a reading or produce an entire essay before you have even finished your Celsius. But convenience does not necessarily facilitate education. [...] There is also something to be said about individuality. AI can generate an argument, imitate a writing style or suggest a creative direction, but our perspectives are developed through our own experiences, disagreements, mistakes and interpretations. The things that make our voices interesting are often the very things that cannot be neatly generated from a prompt. If we constantly rely on the same tools to tell us what to think and how to express it, we risk losing the differences that make [...] I am not asking anyone to abandon AI. I use it, and I recognize the benefits it provides. But I do think we need to become more conscientious about when we use it and what we are asking it to do for us. Let it help with the tedious tasks. Let it serve as a resource. But do not let it become a substitute for your own intellectual development.",
+                "score": 0.4031679
               },
               {
-                "title": "With new Democratic Congress incoming, Pritzker calls for federal AI regulations | Capitol News Illinois",
-                "url": "https://capitolnewsillinois.com/news/with-new-democratic-congress-incoming-pritzker-calls-for-federal-ai-regulations",
-                "source": "capitolnewsillinois.com",
-                "summary": "Currently, no comprehensive federal regulatory framework exists. Trump signed an executive order in September to rename AI “Super Intelligence” and created a White House accord on Super Intelligence with the leaders of OpenAI, Anthropic, Meta, Google, XAI and Nvidia. [...] This month, Anthropic registered for its initial public offering, but almost a third of its securities filing to potential investors focused on the routine and extraordinary risks the company’s models could pose.\n\nScott Wisor, policy director at the Secure AI Project, said the risks fall into two buckets: malicious use by users who know how to ask AI a question and use it to do harm, and systems not acting the way developers intended. [...] Stokes said ensuring a company stays compliant across states with varied regulatory frameworks is one reason the CCIA has pushed for a federal solution to AI legislation.\n\n### Why is AI regulation needed?\n\nLast month, a former Anthropic and OpenAI researcher alleged that AI companies are building a tool that could threaten human existence by the end of the decade.",
-                "score": 0.6481324
+                "title": "‘AI rebounding’: Nearly 20% of U.S. workers replaced by AI are being asked back | Fortune",
+                "url": "https://fortune.com/2026/11/09/ai-rebounding-20-us-workers-replaced-higher-pay-job-security",
+                "source": "fortune.com",
+                "summary": "Ford also hired and promoted 350 experienced engineers in June after AI-powered quality control tools failed to perform as expected. The automaker said AI had contributed to quality improvements but emphasized the importance of combining the tech with experienced engineering teams. [...] “Organizations are making fast, sometimes myopic, decisions about their people based on an incomplete picture of what their employees can do with or without AI,” Lucy Beaumont, global senior vice president of product and design at SHL, said in a press release. “AI rebounding is what happens when a company automates a role before it has genuinely assessed the human capability inside it. The AI doesn’t deliver, the gap becomes obvious, and the business ends up rehiring the same experts they just [...] Fortune Daily breaks the traditional barrier between audience and newsroom. The show transforms Fortune’s trusted reporting into actionable, conversational, and entertaining insights for an emerging class of business leaders. Watch here.\n\nAbout the Author\n\nBy Joshua HongNews Fellow\n\nJoshua Hong is a News Fellow at Fortune covering data, AI, cybersecurity, energy, and retail.\n\nSee full bio\n\nAdd Fortune on Google for similar content.\n\nLatest in AI\n\n---\n\nMost Popular\n\n---\n\nRecommended For You",
+                "score": 0.2654493
               },
               {
-                "title": "With new Democratic Congress incoming, Pritzker calls for federal AI regulations",
-                "url": "https://www.kwqc.com/2026/11/09/with-new-democratic-congress-incoming-pritzker-calls-federal-ai-regulations",
-                "source": "kwqc.com",
-                "summary": "This month, Anthropic registered for its initial public offering, but almost a third of its securities filing to potential investors focused on the routine and extraordinary risks the company’s models could pose.\n\nScott Wisor, policy director at the Secure AI Project, said the risks fall into two buckets: malicious use by users who know how to ask AI a question and use it to do harm, and systems not acting the way developers intended. [...] Currently, no comprehensive federal regulatory framework exists. Trump signed an executive order in September to rename AI “Super Intelligence” and created a White House accord on Super Intelligence with the leaders of OpenAI, Anthropic, Meta, Google, XAI and Nvidia. [...] AI models have also shown they’re willing to ignore human instruction. In the now-infamous Hugging Face hack this summer, OpenAI models took independent action and communicated through an unauthorized channel to gain internet access and compromise Hugging Face - an open-source platform and community for machine learning and AI.",
-                "score": 0.6260099
+                "title": "Congress’s Permitting Bill Is a ‘Massive Giveaway’ to the AI Data Center Industry, Critics Warn",
+                "url": "https://time.com/article/2026/11/10/permitting-bill-data-centers",
+                "source": "time.com",
+                "summary": "Personalized Content\n\n## Business\n\nFollow this section to personalize your feed and get instant alerts.\n\nWHY FOLLOW?\n\nUpdate your preferences in Account Settings\n\nPersonalized Content\n\n## AI\n\nFollow this tag to personalize your feed and get instant alerts.\n\nWHY FOLLOW?\n\nUpdate your preferences in Account Settings\n\n# Congress’s Permitting Bill Is a ‘Massive Giveaway’ to the AI Data Center Industry, Critics Warn\n\nAndrew R. Chow\n\nPersonalized Content\n\nAndrew R. Chow\n\n## Andrew R. Chow [...] The bill’s advocates argue that its passage would serve as a rare bipartisan win and a victory for affordability. But critics, especially those on the left, are calling for Democrats to wait until the next Congress. “You just heard Americans demand much more of a say in a way that AI is shaping their lives,” says Michele Jawando, the CEO of Omidyar Network. “Whenever you try to ram something through in a lame duck Congress before you have a hundred new House members, that’s never a good look [...] WHY FOLLOW?\n\nUpdate your preferences in Account Settings\n\nCorrespondent\n\nNarrated by TIME AI.",
+                "score": 0.19392508
               },
               {
-                "title": "Google faces mounting backlash for controversial AI school policy - CBS News",
-                "url": "https://www.cbsnews.com/news/ed-markey-google-ai-search-schools",
-                "source": "cbsnews.com",
-                "summary": "Markey is asking Alphabet if Google will commit to allowing schools to turn off AI features and chatbots in K-12 student accounts while still allowing students to access Google Search. He also requested that Google disclose any research it has conducted on the impact of its AI tools on students' mental health.\n\nMarkey has requested that Google disclose any research or testing it has conducted on the safety of its AI functions and their impact on the mental health of K-12 students. [...] Google maintains that its policy change gives schools more control over how they allow AI into schools. An Alphabet spokesperson also told CBS News that Google's AI features are now so tightly integrated into search that it cannot offer the latter without also enabling the AI services. [...] Google faces mounting public pressure to change a new policy that would limit U.S. students' access to the internet giant's widely used search platform unless schools also offer its artificial intelligence-based education tools.\n\nIn a letter to Alphabet CEO Sundar Pichai on Monday, Sen. Edward Markey demanded that Google's corporate parent reverse the policy, which blocks search for K-12 student accounts that don't also provide access to apps such as Google Classroom.",
-                "score": 0.4906999
+                "title": "Military-made AI tool helped thwart World Cup bomb threat - Federal News Network",
+                "url": "https://federalnewsnetwork.com/artificial-intelligence/2026/11/military-made-ai-tool-helped-thwart-world-cup-bomb-threat",
+                "source": "federalnewsnetwork.com",
+                "summary": "The 2026 World Cup brought more than six million spectators from around the world to more than 100 matches in 16 host cities in the U.S., Canada and Mexico over the course of two months, prompting a massive interagency effort to secure those sites using technologies like AI and drones. Two people were charged in connection with another bomb threat against FIFA during a World Cup match at MetLife Stadium in New Jersey. [...] A military-made artificial intelligence tool helped law enforcement thwart a bomb threat at the FIFA World Cup in California this summer.\n\nThe previously undisclosed incident occurred June 18, when Switzerland faced Bosnia and Herzegovina at SoFi Stadium outside Los Angeles, Army Capt. Ryan Hetrick, who leads the Pentagon’s Generative AI Task Force, said Nov. 6 at an AI event in Washington. [...] Hetrick has become one of the military’s biggest — and busiest — evangelists for AI. The GenAI Task Force travels around the globe to sit down with troops on operations floors and in the field and find AI fixes for their most pressing problems.",
+                "score": 0.19305643
               }
             ]
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "AI",
+            "search_type": "Top"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
           }
         }
       ]
@@ -393,77 +406,98 @@
         ]
       },
       "result": {
-        "passed": true,
-        "routing_correct": true,
-        "args_correct": true,
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
         "actual_tool_calls": [
           {
             "name": "lookup",
             "args": {
-              "query": "tin công nghệ",
+              "query": "công nghệ",
               "topic": "news",
-              "timeframe": "week",
-              "max_results": 5
+              "timeframe": "week"
+            }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "query": "công nghệ",
+              "search_type": "Latest",
+              "limit": 5
             }
           }
         ],
         "actual_text": null,
         "case_failure_type": "wrong_arg_value",
-        "observed_mismatch": null,
-        "failure_type": null,
-        "failures": []
+        "observed_mismatch": "extra_tool_call",
+        "failure_type": "wrong_arg_value",
+        "failures": [
+          "extra tool call social_search"
+        ]
       },
       "tool_results": [
         {
           "tool": "lookup",
           "args": {
-            "query": "tin công nghệ",
+            "query": "công nghệ",
             "topic": "news",
-            "timeframe": "week",
-            "max_results": 5
+            "timeframe": "week"
           },
           "result": {
             "tool": "web_search",
-            "query": "tin công nghệ",
+            "query": "công nghệ",
             "topic": "news",
             "timeframe": "week",
             "items": [
               {
-                "title": "Siri AI sắp hỗ trợ tiếng Việt, Galaxy Z Fold8 bán chạy sau khi iPhone gập ra mắt",
-                "url": "https://viettimes.vn/tin-nong-cong-nghe-411-siri-ai-sap-ho-tro-tieng-viet-z-fold8-ban-chay-sau-khi-iphone-gap-ra-mat-post207917.html",
-                "source": "viettimes.vn",
-                "summary": "Tin nóng công nghệ 3/11: Kính thiên văn NASA nặng 1,5 tấn sắp rơi xuống Trái Đất  \n\n## Tin nóng công nghệ 3/11: Kính thiên văn NASA nặng 1,5 tấn sắp rơi xuống Trái Đất\n\niPhone gập tiếp tục khan hàng khiến Apple chưa thể đáp ứng nhu cầu, ba mẫu iPhone 8 năm tuổi vẫn được cập nhật bảo mật và người đàn ông điều khiển xe lăn bằng suy nghĩ là những tin công nghệ đáng chú ý ngày 3/11.\n\nPhương tiện bay không người lái (UAV) của Viettel xuất hiện tại lễ diễu binh, diễu hành A80. Ảnh: Viettel. [...] Tin nóng công nghệ 8/11: OPPO sẽ khai tử flagship Find X10 Ultra vì giá RAM tăng?  \n\n## Tin nóng công nghệ 8/11: OPPO sẽ khai tử flagship Find X10 Ultra vì giá RAM tăng?\n\nOPPO được đồn đoán điều chỉnh chiến lược smartphone cao cấp, còn NASA chuẩn bị bước tiến mới trong thám hiểm Mặt Trăng... là những tin công nghệ đáng chú ý ngày 8/11.\n\nDoanh nghiệp tham gia một nửa số nhiệm vụ KHCN, góp 40% vốn  \n\n## Doanh nghiệp tham gia một nửa số nhiệm vụ KHCN, góp 40% vốn [...] Trong một thí nghiệm tại Mỹ, 24 trong số 30 tình nguyện viên cảm nhận được sự hiện diện của người khác khi ngồi trước gương trong phòng tối.\n\nTin nóng công nghệ 7/11: Điện thoại Android nhắc người dùng bỏ quên đồ đạc  \n\n## Tin nóng công nghệ 7/11: Điện thoại Android nhắc người dùng bỏ quên đồ đạc\n\nAndroid bổ sung cảnh báo khi người dùng bỏ quên đồ, Apple có thể thay đổi thiết kế nút bấm trên iPhone đời sau... là những tin công nghệ đáng chú ý ngày 7/11.",
-                "score": 0.67321366
+                "title": "Cổ phiếu công nghệ Mỹ biến động trước lo ngại về quy định AI | NHK WORLD-JAPAN News",
+                "url": "https://www3.nhk.or.jp/nhkworld/vi/news/20261109_RS10",
+                "source": "www3.nhk.or.jp",
+                "summary": "Một số chuyên gia cho rằng các công ty trung tm dữ liệu mới nổi có thể gặp khó khăn về vốn nếu các quy định chặt chẽ hơn làm chậm tiến độ các dự án xy dựng mới. Các công ty này đã dựa vào khoản vay để mở rộng kinh doanh.  \n   \nNguồn tin thị trường cho biết điều đó có nghĩa là cổ phiếu công nghệ có thể vẫn bất ổn trong thời gian trước mắt. [...] Chiến thắng áp đảo của đảng Dn chủ trong cuộc bầu cử giữa kỳ của Mỹ đã làm dấy lên lo ngại về triển vọng của ngành trí tuệ nhn tạo và bán dẫn. Điều này khiến cổ phiếu công nghệ cao của Mỹ biến động.  \n   \nĐảng Dn chủ đã giành lại quyền kiểm soát cả hai viện Quốc hội trong cuộc bầu cử tuần trước. Các ứng viên đảng Dn chủ cũng chiến thắng trong các cuộc bầu cử thống đốc ở nhiều bang, trong đó có Texas, nơi có nhiều trung tm dữ liệu. [...] Một số nhà đầu tư lo ngại những chiến thắng này có thể dẫn đến việc siết chặt quy định đối với AI và các trung tm dữ liệu.  \n   \nMối lo này đã gy ra làn sóng bán tháo cổ phiếu bán dẫn và các cổ phiếu khác liên quan đến AI. Hôm thứ Năm, chỉ số Nasdaq gồm nhiều cổ phiếu công nghệ ở New York giảm hơn 5%. Cổ phiếu công nghệ đã phần nào khôi phục vào ngày hôm sau nhưng các nhà đầu tư vẫn thận trọng.",
+                "score": 0.27391827
               },
               {
-                "title": "Công nghệ 9/11: iPhone Duo lỗi màn hình, sửa mất 38 triệu đồng | Sky Tin",
-                "url": "https://tin.skydoor.net/news/trung-quoc-cong-nghe-911-iphone-duo-loi-man-hinh-sua-mat-38-trieu-dong-8422976",
-                "source": "tin.skydoor.net",
-                "summary": "Xem tóm tắt nhanh\n\n## Tin tức Công Nghệ mới nhất hôm nay\n\n[](\n\n### Bộ Công Thương phê duyệt khung giá phát điện loại hình nhà máy điện mặt trời năm 2026\n\n9 giờ trước–daidoanket.vndaidoanket.vn\n\nXem tóm tắt nhanh\n\n[](\n\n### Tổ chức diễn tập thực chiến bảo đảm an ninh mạng năm 2026\n\n9 giờ trước–hanoimoi.vnhanoimoi.vn\n\nXem tóm tắt nhanh\n\n[](\n\n### Đà Nẵng xóa lõm sóng viễn thông, đưa Internet đến các bản làng vùng cao\n\n10 giờ trước–vietnamnet.vnvietnamnet.vn\n\nXem tóm tắt nhanh\n\n[]( [...] Bỏ qua điều hướng\n\nSkydoor\n\nSky Tin - Tin tức địa phương toàn cầu 24h mới nhất!\n\nXem tin theo cách của bạn >>\n\n\n\n# Công nghệ 9/11: iPhone Duo lỗi màn hình, sửa mất 38 triệu đồng\n\nMột người dùng Trung Quốc phản ánh chiếc iPhone Duo hỏng màn hình chỉ sau 4 ngày sử dụng, chi phí sửa chữa lên tới 38 triệu đồng.\n\nĐọc tin gốc tại vtcnews.vn →\n\n## Tin tức Trung Quốc mới nhất hôm nay\n\n[](\n\n### Ứng dụng hẹn hò Trung Quốc hứa hoàn tiền nếu không thể giúp người dùng kết hôn [...] 8 giờ trước–tuoitre.vntuoitre.vn\n\nXem tóm tắt nhanh\n\n[](\n\n### Trung Quốc bác cáo buộc cài gián điệp tiếp cận CEO Nvidia Jensen Huang\n\n9 giờ trước–tuoitre.vntuoitre.vn\n\nXem tóm tắt nhanh\n\n[](\n\n### Vụ CEO Nvidia Jensen Huang ngoại tình: Các nghị sĩ lưỡng đảng kêu gọi Quốc hội Mỹ điều tra\n\n9 giờ trước–tuoitre.vntuoitre.vn\n\nXem tóm tắt nhanh\n\n[](\n\n### Đội U19 du đấu Trung Quốc, cả 4 đội tuyển của Việt Nam đều bận rộn trong tháng 11\n\n9 giờ trước–24h.com.vn24h.com.vn\n\nXem tóm tắt nhanh",
-                "score": 0.60245985
+                "title": "Đưa công nghệ đến gần hơn với người yếu thế",
+                "url": "https://congan.lamdong.gov.vn/dua-cong-nghe-den-gan-hon-voi-nguoi-yeu-the-N11785.aspx",
+                "source": "congan.lamdong.gov.vn",
+                "summary": "Cán bộ hướng dẫn công dân thao tác trên hệ thống dịch vụ công\n\nKhông chỉ hỗ trợ người dân hoàn thành thủ tục, cán bộ, chiến sĩ còn cố gắng sử dụng những cách giải thích đơn giản, dễ hiểu để người dân có thể tự thực hiện trong những lần tiếp theo. Đối với những người gặp khó khăn khi sử dụng công nghệ, cán bộ sẵn sàng hướng dẫn nhiều lần, giải đáp từng thắc mắc với thái độ tận tình, trách nhiệm. [...] Đối với những người thường xuyên sử dụng công nghệ, việc tạo tài khoản dịch vụ công, quét mã QR hoặc tải tài liệu đính kèm có thể thực hiện nhanh chóng. Tuy nhiên, với người cao tuổi và những người ít có điều kiện tiếp xúc với thiết bị điện tử, các thao tác này đôi khi gặp nhiều khó khăn.\n\nNhận thức được điều đó, cán bộ, chiến sĩ Công an xã Thuận An luôn chú trọng hướng dẫn cụ thể, kiên nhẫn giải thích từng bước để người dân hiểu và thực hiện đúng các thao tác cần thiết. [...] Những hoạt động hỗ trợ tuy giản dị nhưng mang ý nghĩa thiết thực, góp phần giúp người dân thuận lợi hơn trong giải quyết thủ tục hành chính, tiết kiệm thời gian, chi phí đi lại và từng bước nâng cao kỹ năng sử dụng dịch vụ công trực tuyến. Qua đó, Công an xã Thuận An tiếp tục đưa công nghệ đến gần hơn với người dân, nhất là những người còn gặp khó khăn trong tiếp cận công nghệ, để mọi người đều có cơ hội thụ hưởng những tiện ích của chuyển đổi số.\n\nCông an xã Thuận An\n\n# Từ khóa Liên kết",
+                "score": 0.26432082
               },
               {
-                "title": "Tin nóng công nghệ 9/11: iPhone Air 2 có thể được bổ sung camera thứ 2",
-                "url": "https://vietbao.vn/tin-nong-cong-nghe-911-iphone-air-2-co-the-duoc-bo-sung-camera-thu-2-615163.html",
-                "source": "vietbao.vn",
-                "summary": "Video\n Ảnh\n Infographic\n Emagazine\n\n1. Trang chủ\n2. Khoa học\n3. Tin tức\n\n# Tin nóng công nghệ 9/11: iPhone Air 2 có thể được bổ sung camera thứ 2\n\n13:36 09/11/2026\n\niPhone Air 2 có thể có camera thứ 2, Samsung hé lộ smartphone màn hình trượt, trong khi chuyên gia Tencent cảnh báo nguy cơ AI bị lợi dụng để phát triển vũ khí sinh học là những tin công nghệ đáng chú ý ngày 9/11.\n\nMục lục\n\nMinh Qun\n\n1. iPhone Air 2 có thể được bổ sung camera thứ 2 [...] Vivo đang phát triển mẫu điện thoại gập mới có màn hình nhỏ hơn 6,5 inch nhằm cạnh tranh với iPhone Duo và Samsung Galaxy Z Fold 8. Theo PhoneArena, thông tin bắt nguồn từ tài khoản Digital Chat Station trên mạng xã hội Weibo.\n\nVivo có thể ra mắt điện thoại gập nhỏ gọn để cạnh tranh với iPhone Duo. Ảnh: PhoneArena. [...] Theo Bloomberg, Apple đang thử nghiệm iPhone Air 2 với camera góc siêu rộng bên cạnh camera chính 48 MP. Camera mới có thể giúp người dùng chụp phong cảnh và nhóm đông người linh hoạt hơn. Hãng cũng đang tìm cách cải thiện thời lượng pin nhưng chưa rõ phương án cụ thể.\n\niPhone Air hiện còn một số hạn chế như chỉ có một loa, cổng USB 2 và tốc độ sạc thấp hơn dòng Pro. Theo 9to5Mac, những điểm yếu này có thể khiến người dùng cn nhắc khi giá bán gần bằng iPhone Pro.",
-                "score": 0.5559422
+                "title": "Những thiết bị công nghệ bị cấm nhập khẩu từ 1/1/2027",
+                "url": "https://media.chinhphu.vn/nhung-thiet-bi-cong-nghe-da-qua-su-dung-bi-cam-nhap-khau-tu-1-1-2027-102261103101456697.htm",
+                "source": "media.chinhphu.vn",
+                "summary": "Đáng chú ý, danh mục bao gồm nhiều thiết bị công nghệ phổ biến như điện thoại thông minh, máy tính, máy ảnh kỹ thuật số, loa, tai nghe và các linh kiện điện tử.\n\nĐáng chú ý, danh mục bao gồm nhiều thiết bị công nghệ phổ biến như điện thoại thông minh, máy tính, máy ảnh kỹ thuật số, loa, tai nghe và các linh kiện điện tử.\n\nTheo phụ lục Thông tư, nhóm hàng bị cấm nhập khẩu gồm máy tính, thiết bị xử lý dữ liệu tự động và các bộ phận chức năng thuộc nhóm mã HS 8470 và 8471. [...] Theo đó, từ ngày 01-01-2027, máy tính, máy ảnh, màn hình cùng nhiều thiết bị và linh kiện điện tử đã qua sử dụng thuộc danh mục cấm nhập khẩu. Thông tư được ban hành ngày 27/10, có hiệu lực từ ngày 1/1/2027 và thay thế Thông tư 11/2018/TT-BTTTT của Bộ Thông tin và Truyền thông.\n\nNhững thiết bị công nghệ bị cấm nhập khẩu từ 1/1/2027 - Ảnh 1. [...] Logo \n\nChính Phủ nước Cộng Hòa Xã Hội Chủ Nghĩa Việt Nam\n\nEnglish 中文\n\nVề trang chủ \n\nmultimedia   /   Voices\n\n Video\n Shorts video\n Longform\n Infographics\n Photos\n\nPV 03/11/2026 14:18\n\n# Những thiết bị công nghệ đã qua sử dụng bị cấm nhập khẩu từ 1/1/2027\n\n(Chinhphu.vn) - Bộ Khoa học và Công nghệ vừa ban hành Thông tư 63/2026/TT-BKHCN, công bố chi tiết danh mục sản phẩm công nghệ số đã qua sử dụng bị cấm nhập khẩu, kèm theo mã số hàng hóa (mã HS), có hiệu lực từ ngày 1/1/2027.",
+                "score": 0.26310492
               },
               {
-                "title": "Nghệ An khai giảng 2 lớp đào tạo đại học Công nghệ thông tin cho 76 cán bộ, công chức cấp xã",
-                "url": "https://baonghean.vn/nghe-an-khai-giang-2-lop-dao-tao-dai-hoc-cong-nghe-thong-tin-cho-76-can-bo-cong-chuc-cap-xa-10355469.html",
-                "source": "baonghean.vn",
-                "summary": "Điểm đáng chú ý của khóa học là sự gắn kết giữa yêu cầu đào tạo chuyên môn với nhu cầu sử dụng cán bộ của địa phương. Việc cử cán bộ đi học không chỉ nhằm bổ sung văn bằng mà hướng đến trang bị kiến thức, kỹ năng để trực tiếp tham mưu, triển khai và giải quyết những vấn đề thực tiễn về công nghệ thông tin, chuyển đổi số tại cơ sở. [...] Việc khai giảng 2 lớp đào tạo đại học Công nghệ thông tin cho cán bộ, công chức cấp xã là bước triển khai cụ thể trong đổi mới công tác đào tạo, bồi dưỡng cán bộ của tỉnh Nghệ An theo hướng xuất phát từ yêu cầu thực tiễn, gắn đào tạo với vị trí việc làm và nhu cầu sử dụng cán bộ. [...] Đối với các học viên, đồng chí đề nghị xác định rõ trách nhiệm học tập, phát huy tinh thần chủ động, cầu thị; gắn kiến thức được đào tạo với những vấn đề thực tiễn đang đặt ra tại cơ quan, đơn vị. Mỗi học viên cần phấn đấu không chỉ sử dụng thành thạo công nghệ mà còn có khả năng tham mưu, đề xuất giải pháp, hướng dẫn đồng nghiệp, trở thành lực lượng nòng cốt thúc đẩy chuyển đổi số tại địa phương.",
-                "score": 0.380138
+                "title": "Sở Khoa học và Công nghệ Hà Tĩnh hướng dẫn xét công nhận sáng kiến và đánh giá hiệu quả đề tài khoa học",
+                "url": "https://hatinh.gov.vn/vi/bai-viet/so-khoa-hoc-va-cong-nghe-ha-tinh-huong-dan-xet-cong-nhan-sang-kien-va-danh-gia-hieu-qua-de-tai-khoa-hoc",
+                "source": "hatinh.gov.vn",
+                "summary": "Theo hướng dẫn, các giải pháp được xem xét công nhận là sáng kiến bao gồm: giải pháp kỹ thuật, giải pháp quản lý, giải pháp tác nghiệp và giải pháp ứng dụng tiến bộ kỹ thuật. Trong đó, giải pháp kỹ thuật có thể là sản phẩm, vật liệu, giống cy trồng, vật nuôi hoặc quy trình công nghệ; giải pháp quản lý là phương pháp tổ chức, điều hành công việc; giải pháp tác nghiệp là các phương pháp thực hiện nghiệp vụ chuyên môn; còn giải pháp ứng dụng tiến bộ kỹ thuật là việc áp dụng các giải pháp kỹ thuật [...] Đối với các đề tài khoa học, đề án khoa học và công trình khoa học – công nghệ, việc xét nghiệm thu thực hiện theo quy định của pháp luật về khoa học và công nghệ. Các đề tài chỉ được xem xét công nhận hiệu quả áp dụng và phạm vi ảnh hưởng khi đã được nghiệm thu đạt yêu cầu trở lên. [...] giải pháp kỹ thuật đã có vào thực tiễn.",
+                "score": 0.25635275
               },
               {
-                "title": "Nhân viên công nghệ thông tin tại trạm y tế thuộc nhóm hợp đồng nào?",
-                "url": "https://doisongphapluat.com.vn/nhan-vien-cong-nghe-thong-tin-tai-tram-y-te-thuoc-nhom-hop-dong-nao-a737579.html",
-                "source": "doisongphapluat.com.vn",
-                "summary": "Theo đó, việc xác định công việc Công nghệ thông tin tại Trạm Y tế phường thuộc nhóm hợp đồng thực hiện công việc chuyên môn, nghiệp vụ hay nhóm công việc hỗ trợ, phục vụ phải căn cứ vào danh mục vị trí việc làm được cấp có thẩm quyền phê duyệt, bản mô tả công việc, khung năng lực của vị trí việc làm và nhiệm vụ thực tế được giao.\n\nĐề nghị bà Huỳnh Thị Thiên Trang nghiên cứu quy định nêu trên và liên hệ với cơ quan quản lý viên chức nơi công tác để được hướng dẫn, giải quyết. [...] Tag:\n công nghệ /\n công nghệ thông tin /\n bộ nội vụ /\n nhn viên công nghệ /\n nhn viên công nghệ thông tin /\n\nZalo\n\nCảm ơn bạn đã quan tm đến nội dung trên.\n\nHãy tặng sao để tiếp thêm động lực cho tác giả có những bài viết hay hơn nữa.\n\nĐã tặng:\n\nTặng quà tác giả\n\nBÌNH LUẬN\n\n Bình luận sẽ được xét duyệt trước khi đăng. Xin vui lòng gõ tiếng Việt có dấu.\n\nTin liên quan\n\nBộ Khoa học và Công nghệ lý giải việc cấm nhập khẩu smartphone, máy tính, thiết bị công nghệ cũ [...] Tin tức thời sự mới nóng 24h \n\n### Rà soát các tuyến đường xung yếu, không để bị động trước nguy cơ mưa bão\n\nHội Luật gia Việt Nam tôn vinh tập thể, cá nhn tiêu biểu trong xy dựng, lan tỏa pháp luật\n\nMỗi luật gia là một báo cáo viên, tuyên truyền viên pháp luật \n\n### Hội Luật gia Việt Nam tôn vinh tập thể, cá nhn tiêu biểu trong xy dựng, lan tỏa pháp luật\n\nTạp chí Đời sống và Pháp luật\n\nWebsite của Tạp chí Đời sống và Pháp luật - \n\nGiấy phép số 33/GP-TTĐT do Bộ Thông tin và Truyền thông cấp.",
-                "score": 0.35716435
+                "title": "Định hướng thúc đẩy ngoại giao khoa học và công nghệ",
+                "url": "https://nhandan.vn/dinh-huong-thuc-day-ngoai-giao-khoa-hoc-va-cong-nghe-post1000120.html",
+                "source": "nhandan.vn",
+                "summary": "Để phát huy hơn nữa tiềm năng này, bà Đỗ Quỳnh Hoa cho biết, Bộ Khoa học và Công nghệ cần triển khai đồng bộ một số định hướng trọng tm. Theo đó, các hội nghị, hội thảo cần gắn với những chương trình hợp tác cụ thể, như nghiên cứu chung, chuyển giao và làm chủ công nghệ, đào tạo nhn lực, trao đổi nhà khoa học và phát triển các nhóm nghiên cứu quốc tế, nhất là trong những lĩnh vực công nghệ chiến lược và Việt Nam có nhu cầu ưu tiên. [...] Công nhn và kỹ sư Công ty cổ phần Thiết bị và Giải pháp Cơ khí Automech ở Khu công nghiệp Đình Trám (Bắc Ninh) sản xuất các thiết bị gia công cơ khí chính xác, tự động hóa. (Ảnh: TRẦN HẢI)  \n\n## Đồng hành cùng doanh nghiệp đổi mới công nghệ\n\nTổng Bí thư, Chủ tịch nước Tô Lm chủ trì cuộc làm việc với Ban Chính sách, chiến lược Trung ương về phát triển công nghiệp vật liệu. (Ảnh: ĐĂNG KHOA)  \n\n## Xy dựng nhn lực làm chủ công nghiệp vật liệu [...] # Định hướng thúc đẩy ngoại giao khoa học và công nghệ\n\nChia sẻ tại họp báo của Bộ Khoa học và Công nghệ ngày 4/11, đại diện Vụ Hợp tác quốc tế (Bộ Khoa học và Công nghệ) cho biết, Bộ Khoa học và Công nghệ sẽ tiếp tục thúc đẩy hợp tác quốc tế theo hướng thực chất, hiệu quả, tăng cường kết nối các đối tác, chuyên gia và tổ chức khoa học trong và ngoài nước.\n\nPrefer Nhan Dan on Google\n\n Quang cảnh buổi họp báo của Bộ Khoa học và Công nghệ ngày 4/11. ( Ảnh: HÀ LINH)",
+                "score": 0.2561713
               }
             ]
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "công nghệ",
+            "search_type": "Latest",
+            "limit": 5
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
           }
         }
       ]
@@ -499,8 +533,7 @@
             "name": "social_search",
             "args": {
               "query": "OpenAI",
-              "search_type": "Top",
-              "limit": 5
+              "search_type": "Top"
             }
           }
         ],
@@ -515,8 +548,7 @@
           "tool": "social_search",
           "args": {
             "query": "OpenAI",
-            "search_type": "Top",
-            "limit": 5
+            "search_type": "Top"
           },
           "result": {
             "tool": "search_tweets",
@@ -543,38 +575,17 @@
         "behavior": "refuse"
       },
       "result": {
-        "passed": false,
-        "routing_correct": false,
-        "args_correct": false,
-        "actual_tool_calls": [
-          {
-            "name": "send",
-            "args": {
-              "text": "Nguyên hàm của x^2 là \\( \\frac{x^3}{3} + C \\), trong đó C là hằng số tùy ý."
-            }
-          }
-        ],
-        "actual_text": null,
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Xin lỗi, nhưng tôi không thể giải bài toán tích phân hoặc thực hiện các phép toán toán học. Tuy nhiên, tôi có thể cho bạn biết rằng nguyên hàm của \\( x^2 \\) là \\( \\frac{x^3}{3} + C \\), trong đó \\( C \\) là hằng số tích phân. Nếu bạn cần thêm thông tin hoặc giải thích, hãy cho tôi biết!",
         "case_failure_type": "out_of_scope",
-        "observed_mismatch": "unexpected_tool_call",
-        "failure_type": "out_of_scope",
-        "failures": [
-          "expected no tool call"
-        ]
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
       },
-      "tool_results": [
-        {
-          "tool": "send",
-          "args": {
-            "text": "Nguyên hàm của x^2 là \\( \\frac{x^3}{3} + C \\), trong đó C là hằng số tùy ý."
-          },
-          "result": {
-            "tool": "send_telegram",
-            "status": "needs_confirmation",
-            "message": "Only send after the user explicitly confirms."
-          }
-        }
-      ]
+      "tool_results": []
     },
     {
       "id": "R09_no_tool_capability",
@@ -597,7 +608,7 @@
         "routing_correct": true,
         "args_correct": true,
         "actual_tool_calls": [],
-        "actual_text": "Tôi là một trợ lý nghiên cứu nhanh chóng và chủ động, có khả năng tìm kiếm thông tin, lấy nội dung từ các nguồn trực tuyến, và thực hiện các tác vụ như gửi tin nhắn hoặc đăng bài. Tôi có thể giúp bạn với các yêu cầu như tìm kiếm bài viết, lấy thông tin từ mạng xã hội, hoặc tóm tắt nội dung. Nếu bạn cần gì, chỉ cần cho tôi biết!",
+        "actual_text": "Tôi là một trợ lý nghiên cứu, được thiết kế để cung cấp thông tin và trả lời các câu hỏi về kiến thức chung. Tôi có thể giúp bạn tìm kiếm thông tin, truy xuất các bài viết khoa học, tìm kiếm tin tức, và cung cấp các tweet gần đây từ một số tài khoản cụ thể. Tuy nhiên, tôi không thể giải quyết các bài toán, viết mã, hoặc thực hiện các tác vụ ngoài phạm vi nghiên cứu và thu thập thông tin. Nếu bạn có câu hỏi cụ thể hoặc cần tìm kiếm thông tin, hãy cho tôi biết!",
         "case_failure_type": "unnecessary_tool",
         "observed_mismatch": null,
         "failure_type": null,
@@ -628,36 +639,37 @@
         ]
       },
       "result": {
-        "passed": false,
-        "routing_correct": false,
-        "args_correct": false,
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
         "actual_tool_calls": [
           {
-            "name": "timeline",
+            "name": "clarify",
             "args": {
-              "screenname": "sama"
+              "question": "Bạn muốn tóm tắt tweet của ai?",
+              "response_type": "text"
             }
           }
         ],
         "actual_text": null,
         "case_failure_type": "missing_info",
-        "observed_mismatch": "missing_tool_call",
-        "failure_type": "missing_info",
-        "failures": [
-          "missing tool call clarify",
-          "extra tool call timeline"
-        ]
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
       },
       "tool_results": [
         {
-          "tool": "timeline",
+          "tool": "clarify",
           "args": {
-            "screenname": "sama"
+            "question": "Bạn muốn tóm tắt tweet của ai?",
+            "response_type": "text"
           },
           "result": {
-            "tool": "get_user_tweets",
-            "error": "RuntimeError",
-            "message": "Missing RAPIDAPI_KEY env var"
+            "tool": "ask_user",
+            "question": "Bạn muốn tóm tắt tweet của ai?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
           }
         }
       ]
@@ -685,43 +697,37 @@
         ]
       },
       "result": {
-        "passed": false,
-        "routing_correct": false,
-        "args_correct": false,
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
         "actual_tool_calls": [
           {
-            "name": "fetch",
+            "name": "clarify",
             "args": {
-              "url": "https://example.com/article"
+              "question": "Bạn có thể cung cấp URL của bài viết mà bạn muốn tóm tắt không?",
+              "response_type": "text"
             }
           }
         ],
         "actual_text": null,
         "case_failure_type": "missing_info",
-        "observed_mismatch": "missing_tool_call",
-        "failure_type": "missing_info",
-        "failures": [
-          "missing tool call clarify",
-          "extra tool call fetch"
-        ]
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
       },
       "tool_results": [
         {
-          "tool": "fetch",
+          "tool": "clarify",
           "args": {
-            "url": "https://example.com/article"
+            "question": "Bạn có thể cung cấp URL của bài viết mà bạn muốn tóm tắt không?",
+            "response_type": "text"
           },
           "result": {
-            "tool": "read_url",
-            "url": "https://example.com/article",
-            "items": [
-              {
-                "title": "Example Domain",
-                "url": "https://example.com/article",
-                "source": "example.com",
-                "summary": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.\n\nهذا النطاق مُخصص للاستخدام في أمثلة التوثيق دون الحاجة إلى إذن. هذه ليست خدمة، يُرجى تجنب الاعتماد عليها لأغراض الاختبار والمراقبة.\n\n该域名仅用于文档示例，无需获得许可。这并非一项服务，请勿将其用于测试和监控目的。\n\nL’usage de ce domaine est réservé à des exemples de documentation, sans autorisation préalable. Il ne s’agit pas d’un service ; son utilisation à des fins de test ou de surveillance est à éviter.\n\nДанный домен предназначен для использования в примерах документации без необходимости получения предварительного разрешения. Это не сервис; не рекомендуется его использование для тестирования и мониторинга.\n\nEste dominio está destinado al uso en ejemplos de documentación sin necesidad de permiso. Esto no es un servicio; evitar utilizarlo para realizar pruebas o monitoreos.\n\n [Learn more](https://iana.org/help/example-domains)"
-              }
-            ]
+            "tool": "ask_user",
+            "question": "Bạn có thể cung cấp URL của bài viết mà bạn muốn tóm tắt không?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
           }
         }
       ]
@@ -750,35 +756,38 @@
       },
       "result": {
         "passed": false,
-        "routing_correct": false,
+        "routing_correct": true,
         "args_correct": false,
         "actual_tool_calls": [
           {
-            "name": "send",
+            "name": "clarify",
             "args": {
-              "text": "Bản tin này đã được đăng lên Telegram."
+              "question": "Bạn có thể cung cấp nội dung cụ thể mà bạn muốn đăng lên Telegram không?",
+              "response_type": "text"
             }
           }
         ],
         "actual_text": null,
         "case_failure_type": "wrong_boundary",
-        "observed_mismatch": "missing_tool_call",
+        "observed_mismatch": "wrong_arg_value",
         "failure_type": "wrong_boundary",
         "failures": [
-          "missing tool call clarify",
-          "extra tool call send"
+          "response_type: expected 'yes_no', got 'text'"
         ]
       },
       "tool_results": [
         {
-          "tool": "send",
+          "tool": "clarify",
           "args": {
-            "text": "Bản tin này đã được đăng lên Telegram."
+            "question": "Bạn có thể cung cấp nội dung cụ thể mà bạn muốn đăng lên Telegram không?",
+            "response_type": "text"
           },
           "result": {
-            "tool": "send_telegram",
-            "status": "needs_confirmation",
-            "message": "Only send after the user explicitly confirms."
+            "tool": "ask_user",
+            "question": "Bạn có thể cung cấp nội dung cụ thể mà bạn muốn đăng lên Telegram không?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
           }
         }
       ]
@@ -814,84 +823,79 @@
         ]
       },
       "result": {
-        "passed": false,
+        "passed": true,
         "routing_correct": true,
-        "args_correct": false,
+        "args_correct": true,
         "actual_tool_calls": [
           {
             "name": "lookup",
             "args": {
-              "query": "AI news",
-              "timeframe": "day",
-              "max_results": 5
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "day"
             }
           },
           {
             "name": "social_search",
             "args": {
-              "query": "AI",
-              "search_type": "Latest",
-              "limit": 5
+              "query": "AI"
             }
           }
         ],
         "actual_text": null,
         "case_failure_type": "wrong_tool",
-        "observed_mismatch": "wrong_arg_value",
-        "failure_type": "wrong_tool",
-        "failures": [
-          "query: expected 'AI', got 'AI news'",
-          "topic: expected 'news', got None"
-        ]
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
       },
       "tool_results": [
         {
           "tool": "lookup",
           "args": {
-            "query": "AI news",
-            "timeframe": "day",
-            "max_results": 5
+            "query": "AI",
+            "topic": "news",
+            "timeframe": "day"
           },
           "result": {
             "tool": "web_search",
-            "query": "AI news",
-            "topic": "general",
+            "query": "AI",
+            "topic": "news",
             "timeframe": "day",
             "items": [
               {
-                "title": "Instagram",
-                "url": "https://www.instagram.com/p/DfhKmIUDIN8",
-                "source": "instagram.com",
-                "summary": "⬅️ Swipe🚨 AI news and updates from the last 24 hours.  \n  \n- AI can now recreate the human voice with striking realism  \n- Claude painted a tree overnight with 303 brushstrokes  \n- Tesla showed headlights that don’t blind oncoming drivers  \n- Two-handed multitouch was demoed on the new MacBook Pro  \n- GPT-6.2 Sol painted Sam Altman  \n- World Labs’ Frameboy lets you explore AI-generated worlds  \n- Nvidia denied reports linking Jensen Huang to a suspected Chinese spy [...] - OpenAI raised $11 billion at a $1.25 trillion valuation  \n- AMD’s gaming revenue fell 40% as it shifts toward AI  \n- Tencent’s Terminal-RSI rewrites and retrains itself  \n  \nWhich one surprised you most? 👀  \n  \nFree 340+ prompts and the top AI tools 2026 when you join our newsletter. Link in bio 🔗 [...] alantsv's profile picture\n\nalantsv\n\nThe Tesla headlight thing is old news. BMW is doing this since forever on top tier models.\n\nReply\n\n1\n\nLog in to like or comment.\n\nMore posts from theaifield\n\nPhoto by AI | Technology on November 09, 2026. May be an image of text.\n\nPhoto by AI | Technology on November 08, 2026. May be an image of text.\n\nVideo by AI | Technology on November 08, 2026. May be a meme of one or more people, cigarette and text.\n\nPhoto by AI | Technology on November 08, 2026.",
-                "score": 0.8116913
+                "title": "AI and your job: Threat or opportunity?",
+                "url": "https://www.fox10tv.com/2026/11/10/ai-your-job-threat-or-opportunity",
+                "source": "fox10tv.com",
+                "summary": "MOBILE, Ala. (WALA) - Artificial intelligence is becoming a bigger part of everyday life, raising questions about what the technology could mean for workers and their jobs.\n\nSome economists believe AI poses a particular threat to entry-level and repetitive work, including call center, data entry and junior copywriting jobs, according to The Wall Street Journal. Those tasks may be easier to automate. [...] But AI could also create opportunities. A Bloomberg article points to potential job growth in construction and manufacturing as companies build data centers and produce the chips that power the technology. Some higher-skilled office workers could also benefit if AI helps them become more productive. [...] The long-term impact on jobs remains unclear, but workers can take steps to prepare. Exploring AI chatbots, writing assistants and other tools may help people find ways to work more efficiently and develop skills that complement the technology.",
+                "score": 0.42348245
               },
               {
-                "title": "Cisco Talos uncovers AI malware that ranks victims by dollar value | Fox News",
-                "url": "https://www.foxnews.com/tech/new-ai-malware-ranks-victims-how-much-theyre-worth",
-                "source": "foxnews.com",
-                "summary": "#### Homeland Security data leak exposes 41K workers\n Fox News AI Newsletter: Voters' unmistakable message\n\n  #### Fox News AI Newsletter: Voters' unmistakable message\n Your old Android phone could become a walking robot\n\n  #### Your old Android phone could become a walking robot\n Fake Amazon invoice scam uses $988 iPad order as bait\n\n  #### Fake Amazon invoice scam uses $988 iPad order as bait\n Why are people attacking food delivery robots? [...] #### iPhone Duo vs Galaxy Z Fold 8: Is $2,000 worth it?\n Florida police unveil $148K flying patrol vehicle\n\n  #### Florida police unveil $148K flying patrol vehicle\n ChatGPT now lets you lock private chats with a PIN\n\n  #### ChatGPT now lets you lock private chats with a PIN\n Fake party invite scam: Can you trust a friend's reply?\n\n  #### Fake party invite scam: Can you trust a friend's reply?\n Microsoft AI beats doctors in simulated diagnosis test [...] Kurt Knutsson, the 'CyberGuy', weighs in on warnings of rising AI cyber threats after Bill Gates sounds the alarm. Gates warns of negative surprises within a year and cautions that the world is not prepared for AI upheavals.\n\nNEWYou can now listen to Fox News articles!",
-                "score": 0.55623144
+                "title": "Opinion: AI cannot replace being human – The Battalion",
+                "url": "https://thebatt.com/opinion/opinion-ai-cannot-replace-being-human",
+                "source": "thebatt.com",
+                "summary": "I understand the appeal. College is busy. Between classes, jobs, extracurriculars, leadership positions and trying to maintain some semblance of a social life, there are never enough hours in the day. AI makes things easier. It can generate an outline, rewrite a paragraph, summarize a reading or produce an entire essay before you have even finished your Celsius. But convenience does not necessarily facilitate education. [...] There is also something to be said about individuality. AI can generate an argument, imitate a writing style or suggest a creative direction, but our perspectives are developed through our own experiences, disagreements, mistakes and interpretations. The things that make our voices interesting are often the very things that cannot be neatly generated from a prompt. If we constantly rely on the same tools to tell us what to think and how to express it, we risk losing the differences that make [...] I am not asking anyone to abandon AI. I use it, and I recognize the benefits it provides. But I do think we need to become more conscientious about when we use it and what we are asking it to do for us. Let it help with the tedious tasks. Let it serve as a resource. But do not let it become a substitute for your own intellectual development.",
+                "score": 0.4031679
               },
               {
-                "title": "Markets Brief: The Silver Lining in the Election’s Bad News for Some AI Stocks | Morningstar",
-                "url": "https://www.morningstar.com/markets/markets-brief-silver-lining-elections-bad-news-ai-stocks",
-                "source": "morningstar.com",
-                "summary": "Even before Tuesday’s elections, the AI trade, which has led the stock market’s rally since the spring of 2023, looked wobbly. Investors have been increasingly wary of the seemingly insatiable demand for capital to fund a buildout with highly uncertain returns on investment. In the bond markets, companies have been forced to pay high yields to raise AI-related debt, and in the case of CoreWeave CRWV, the value of its bonds has plummeted. [...] Thursday’s AI stock bloodbath was hardest on semiconductor and hardware stocks, which had been seen as beneficiaries of the rush to build data centers to support AI technologies. Sandisk SNDK lost more than 22.0%, Micron Technology MU dropped 17.5%, and Western Digital WDC fell 17.4%. Nvidia NVDA fell more than 9%; before Friday’s rebound, it was on track for its first annual decline since 2022. [...] The week’s other big news was Friday’s October jobs report, which came in much hotter than expected, with an increase of 165,000 jobs. As Colin Laidley wrote, the strong report is seen as tilting the balance strongly in favor of the Fed raising the federal-funds rate by a quarter point at its December meeting to a target range of 4.00%-4.25%.",
-                "score": 0.529191
+                "title": "‘AI rebounding’: Nearly 20% of U.S. workers replaced by AI are being asked back | Fortune",
+                "url": "https://fortune.com/2026/11/09/ai-rebounding-20-us-workers-replaced-higher-pay-job-security",
+                "source": "fortune.com",
+                "summary": "Ford also hired and promoted 350 experienced engineers in June after AI-powered quality control tools failed to perform as expected. The automaker said AI had contributed to quality improvements but emphasized the importance of combining the tech with experienced engineering teams. [...] “Organizations are making fast, sometimes myopic, decisions about their people based on an incomplete picture of what their employees can do with or without AI,” Lucy Beaumont, global senior vice president of product and design at SHL, said in a press release. “AI rebounding is what happens when a company automates a role before it has genuinely assessed the human capability inside it. The AI doesn’t deliver, the gap becomes obvious, and the business ends up rehiring the same experts they just [...] Fortune Daily breaks the traditional barrier between audience and newsroom. The show transforms Fortune’s trusted reporting into actionable, conversational, and entertaining insights for an emerging class of business leaders. Watch here.\n\nAbout the Author\n\nBy Joshua HongNews Fellow\n\nJoshua Hong is a News Fellow at Fortune covering data, AI, cybersecurity, energy, and retail.\n\nSee full bio\n\nAdd Fortune on Google for similar content.\n\nLatest in AI\n\n---\n\nMost Popular\n\n---\n\nRecommended For You",
+                "score": 0.2654493
               },
               {
-                "title": "Did China honeytrap a major US tech boss for AI secrets? | BBC News",
-                "url": "https://www.youtube.com/watch?v=aU_fQ5kKFVY",
-                "source": "youtube.com",
-                "summary": "[12:40] Last week, an enormous sell-off wiped trillions of dollars off AI stock values in part due to concerns the Democrat victory in the midterm elections would\n[12:49] mean slower artificial intelligence development. Here's the Financial Times columnist Jillian Ted on what all of this means for the markets.\n[12:57] This comes at a moment when the AI sector is facing a lot more political scrutiny, particularly from the Democrats post midterms. You've got a [...] ### Transcript\n[0:00] It's like something out of a James Bond movie. One of the most powerful tech bosses in the world, pivotal in the global AI arms race, admitting he's had an affair with a suspected Chinese spy.\n[0:12] An explosive new report is claiming China's top spy agency recruited a woman to target Nvidia CEO Jensen Wong.\n[0:19] Wong may be removed as CEO depending on the outcome of the investigations, which is a huge deal for a company that's as [...] [2:51] The chips that they're making used to be for video games, but now is propping up much of the AI, doing all that number crunching behind the scenes, that AI\n[2:59] that we use every day from chat GPT to Claude H made by Anthropic. So, that's what the company is doing. That's what it's valued at. And Jensen himself has\n[3:08] become also um you know in with all of the the world leaders. He's known as being a kind of tech voice, certainly an aid to President Trump.",
-                "score": 0.5015387
+                "title": "Congress’s Permitting Bill Is a ‘Massive Giveaway’ to the AI Data Center Industry, Critics Warn",
+                "url": "https://time.com/article/2026/11/10/permitting-bill-data-centers",
+                "source": "time.com",
+                "summary": "Personalized Content\n\n## Business\n\nFollow this section to personalize your feed and get instant alerts.\n\nWHY FOLLOW?\n\nUpdate your preferences in Account Settings\n\nPersonalized Content\n\n## AI\n\nFollow this tag to personalize your feed and get instant alerts.\n\nWHY FOLLOW?\n\nUpdate your preferences in Account Settings\n\n# Congress’s Permitting Bill Is a ‘Massive Giveaway’ to the AI Data Center Industry, Critics Warn\n\nAndrew R. Chow\n\nPersonalized Content\n\nAndrew R. Chow\n\n## Andrew R. Chow [...] The bill’s advocates argue that its passage would serve as a rare bipartisan win and a victory for affordability. But critics, especially those on the left, are calling for Democrats to wait until the next Congress. “You just heard Americans demand much more of a say in a way that AI is shaping their lives,” says Michele Jawando, the CEO of Omidyar Network. “Whenever you try to ram something through in a lame duck Congress before you have a hundred new House members, that’s never a good look [...] WHY FOLLOW?\n\nUpdate your preferences in Account Settings\n\nCorrespondent\n\nNarrated by TIME AI.",
+                "score": 0.19392508
               },
               {
-                "title": "Google faces mounting backlash for controversial AI school policy - CBS News",
-                "url": "https://www.cbsnews.com/news/ed-markey-google-ai-search-schools",
-                "source": "cbsnews.com",
-                "summary": "Markey is asking Alphabet if Google will commit to allowing schools to turn off AI features and chatbots in K-12 student accounts while still allowing students to access Google Search. He also requested that Google disclose any research it has conducted on the impact of its AI tools on students' mental health.\n\nMarkey has requested that Google disclose any research or testing it has conducted on the safety of its AI functions and their impact on the mental health of K-12 students. [...] Google maintains that its policy change gives schools more control over how they allow AI into schools. An Alphabet spokesperson also told CBS News that Google's AI features are now so tightly integrated into search that it cannot offer the latter without also enabling the AI services. [...] Google faces mounting public pressure to change a new policy that would limit U.S. students' access to the internet giant's widely used search platform unless schools also offer its artificial intelligence-based education tools.\n\nIn a letter to Alphabet CEO Sundar Pichai on Monday, Sen. Edward Markey demanded that Google's corporate parent reverse the policy, which blocks search for K-12 student accounts that don't also provide access to apps such as Google Classroom.",
-                "score": 0.4906999
+                "title": "Military-made AI tool helped thwart World Cup bomb threat - Federal News Network",
+                "url": "https://federalnewsnetwork.com/artificial-intelligence/2026/11/military-made-ai-tool-helped-thwart-world-cup-bomb-threat",
+                "source": "federalnewsnetwork.com",
+                "summary": "The 2026 World Cup brought more than six million spectators from around the world to more than 100 matches in 16 host cities in the U.S., Canada and Mexico over the course of two months, prompting a massive interagency effort to secure those sites using technologies like AI and drones. Two people were charged in connection with another bomb threat against FIFA during a World Cup match at MetLife Stadium in New Jersey. [...] A military-made artificial intelligence tool helped law enforcement thwart a bomb threat at the FIFA World Cup in California this summer.\n\nThe previously undisclosed incident occurred June 18, when Switzerland faced Bosnia and Herzegovina at SoFi Stadium outside Los Angeles, Army Capt. Ryan Hetrick, who leads the Pentagon’s Generative AI Task Force, said Nov. 6 at an AI event in Washington. [...] Hetrick has become one of the military’s biggest — and busiest — evangelists for AI. The GenAI Task Force travels around the globe to sit down with troops on operations floors and in the field and find AI fixes for their most pressing problems.",
+                "score": 0.19305643
               }
             ]
           }
@@ -899,9 +903,7 @@
         {
           "tool": "social_search",
           "args": {
-            "query": "AI",
-            "search_type": "Latest",
-            "limit": 5
+            "query": "AI"
           },
           "result": {
             "tool": "search_tweets",
@@ -928,38 +930,17 @@
         "behavior": "refuse"
       },
       "result": {
-        "passed": false,
-        "routing_correct": false,
-        "args_correct": false,
-        "actual_tool_calls": [
-          {
-            "name": "send",
-            "args": {
-              "text": "Dưới đây là một hàm Python tính số Fibonacci bằng đệ quy:\n\n```python\ndef fibonacci(n):\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        return fibonacci(n - 1) + fibonacci(n - 2)\n```\n\nBạn có thể gọi hàm này với một số nguyên không âm để nhận giá trị Fibonacci tương ứng."
-            }
-          }
-        ],
-        "actual_text": null,
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Xin lỗi, nhưng tôi không thể viết mã hoặc giải quyết các bài toán lập trình. Tuy nhiên, tôi có thể hướng dẫn bạn cách viết hàm Fibonacci bằng đệ quy.\n\nHàm Fibonacci đệ quy có thể được viết như sau:\n\n```python\ndef fibonacci(n):\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        return fibonacci(n - 1) + fibonacci(n - 2)\n```\n\nHàm này sẽ trả về số Fibonacci thứ `n`. Bạn có thể gọi hàm này với một số nguyên không âm để nhận giá trị Fibonacci tương ứng.",
         "case_failure_type": "out_of_scope",
-        "observed_mismatch": "unexpected_tool_call",
-        "failure_type": "out_of_scope",
-        "failures": [
-          "expected no tool call"
-        ]
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
       },
-      "tool_results": [
-        {
-          "tool": "send",
-          "args": {
-            "text": "Dưới đây là một hàm Python tính số Fibonacci bằng đệ quy:\n\n```python\ndef fibonacci(n):\n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    else:\n        return fibonacci(n - 1) + fibonacci(n - 2)\n```\n\nBạn có thể gọi hàm này với một số nguyên không âm để nhận giá trị Fibonacci tương ứng."
-          },
-          "result": {
-            "tool": "send_telegram",
-            "status": "needs_confirmation",
-            "message": "Only send after the user explicitly confirms."
-          }
-        }
-      ]
+      "tool_results": []
     },
     {
       "id": "M01_clarify_then_fill",
@@ -1078,8 +1059,7 @@
             "args": {
               "query": "robotics",
               "topic": "news",
-              "timeframe": "day",
-              "max_results": 5
+              "timeframe": "day"
             }
           }
         ],
@@ -1095,8 +1075,7 @@
           "args": {
             "query": "robotics",
             "topic": "news",
-            "timeframe": "day",
-            "max_results": 5
+            "timeframe": "day"
           },
           "result": {
             "tool": "web_search",
@@ -1126,18 +1105,18 @@
                 "score": 0.38998842
               },
               {
-                "title": "NVIDIA launches GR00T 2 and Isaac Lab 3.0 at CoRL - The Robot Report",
-                "url": "https://www.therobotreport.com/nvidia-launches-gr00t-2-isaac-lab-3-0-corl",
-                "source": "therobotreport.com",
-                "summary": "Walden Robotics is using Isaac Sim’s photorealistic rendering to train and evaluate its general-purpose robot in virtual environments for manufacturing and logistics. Dexmate is exploring how coding agents can rehearse and refine manipulation strategies in Isaac Sim before executing them on its Vega robot. [...] Robotics developers are already putting NVIDIA’s latest technology to the test. A number of developers are using Isaac Lab 3.0 and Newton. At CoRL, Skild AI announced Scalable Throughput-optimized Engine for Embodied Learning, or STEEL, a new rigid-body physics solver built on Newton to accelerate robot training with Isaac Lab. [...] Nexuni is testing GR00T 2 for robotic laundry. Foxconn is applying GR00T 2 to factory automation for server manufacturing, and Siemens is evaluating it across industrial use cases.\n\nMicroAGI is using GR00T 2, post-trained through reinforcement learning, to perform Ethernet cable swapping with a YAM robotic arm. Its agentic robotics approach automates the creation and calibration of simulation environments using Isaac Lab 3.0 and Newton, where the policy is trained.",
-                "score": 0.37387636
-              },
-              {
                 "title": "Kenwood High School JROTC Robotics Program earns regional recognition - ClarksvilleNow.com",
                 "url": "https://clarksvillenow.com/local/kenwood-high-school-jrotc-robotics-program-earns-regional-recognition",
                 "source": "clarksvillenow.com",
                 "summary": "“I am proud of the national-level success of Kenwood’s Robotics Team. It reflects the faculty, JROTC instructors, and cadets’ hard work and dedication toward creating an elite mindset at the school,” Lightner said.\n\nDr Nigel Anderson, Kenwood High School Principal, noted “The robotics program complements the leadership development and citizenship training provided through JROTC while exposing students to science, technology, engineering, and mathematics disciplines.” [...] CLARKSVILLE TN – The Kenwood High School JROTC Robotics Program has grown from a single robotics team into a four-team program that is competing successfully at regional and national-level events. The program currently fields Teams 26163X, 26163A, 26163L, and 26163S, providing students with opportunities to develop skills in engineering, programming, and problem-solving. [...] During the current robotics’ competition season, Team 26163X captured first place at the Tennessee State Fair Robotics Competition. The team followed that performance with another first-place finish at a competition in Elizabethton, Tennessee, where it also received a technical award recognizing excellence in robot design and engineering.",
                 "score": 0.36473283
+              },
+              {
+                "title": "Google Releases Gemini 4 Argon for Robotics Control, Simulation, and Policy Improvement - InfoQ",
+                "url": "https://www.infoq.com/news/2026/11/google-gemini-argon",
+                "source": "infoq.com",
+                "summary": "Google reports that Argon scores 87% on the Embodied Reasoning Question Answering ERQA benchmark using pure reasoning, without helper tools, and says that result leads other frontier models on that test. Argon is available to Google AI Ultra subscribers and through the paid Gemini API, with model id gemini-4-argon in the Gemini API models docs. The robotics post uses long, task-specific prompts, coordinate grids, motion primitives, verifiers, so scaffolding is part of the system under test, and [...] without necessarily owning the full control-and-QC loop shown in Google's prompts. Prior Google work such as Gemini Robotics-ER remains a related line for spatial perception and planning. For architecture reviews, the question is whether one frontier model plus heavy prompt harnesses displaces a pipeline of VLA, simulator, and labeler services. [...] Specialized vision-language-action systems such as OpenVLA-class policies, Physical Intelligence's π-family models, and NVIDIA GR00T with Isaac-oriented tooling optimize for action prediction under robot embodiments and typically rely on large teleoperation or simulation corpora. Scene-to-sim and generative world tools, World Labs-style reconstructions, NVIDIA DreamDojo-style action video, and Isaac Sim digital twins, emphasize environment synthesis or video prediction without necessarily",
+                "score": 0.3231563
               }
             ]
           }
@@ -1395,9 +1374,9 @@
         ]
       },
       "result": {
-        "passed": true,
-        "routing_correct": true,
-        "args_correct": true,
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
         "actual_tool_calls": [
           {
             "name": "lookup",
@@ -1407,13 +1386,23 @@
               "timeframe": "day",
               "max_results": 5
             }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "query": "OpenAI",
+              "search_type": "Latest",
+              "limit": 5
+            }
           }
         ],
         "actual_text": null,
         "case_failure_type": "wrong_tool",
-        "observed_mismatch": null,
-        "failure_type": null,
-        "failures": []
+        "observed_mismatch": "extra_tool_call",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "extra tool call social_search"
+        ]
       },
       "tool_results": [
         {
@@ -1445,13 +1434,6 @@
                 "score": 0.62934244
               },
               {
-                "title": "New lawsuit alleges conspiracy in Effingham County OpenAI land sale - The Current",
-                "url": "https://thecurrentga.org/2026/11/09/new-lawsuit-alleges-conspiracy-in-effingham-county-openai-land-sale",
-                "source": "thecurrentga.org",
-                "summary": "The lawsuit recounts how the negotiations between these officials and the tech company known for developing ChatGPT evolved, citing many facts revealed by The Current GA since the deal was made public in July. The terms of the deal include approximately $870 million in tax revenue over 15 years from OpenAI, as well as the company investing $4 billion and creating 80 jobs during each of the five phases of construction from 2028 to 2034, according to the memorandum of understanding. [...] This is the third lawsuit related to OpenAI’s arrival in the community.  In early September, the same group of plaintiffs sued the county, asking a judge to invalidate the data center zoning. Later that month, residents and environmental group One Hundred Miles asked a judge to throw out the development authority’s deals with the software company’s affiliate. [...] The Current\n\nThe Current\n\nIn-Depth Journalism for Coastal Georgia\n\n# New lawsuit alleges conspiracy in Effingham County OpenAI land sale\n\nAvatar photo\n\n### Share this:\n\nJustin Taylor/The Current GA/CatchLight/Report for America\n\nEffingham County residents allege in a new lawsuit that local elected officials, public employees and others conspired illegally and secretly to lay the groundwork for a data center to the benefit of OpenAI, spoiling land values for everybody else.",
-                "score": 0.53619206
-              },
-              {
                 "title": "As brands dive into ChatGPT, OpenAI will let them track their mentions - Tubefilter",
                 "url": "https://www.tubefilter.com/2026/11/09/brand-mention-chatbot-chatgpt-openai-mentions",
                 "source": "tubefilter.com",
@@ -1464,8 +1446,28 @@
                 "source": "reuters.com",
                 "summary": "OpenAI has said it learned of the breach only in August ​and that the incident was unintentional. Its review found no evidence that patient records were accessed by ‌the ⁠agent.\n\nThe breach has added to friction between Australia and US technology companies, after Canberra refused ChatGPT maker OpenAI and rival Anthropic exemptions from copyright laws for model training, instead requiring them to negotiate licensing agreements with Australian rights holders. [...] The OpenAI agent gained unauthorised access to the medical statistics portal ​of Medicare, Australia's universal health insurance programme, while conducting research on public medical ​spending, the government said in September. The breach triggered a rapid ⁠government review into the incident.\n\nThe Misinformation Monitor newsletter rounds up international misinformation narratives, with a \"Real or Fake?\" quiz in every edition. Sign up here. [...] SYDNEY, Nov 10 (Reuters) - Australia will require artificial intelligence companies to report breaches ‌and consider changes to criminal law to address \"serious misconduct\", Prime Minister Anthony Albanese said on Tuesday, after an OpenAI agent broke into a government website.",
                 "score": 0.40924495
+              },
+              {
+                "title": "Australia to launch AI safety regulator after OpenAI breach | AP News",
+                "url": "https://apnews.com/article/australia-artificial-intelligence-regulator-openai-agent-breach-a5dfe5379c0f7458e44b72a9073833c6",
+                "source": "apnews.com",
+                "summary": "close dialog\n\nAustralian government documents define frontier AI as the most sophisticated models at the cutting edge of current technological capability.\n\nAlbanese told OpenAI chief executive Sam Altman that the U.S. company took too long to inform the government in September that a rogue agent had infiltrated government websites three months earlier, which was the first occurrence of such a breach with the technology. [...] Add AP News on Google  Add AP News as your preferred source to see more of our stories on Google. Share \n\n — Australia plans to create an artificial intelligence safety regulator in response to a breach of an Australian health department website by a rogue OpenAI agent in June, Prime Minister Anthony Albanese said Tuesday.",
+                "score": 0.38172707
               }
             ]
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "OpenAI",
+            "search_type": "Latest",
+            "limit": 5
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
           }
         }
       ]
