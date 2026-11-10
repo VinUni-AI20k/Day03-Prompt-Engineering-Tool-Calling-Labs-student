@@ -6,9 +6,9 @@
 
 ## Team
 
-- Team:
-- Members:
-- Provider/model:
+- Team: DoMinhHoang
+- Members: Phạm Đức Hồng Đức, Đỗ Minh Hoàng, Vũ Đức Tâm, Lê Xuân Hà
+- Provider/model: openai
 
 ---
 
@@ -16,9 +16,7 @@
 
 ## A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research Agent hỗ trợ tìm tin trên web và X/Twitter, đọc URL, tra cứu paper arXiv, policy nội bộ, thời tiết hiện tại và repository GitHub; agent có thể kết hợp nhiều nguồn và giữ đúng ràng buộc qua hội thoại nhiều lượt. Khi thiếu dữ liệu bắt buộc agent sẽ hỏi lại thay vì tự đoán, còn hành động gửi/đăng ra Telegram chỉ được thực hiện sau khi người dùng xác nhận rõ ràng.
 
 **Link dùng thử (deploy):**
 
@@ -50,14 +48,16 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 ## B1. Version Evidence
 
-Fill from `artifacts/version_log.csv` and `runs/*.json`.
+Nguồn bằng chứng: `artifacts/version_log.csv` và các run JSON tương ứng trong `runs/`.
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Starter cố ý sẽ lỗi ở phạm vi, thông tin bị thiếu, xác nhận gửi và định tuyến nhiều tool. | — | 0.70 | `runs/v0_B_base_openai_20261110T110804866669.json` |
+| v1 | `system_prompt.md` | Bỏ chỉ dẫn xấu và thêm ranh giới routing/clarify/send sẽ sửa lỗi tự đoán, gọi tool ngoài phạm vi và sai multi-tool. | 0.70 | 0.90 | `runs/v1_B_base_openai_20261110T135423515714.json` |
+| v2 | `tools.yaml` | Description và schema tường minh sẽ sửa lỗi thiếu `response_type` và tăng độ chính xác argument. | 0.90 | 0.90 | `runs/v2_B_base_openai_20261110T144126484826.json` |
+| v3 | `system_prompt.md` + `tools.yaml` | Ưu tiên lệnh hủy/chuyển nguồn và xác nhận `yes_no` sẽ loại tool thừa và sửa boundary Telegram còn lại. | 0.90 | 1.00 | `runs/v3_B_base_openai_20261110T144745860762.json` |
+
+Lưu ý về attribution: phần Người 1 chủ động thay đổi ở v1 là `system_prompt.md`, nhưng tools hash cũng đổi từ `5b22a2476d41` ở v0 sang `55b439405a40` ở v1 do đồng bộ tool mới của nhóm. Vì vậy mức tăng 0.70 → 0.90 là bằng chứng của artifact v1 hoàn chỉnh, không được diễn giải là tác động thuần túy chỉ của prompt.
 
 ## B2. Failure Analysis
 
@@ -65,15 +65,33 @@ Use actual failures from `results[*].result.failures`.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| v0/R08_out_of_scope | `out_of_scope` | `send` | Câu toán ngoài phạm vi nhưng model dùng `send` như tool trả lời. | Thêm rule ngoài phạm vi: không gọi tool; cấm dùng `send` để trình bày câu trả lời. |
+| v0/R10_missing_handle | `missing_info` | `timeline` | Thiếu tài khoản nhưng model tự đoán `sama`. | Thiếu handle phải gọi `clarify(response_type="text")`; không tự chọn tài khoản nổi tiếng. |
+| v0/R11_missing_url | `missing_info` | `fetch` | Model tự tạo `https://example.com/article` khi chưa có URL. | Chỉ dùng `fetch` với URL có thật trong hội thoại; thiếu URL phải hỏi `clarify(text)`. |
+| v0/R12_confirm_before_send | `wrong_boundary` | `send` | Gọi `send` trước khi người dùng xác nhận. | Bắt buộc hỏi `clarify(response_type="yes_no")` trước mọi hành động gửi/đăng. |
+| v0/R13_parallel_web_and_tweets | `wrong_tool` | `lookup`, `social_search` | Đúng hai tool nhưng `lookup.query="AI news"` và thiếu `topic="news"`; mismatch thực tế là `wrong_arg_value`. | Giữ `query="AI"`, tách loại tin vào `topic="news"` và thời gian vào `timeframe="day"`. |
+| v0/R14_out_of_scope_coding | `out_of_scope` | `send` | Yêu cầu coding ngoài phạm vi nhưng model tạo code rồi đưa vào `send`. | Không gọi tool cho coding thuần túy và không dùng `send` như output channel. |
+| v1/R11_missing_url | `missing_info` | `clarify` | Chọn đúng tool nhưng bỏ `response_type`; expected `text`. | Bắt buộc `response_type` trong schema và mô tả rõ từng enum. |
+| v1/R12_confirm_before_send | `wrong_boundary` | `clarify` | Chọn đúng tool nhưng dùng `response_type="text"` thay vì `"yes_no"`. | Nêu rõ xác nhận side effect phải dùng `yes_no`. |
+| v2/R12_confirm_before_send | `wrong_boundary` | `clarify` | Model vẫn ưu tiên hỏi nội dung bằng `text` trước xác nhận. | V3 quy định xác nhận `yes_no` luôn là bước đầu tiên, kể cả khi nội dung còn thiếu. |
+| v2/M06_switch_tool | `wrong_tool` | `lookup`, `social_search` | `lookup` đúng nhưng gọi thừa `social_search` sau khi người dùng nói bỏ Twitter; mismatch thực tế là `extra_tool_call`. | V3 cho lệnh hủy/chuyển nguồn ưu tiên cao hơn multi-tool và cấm gọi tool đã bị thay thế. |
 
 ## B3. Team Eval Cases
 
-List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn).
+Đã thêm 10 case vào `data/eval_group.json`, gồm 5 single-turn và 5 multi-turn. Run `runs/v3_B_group_openai_20261110T151111781188.json` đạt 6/10 case, case accuracy 0.60, tool routing 0.90, argument accuracy 0.60 và multi-turn accuracy 0.80.
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_weather_current_city | Route câu hỏi thời tiết hiện tại và giữ đơn vị độ C. | `weather(location="Hanoi", units="celsius")` | FAIL — gọi đúng `weather` nhưng bỏ `units`; schema mặc định là `celsius`, cần manual review expected args. |
+| G02_github_top_repositories | Ánh xạ số lượng và thứ tự nhiều sao nhất khi tìm repository. | `github_search(query="RAG", sort="stars", order="desc", max_results=3)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định nên cần manual review. |
+| G03_weather_missing_location | Không tự đoán vị trí khi câu hỏi thời tiết thiếu địa điểm. | `clarify(response_type="text")` | PASS |
+| G04_send_after_explicit_confirmation | Chỉ gửi đúng nội dung sau xác nhận rõ ràng. | `send(text="Bản tin AI hôm nay", confirmed=true)` | FAIL — model gọi `clarify` thay vì `send`; cần xem lại việc coi xác nhận cùng một câu là trusted approval. |
+| G05_out_of_scope_translation | Không gọi tool cho yêu cầu dịch thuật ngoài phạm vi research. | Không gọi tool; từ chối/định hướng | PASS |
+| G06_multiturn_weather_correction | Carry yêu cầu thời tiết, thay địa điểm mới nhất và đổi sang độ F. | `weather(location="Đà Nẵng", units="fahrenheit")` | PASS |
+| G07_multiturn_github_constraints | Carry chủ đề, thêm qualifier ngôn ngữ và áp dụng limit/sort ở lượt cuối. | `github_search(query="FastAPI language:Python", sort="stars", order="desc", max_results=4)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định nên cần manual review. |
+| G08_multiturn_send_confirmation | Carry chính xác nội dung và chỉ gửi sau lượt xác nhận. | `send(text="AI agent ra mắt hôm nay.", confirmed=true)` | PASS |
+| G09_multiturn_url_replacement | URL mới nhất ghi đè URL cũ và không gọi thừa `fetch`. | `fetch(url="https://www.anthropic.com/research")` | PASS |
+| G10_multiturn_switch_papers_to_github | Bỏ nguồn paper cũ, chuyển sang GitHub nhưng giữ chủ đề và số lượng. | `github_search(query="RAG", max_results=2)` | PASS |
 
 ## B4. Live Chat Evidence
 
@@ -120,10 +138,10 @@ returned **98 passed**, with no skipped tests. No live model score is claimed.
 
 ## B6. Reflection
 
-- Which fixes belonged in `system_prompt.md`?
-- Which fixes belonged in `tools.yaml`?
-- Which failure needed manual review instead of automatic grading?
-- What would you improve next?
+- **Fix nào thuộc `system_prompt.md`?** Các quy tắc mang tính điều phối toàn cục: giới hạn phạm vi research, khi nào phải hỏi lại thay vì đoán, chọn `timeline`/`social_search`/`lookup`/`fetch`, cho phép nhiều tool, carry và sửa constraint qua nhiều lượt, ưu tiên lệnh hủy/chuyển nguồn, và bắt buộc xác nhận trước hành động gửi.
+- **Fix nào thuộc `tools.yaml`?** Các contract gắn với từng tool: mô tả khi dùng/không dùng, handle không có `@`, `topic=news`, quy ước `timeframe`, `search_type=Top|Latest`, bắt buộc truyền rõ `clarify.response_type`, và chỉ cho `send.confirmed=true` sau xác nhận.
+- **Failure nào cần manual review?** Ở v2, `M06_switch_tool` được dataset gán `failure_type=wrong_tool`, nhưng JSON cho thấy lỗi quan sát thực tế là `extra_tool_call`: model gọi đúng `lookup` nhưng gọi thừa `social_search`. `R12_confirm_before_send` cũng gọi đúng `clarify`; lỗi thật nằm ở argument `response_type="text"` thay vì `"yes_no"`. Cần đọc `observed_mismatch`, `actual_tool_calls` và `failures` thay vì chỉ nhìn nhãn tổng quát.
+- **Sẽ cải thiện gì tiếp theo?** Rà soát expected args của G01/G02/G07 vì eval đang bắt buộc các giá trị đã có default (`celsius`, `desc`), và thiết kế lại G04 để phân biệt câu chữ “tôi xác nhận” với trusted UI approval. Sau đó bổ sung case paraphrase nhằm tránh tối ưu quá sát base eval và so sánh cùng artifact trên model/provider khác để kiểm tra độ ổn định.
 
 ## B7. Small Local Model Challenge (bonus)
 

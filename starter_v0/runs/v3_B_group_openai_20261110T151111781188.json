@@ -1,0 +1,1016 @@
+{
+  "run_id": "v3_B_group_openai_20261110T151111781188",
+  "version": "v3",
+  "artifact_version": "v3+pdaf9414ce054+t8571c7206c94",
+  "prompt_hash": "daf9414ce0541cc21dc9b14930c8d7ce36565f600b0e35059a60b25362ff2e3d",
+  "tools_hash": "8571c7206c945b2653591dc2719938c62768e589f58762131b4c6fd928e05215",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "system_prompt": "D:\\AIThucChien\\LAB03\\K5-L3-DAY03-DoMinhHoang-2A202603554-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\AIThucChien\\LAB03\\K5-L3-DAY03-DoMinhHoang-2A202603554-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day04_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T15:11:11",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 10,
+    "provider_error_cases": 0,
+    "passed_cases": 6,
+    "case_accuracy": 0.6,
+    "tool_routing_accuracy": 0.9,
+    "argument_accuracy": 0.6,
+    "multiturn_accuracy": 0.8,
+    "failure_counts": {
+      "wrong_tool": 1,
+      "wrong_arg_value": 2,
+      "wrong_boundary": 1
+    },
+    "observed_mismatch_counts": {
+      "wrong_arg_value": 3,
+      "missing_tool_call": 1
+    }
+  },
+  "results": [
+    {
+      "id": "G01_weather_current_city",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "weather_current_location",
+        "difficulty": "easy",
+        "what_it_tests": "Thời tiết hiện tại tại địa điểm cụ thể phải dùng weather, không dùng lookup; giữ đúng đơn vị độ C."
+      },
+      "input": "Thời tiết hiện tại ở Hanoi theo độ C thế nào?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "weather",
+            "args": {
+              "location": "Hanoi",
+              "units": "celsius"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "weather",
+            "args": {
+              "location": "Hanoi"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "units: expected 'celsius', got None"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "weather",
+          "args": {
+            "location": "Hanoi"
+          },
+          "result": {
+            "tool": "weather",
+            "location": {
+              "name": "Hanoi",
+              "admin1": "Hanoi",
+              "country": "Vietnam",
+              "country_code": "VN",
+              "latitude": 21.0245,
+              "longitude": 105.84117,
+              "feature_code": "PPLC"
+            },
+            "timezone": "Asia/Bangkok",
+            "units": "celsius",
+            "current": {
+              "time": "2026-11-10T15:00",
+              "interval": 900,
+              "temperature_2m": 19.7,
+              "relative_humidity_2m": 59,
+              "apparent_temperature": 18.5,
+              "weather_code": 2,
+              "wind_speed_10m": 10.6
+            },
+            "current_units": {
+              "time": "iso8601",
+              "interval": "seconds",
+              "temperature_2m": "°C",
+              "relative_humidity_2m": "%",
+              "apparent_temperature": "°C",
+              "weather_code": "wmo code",
+              "wind_speed_10m": "km/h"
+            },
+            "condition": "Mây rải rác",
+            "items": [
+              {
+                "title": "Thời tiết hiện tại: Hanoi, Hanoi, Vietnam",
+                "summary": "Mây rải rác; nhiệt độ 19.7 °C; cảm nhận 18.5 °C; độ ẩm 59%; gió 10.6 km/h. Thời điểm: 2026-11-10T15:00 (Asia/Bangkok). Điều kiện hiện tại từ mô hình thời tiết Open-Meteo.",
+                "url": "https://api.open-meteo.com/v1/forecast?latitude=21.0245&longitude=105.84117&current=temperature_2m%2Crelative_humidity_2m%2Capparent_temperature%2Cweather_code%2Cwind_speed_10m&temperature_unit=celsius&wind_speed_unit=kmh&timezone=auto",
+                "source": "Open-Meteo",
+                "date": "2026-11-10T15:00"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_github_top_repositories",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "github_search_sort_and_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Khám phá repository phải dùng github_search và ánh xạ nhiều sao nhất thành sort=stars, order=desc, max_results=3."
+      },
+      "input": "Tìm 3 repository GitHub nhiều sao nhất về RAG.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "RAG",
+              "sort": "stars",
+              "order": "desc",
+              "max_results": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "RAG",
+              "sort": "stars",
+              "max_results": 3
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_arg_value",
+        "failures": [
+          "order: expected 'desc', got None"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "github_search",
+          "args": {
+            "query": "RAG",
+            "sort": "stars",
+            "max_results": 3
+          },
+          "result": {
+            "tool": "github_search",
+            "query": "RAG",
+            "sort": "stars",
+            "order": "desc",
+            "total_count": 627566,
+            "incomplete_results": false,
+            "items": [
+              {
+                "title": "langgenius/dify",
+                "url": "https://github.com/langgenius/dify",
+                "source": "github.com",
+                "summary": "Build Agentic workflows, RAG pipelines, with rich AI model and tool support on one collaborative workspace. Deploy on cloud, VPC, or self-hosted, so teams move from prototype to production without rebuilding the stack.",
+                "stars": 160808,
+                "forks": 25434,
+                "language": "Python",
+                "license": "NOASSERTION",
+                "topics": [
+                  "agent",
+                  "agentic-ai",
+                  "agentic-framework",
+                  "agentic-workflow",
+                  "ai",
+                  "automation",
+                  "claude",
+                  "deepseek",
+                  "genai",
+                  "gpt",
+                  "llm",
+                  "low-code",
+                  "mcp",
+                  "nextjs",
+                  "no-code",
+                  "openai",
+                  "python",
+                  "skills",
+                  "workflow"
+                ],
+                "archived": false,
+                "date": "2026-11-10T08:01:09Z"
+              },
+              {
+                "title": "open-webui/open-webui",
+                "url": "https://github.com/open-webui/open-webui",
+                "source": "github.com",
+                "summary": "User-friendly AI Interface (Supports Ollama, OpenAI API, ...)",
+                "stars": 158267,
+                "forks": 23004,
+                "language": "Svelte",
+                "license": "NOASSERTION",
+                "topics": [
+                  "ai",
+                  "llm",
+                  "llm-ui",
+                  "llm-webui",
+                  "llms",
+                  "mcp",
+                  "ollama",
+                  "ollama-webui",
+                  "open-webui",
+                  "openai",
+                  "openapi",
+                  "rag",
+                  "self-hosted",
+                  "ui",
+                  "webui"
+                ],
+                "archived": false,
+                "date": "2026-11-10T08:03:08Z"
+              },
+              {
+                "title": "langchain-ai/langchain",
+                "url": "https://github.com/langchain-ai/langchain",
+                "source": "github.com",
+                "summary": "The agent engineering platform.",
+                "stars": 149290,
+                "forks": 25101,
+                "language": "Python",
+                "license": "MIT",
+                "topics": [
+                  "agents",
+                  "ai",
+                  "ai-agents",
+                  "anthropic",
+                  "chatgpt",
+                  "deepagents",
+                  "enterprise",
+                  "framework",
+                  "gemini",
+                  "generative-ai",
+                  "langchain",
+                  "langgraph",
+                  "llm",
+                  "multiagent",
+                  "open-source",
+                  "openai",
+                  "pydantic",
+                  "python",
+                  "rag",
+                  "typescript"
+                ],
+                "archived": false,
+                "date": "2026-11-10T08:05:59Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_weather_missing_location",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "clarify_missing_weather_location",
+        "difficulty": "medium",
+        "what_it_tests": "Thiếu địa điểm thời tiết phải hỏi clarify dạng text, không đoán vị trí người dùng."
+      },
+      "input": "Cho mình biết thời tiết hiện tại thế nào?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn muốn biết thời tiết ở thành phố nào?",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn muốn biết thời tiết ở thành phố nào?",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn muốn biết thời tiết ở thành phố nào?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_send_after_explicit_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "send_explicit_confirmation",
+        "difficulty": "medium",
+        "what_it_tests": "Khi người dùng đã xác nhận rõ và cung cấp nội dung chính xác, send phải nhận confirmed=true và không hỏi lại."
+      },
+      "input": "Tôi xác nhận gửi chính xác nội dung 'Bản tin AI hôm nay' lên Telegram.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Bản tin AI hôm nay",
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có chắc chắn muốn gửi nội dung 'Bản tin AI hôm nay' lên Telegram không?",
+              "response_type": "yes_no"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "wrong_boundary",
+        "failures": [
+          "missing tool call send",
+          "extra tool call clarify"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có chắc chắn muốn gửi nội dung 'Bản tin AI hôm nay' lên Telegram không?",
+            "response_type": "yes_no"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có chắc chắn muốn gửi nội dung 'Bản tin AI hôm nay' lên Telegram không?",
+            "response_type": "yes_no",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G05_out_of_scope_translation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope_translation",
+        "difficulty": "easy",
+        "what_it_tests": "Yêu cầu dịch thuật ngoài phạm vi research không được gọi bất kỳ tool nào."
+      },
+      "input": "Dịch câu 'Good morning' sang tiếng Việt giúp mình.",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Câu \"Good morning\" được dịch sang tiếng Việt là \"Chào buổi sáng\".",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G06_multiturn_weather_correction",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_weather_correction",
+        "difficulty": "hard",
+        "what_it_tests": "Giữ loại yêu cầu thời tiết hiện tại, thay địa điểm mới nhất và đổi đơn vị từ mặc định sang Fahrenheit."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Xem thời tiết hiện tại ở Hanoi giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "Đổi địa điểm thành Đà Nẵng nhé."
+        },
+        {
+          "role": "user",
+          "content": "Hiển thị theo độ F, vẫn là thời tiết hiện tại."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "weather",
+            "args": {
+              "location": "Đà Nẵng",
+              "units": "fahrenheit"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "weather",
+            "args": {
+              "location": "Đà Nẵng",
+              "units": "fahrenheit"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "weather",
+          "args": {
+            "location": "Đà Nẵng",
+            "units": "fahrenheit"
+          },
+          "result": {
+            "tool": "weather",
+            "error": "ambiguous_location",
+            "message": "Ask the user to specify the city, region and country, then retry.",
+            "candidates": [
+              {
+                "name": "Đa Năng",
+                "admin1": "Tuyen Quang",
+                "country": "Vietnam",
+                "country_code": "VN",
+                "latitude": 21.71222,
+                "longitude": 105.35498,
+                "feature_code": "PPL"
+              },
+              {
+                "name": "Đa Năng",
+                "admin1": "Quang Tri",
+                "country": "Vietnam",
+                "country_code": "VN",
+                "latitude": 17.7858,
+                "longitude": 105.91417,
+                "feature_code": "PPL"
+              }
+            ],
+            "items": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "G07_multiturn_github_constraints",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_github_carryover",
+        "difficulty": "hard",
+        "what_it_tests": "Carry chủ đề FastAPI, thêm qualifier language:Python và áp dụng limit/sort từ lượt cuối."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm repository GitHub về FastAPI."
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy repository Python."
+        },
+        {
+          "role": "user",
+          "content": "Lấy 4 repo nhiều sao nhất, giữ nguyên chủ đề."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "FastAPI language:Python",
+              "sort": "stars",
+              "order": "desc",
+              "max_results": 4
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "FastAPI language:Python",
+              "sort": "stars",
+              "max_results": 4
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_arg_value",
+        "failures": [
+          "order: expected 'desc', got None"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "github_search",
+          "args": {
+            "query": "FastAPI language:Python",
+            "sort": "stars",
+            "max_results": 4
+          },
+          "result": {
+            "tool": "github_search",
+            "query": "FastAPI language:Python",
+            "sort": "stars",
+            "order": "desc",
+            "total_count": 378280,
+            "incomplete_results": false,
+            "items": [
+              {
+                "title": "fastapi/fastapi",
+                "url": "https://github.com/fastapi/fastapi",
+                "source": "github.com",
+                "summary": "FastAPI framework, high performance, easy to learn, fast to code, ready for production",
+                "stars": 104604,
+                "forks": 10208,
+                "language": "Python",
+                "license": "MIT",
+                "topics": [
+                  "api",
+                  "async",
+                  "asyncio",
+                  "fastapi",
+                  "framework",
+                  "json",
+                  "json-schema",
+                  "openapi",
+                  "openapi3",
+                  "pydantic",
+                  "python",
+                  "python-types",
+                  "python3",
+                  "redoc",
+                  "rest",
+                  "starlette",
+                  "swagger",
+                  "swagger-ui",
+                  "uvicorn",
+                  "web"
+                ],
+                "archived": false,
+                "date": "2026-11-10T06:41:36Z"
+              },
+              {
+                "title": "headroomlabs-ai/headroom",
+                "url": "https://github.com/headroomlabs-ai/headroom",
+                "source": "github.com",
+                "summary": "Compress tool outputs, logs, files, and RAG chunks before they reach the LLM. 20% fewer tokens for coding agents, 60-95% fewer tokens for JSON, same answers. Library, proxy, MCP server.",
+                "stars": 79274,
+                "forks": 6198,
+                "language": "Python",
+                "license": "Apache-2.0",
+                "topics": [
+                  "agent",
+                  "ai",
+                  "anthropic",
+                  "claude-code",
+                  "compression",
+                  "context-engineering",
+                  "context-window",
+                  "cursor",
+                  "fastapi",
+                  "langchain",
+                  "llm",
+                  "mcp",
+                  "openai",
+                  "prompt-engineering",
+                  "proxy",
+                  "python",
+                  "rag",
+                  "token-optimization",
+                  "tokens",
+                  "typescript"
+                ],
+                "archived": false,
+                "date": "2026-11-10T07:57:07Z"
+              },
+              {
+                "title": "mouredev/Hello-Python",
+                "url": "https://github.com/mouredev/Hello-Python",
+                "source": "github.com",
+                "summary": "Curso para aprender el lenguaje de programación Python desde cero y para principiantes. 100 clases, 44 horas en vídeo, código, proyectos y grupo de chat. Fundamentos, frontend, backend, testing, IA...",
+                "stars": 38008,
+                "forks": 2350,
+                "language": "Python",
+                "license": "Apache-2.0",
+                "topics": [
+                  "backend",
+                  "chatgpt",
+                  "chatgpt-api",
+                  "fastapi",
+                  "frontend",
+                  "gpt-3",
+                  "gpt-4",
+                  "mongodb",
+                  "openai",
+                  "openai-api",
+                  "python",
+                  "python3",
+                  "reflex",
+                  "tutorial"
+                ],
+                "archived": false,
+                "date": "2026-11-10T06:42:05Z"
+              },
+              {
+                "title": "jina-ai/serve",
+                "url": "https://github.com/jina-ai/serve",
+                "source": "github.com",
+                "summary": "☁️ Build multimodal AI applications with cloud-native stack",
+                "stars": 21850,
+                "forks": 2237,
+                "language": "Python",
+                "license": "Apache-2.0",
+                "topics": [
+                  "cloud-native",
+                  "cncf",
+                  "deep-learning",
+                  "docker",
+                  "fastapi",
+                  "framework",
+                  "generative-ai",
+                  "grpc",
+                  "jaeger",
+                  "kubernetes",
+                  "llmops",
+                  "machine-learning",
+                  "microservice",
+                  "mlops",
+                  "multimodal",
+                  "neural-search",
+                  "opentelemetry",
+                  "orchestration",
+                  "pipeline",
+                  "prometheus"
+                ],
+                "archived": false,
+                "date": "2026-11-09T07:30:01Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G08_multiturn_send_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_confirm_then_send",
+        "difficulty": "hard",
+        "what_it_tests": "Carry đúng nội dung từ lượt đầu và chỉ gọi send confirmed=true sau lượt xác nhận rõ ràng."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Nội dung bản tin là: AI agent ra mắt hôm nay."
+        },
+        {
+          "role": "user",
+          "content": "Gửi bản tin đó lên Telegram giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "Có, tôi xác nhận gửi đúng nội dung đó."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "AI agent ra mắt hôm nay.",
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "AI agent ra mắt hôm nay.",
+              "confirmed": true
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "AI agent ra mắt hôm nay.",
+            "confirmed": true
+          },
+          "result": {
+            "tool": "send_telegram",
+            "status": "needs_confirmation",
+            "message": "Only send after the user explicitly confirms."
+          }
+        }
+      ]
+    },
+    {
+      "id": "G09_multiturn_url_replacement",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_latest_url_wins",
+        "difficulty": "medium",
+        "what_it_tests": "URL được sửa ở lượt cuối phải ghi đè URL cũ; chỉ gọi fetch một lần cho link mới."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt bài này giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "URL là https://openai.com/research/."
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang https://www.anthropic.com/research và chỉ đọc link mới."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://www.anthropic.com/research"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://www.anthropic.com/research"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "fetch",
+          "args": {
+            "url": "https://www.anthropic.com/research"
+          },
+          "result": {
+            "tool": "read_url",
+            "error": "RuntimeError",
+            "message": "Missing FIRECRAWL_API_KEY env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G10_multiturn_switch_papers_to_github",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_research_source",
+        "difficulty": "hard",
+        "what_it_tests": "Lệnh chuyển nguồn ở lượt sau phải bỏ papers, giữ chủ đề RAG và gọi duy nhất github_search."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm paper về RAG."
+        },
+        {
+          "role": "user",
+          "content": "Không cần paper nữa, chuyển sang tìm repository GitHub."
+        },
+        {
+          "role": "user",
+          "content": "Chủ đề vẫn là RAG, lấy 2 kết quả."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "RAG",
+              "max_results": 2
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "RAG",
+              "max_results": 2
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "github_search",
+          "args": {
+            "query": "RAG",
+            "max_results": 2
+          },
+          "result": {
+            "tool": "github_search",
+            "query": "RAG",
+            "sort": "best_match",
+            "order": "desc",
+            "total_count": 627566,
+            "incomplete_results": false,
+            "items": [
+              {
+                "title": "infiniflow/ragflow",
+                "url": "https://github.com/infiniflow/ragflow",
+                "source": "github.com",
+                "summary": "RAGFlow is an agent-native database: a Retrieval-Augmented Generation (RAG) engine that grew into context infrastructure.",
+                "stars": 93935,
+                "forks": 11288,
+                "language": "Go",
+                "license": "Apache-2.0",
+                "topics": [
+                  "agent-harness",
+                  "agent-native-database",
+                  "agentic-ai",
+                  "agentic-retrieval",
+                  "agentic-search",
+                  "ai",
+                  "ai-agents",
+                  "context-engine",
+                  "context-engineering",
+                  "context-management",
+                  "harness-engineering",
+                  "knowledge-compilation",
+                  "rag",
+                  "retrieval-augmented-generation",
+                  "retrieval-harness",
+                  "search-harness"
+                ],
+                "archived": false,
+                "date": "2026-11-10T08:10:45Z"
+              },
+              {
+                "title": "raga-ai-hub/RagaAI-Catalyst",
+                "url": "https://github.com/raga-ai-hub/RagaAI-Catalyst",
+                "source": "github.com",
+                "summary": "Python SDK for Agent AI Observability, Monitoring and Evaluation Framework. Includes features like agent, llm and tools tracing, debugging multi-agentic system, self-hosted dashboard and advanced analytics with timeline and execution graph view ",
+                "stars": 16193,
+                "forks": 3572,
+                "language": "Python",
+                "license": "Apache-2.0",
+                "topics": [
+                  "agentic-ai",
+                  "agentic-ai-development",
+                  "agentneo",
+                  "agents",
+                  "ai-agent-monitoring",
+                  "ai-application-debugging",
+                  "ai-evaluation-tools",
+                  "ai-performance-optimization",
+                  "ai-tool-interaction-monitoring",
+                  "llm-testing",
+                  "llm-tracing",
+                  "llmops"
+                ],
+                "archived": false,
+                "date": "2026-11-09T20:41:17Z"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
