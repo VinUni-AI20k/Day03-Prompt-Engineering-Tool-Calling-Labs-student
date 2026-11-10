@@ -12,7 +12,7 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Đào Lê Bảo Minh | 2A202604010 | 26ai.dlbminh@vinuni.edu.vn | https://github.com/lebaominh-dao | Trưởng nhóm (A) — setup, chạy eval, version log, eval nhóm |
-|   2 | Trần Trung Kiên | 2A202604014 | 26ai.kientt3@vinuni.edu.vn | https://github.com/ttkien0710 | Phân tích lỗi, hypothesis, báo cáo nhóm (B) |
+|   2 | Trần Trung Kiên | 2A202604014 | 2A202604014 | https://github.com/ttkien0710 | Phân tích lỗi, hypothesis, báo cáo nhóm (B) |
 |   3 | Trần Phú Thái | 2A202604001 | <Email> | <GitHub> | Tool declaration, tool mới, unit test, Telegram (C) |
 |   4 | Hoàng Xuân Lĩnh | 2A202604017 | <Email> | <GitHub> | UI Streamlit, demo, live chat (D) |
 
@@ -64,21 +64,13 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 ### Phần việc phụ trách
 
-- Phụ trách prompt và mô tả tool.
 - Đọc run JSON sau mỗi version, phân loại case FAIL theo `failure_type`.
-- Phân tích các case lỗi từ kết quả eval, đề xuất giả thuyết cải tiến cho từng phiên bản, chỉnh sửa system prompt/tool declaration và phối hợp với thành viên A chạy lại để đánh giá.
 - Viết hypothesis cho version tiếp theo.
 - Viết bảng B1, B2 và hoàn thiện Phần B của `report/team/group_report.md`.
-
 
 ### Đóng góp cụ thể
 
 - Bảng B2 cho v0 và v1; hypothesis v1 (bỏ tự đoán → `clarify`) và v2 (`clarify` phải truyền `response_type`).
-- Phân tích năm case lỗi v0: R08_out_of_scope, R10_missing_handle, R11_missing_url, R12_confirm_before_send và R13_parallel_web_and_tweets
-- Xác định lỗi gọi tool không cần thiết, tự đoán thông tin, thiếu xác nhận và sai arguments.
-- Phân tích kết quả v1: R10/R11 đã chuyển sang gọi đúng clarify nhưng vẫn thiếu response_type; R12 vẫn gọi send trước khi xác nhận.
-- Đề xuất giả thuyết v2: làm rõ yêu cầu truyền tường minh response_type="text" khi hỏi thông tin còn thiếu nhằm giảm lỗi arguments ở R10/R11.
-
 
 ### Bằng chứng
 
