@@ -36,9 +36,17 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | hỏi lại người dùng khi thiếu thông tin hoặc cần xin xác nhận | không |
+| timeline | lấy bài đăng gần đây của một tài khoản X/Twitter cụ thể | không |
+| social_search | tìm bài đăng trên X/Twitter theo từ khóa/chủ đề | không |
+| lookup | tìm kiếm trên web tin tức, bài báo, thông tin chung | không |
+| fetch | đọc và trích xuất nội dung văn bản từ một URL cụ thể | không |
+| format | định dạng danh sách kết quả nghiên cứu thành bản tin/digest markdown | không |
+| send | gửi tin nhắn lên kênh Telegram khi đã có xác nhận | không |
+| policy | tra cứu chính sách công ty trong tài liệu nội bộ | không |
+| papers | tìm kiếm bài báo khoa học trên arXiv theo từ khóa | không |
+| paper_text | tải và trích xuất văn bản từ bài báo arXiv | không |
+| save_note | lưu ghi chú/tóm tắt nghiên cứu ra file markdown cục bộ (thư mục notes/) khi đã có xác nhận | CÓ |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -67,7 +75,9 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | v2 | `tools.yaml` | Sau v1, R11, R12, R13 đã chọn đúng tool nhưng sai tham số (thiếu `response_type`, `text` thay vì `yes_no`, thiếu `topic="news"`) vì description tham số quá mơ hồ. Viết lại description mọi tool (làm gì, khi nào dùng, khi nào không) và ghi rõ convention từng tham số sẽ sửa các case này. | 0.80 | 0.90 | [`runs/v2_B_base_openai_20261110T184931003075.json`](../../starter_v0/runs/v2_B_base_openai_20261110T184931003075.json) |
 | v3 | `system_prompt.md` | M06 FAIL từ v1 (gọi thừa `social_search` dù user đã bỏ Twitter) do rule "nhiều nguồn → gọi đủ tool" quá rộng. Thu hẹp rule (chỉ khi user yêu cầu rõ nhiều nguồn) và thêm rule "lượt sau ghi đè lượt trước" sẽ sửa M06 mà không làm hỏng R13. | 0.90 | 0.90 | [`runs/v3_B_base_openai_20261110T185149151645.json`](../../starter_v0/runs/v3_B_base_openai_20261110T185149151645.json) |
 
-Metric = `case_accuracy` trên bộ base 20 case, provider openai `gpt-4o-mini`. Hash từng version nằm trong [`version_log.csv`](../../starter_v0/artifacts/version_log.csv). Mỗi version chỉ đổi một artifact: v1 và v3 chỉ đổi `prompt_hash`, v2 chỉ đổi `tools_hash`.
+Metric = `case_accuracy` trên bộ base 20 case, provider openai `gpt-4o-mini`. Hash từng version nằm trong [`version_log.csv`](../../starter_v0/artifacts/version_log.csv). Các run v1 và v3 chỉ đổi `prompt_hash`; v2 chỉ đổi `tools_hash`.
+
+`v0`–`v3` là các run lịch sử dùng artifacts tại thời điểm chạy. `v4` trong version log ghi nhận prompt/tools hiện tại (bao gồm `save_note` và xác nhận trước khi ghi đè), chưa có run nên không có metric và không được tính là một vòng eval.
 
 | Chỉ số | v0 | v1 | v2 | v3 |
 |---|---:|---:|---:|---:|
@@ -137,12 +147,15 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) | `starter_v0/tools/save_note/tool.py`, `TOOL.md` | Lưu ghi chú/tóm tắt nghiên cứu ra file Markdown trong thư mục `notes/`, tự động chuẩn hóa đuôi `.md`, trả về status `saved` và path | Chống path traversal (`..`, `/`, `\`), từ chối input rỗng; chỉ ghi khi `confirmed=True`, trả `needs_confirmation` kèm preview nếu `confirmed=False` |
-| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` | 3/3 test PASS (`test_save_note_without_confirmation_does_not_write`, `test_save_note_happy_path`, `test_save_note_bad_input_from_model`) | Chặn lỗi ở tầng code Python khi model truyền input rỗng hoặc đường dẫn nguy hiểm |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/save_note/tool.py`, `TOOL.md` | Lưu ghi chú/tóm tắt nghiên cứu ra file Markdown trong thư mục `notes/`, tự động chuẩn hóa đuôi `.md`, trả về status `saved`, path và `overwritten` | Chặn path traversal (chặn `..`, `/`, `\`), từ chối input rỗng; chỉ ghi khi `confirmed is True`; nếu file đã tồn tại thì không ghi đè cho tới khi người dùng xác nhận riêng qua `overwrite_confirmed=True` |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` | 10 test cho `save_note`: happy path, guardrail bool và chuỗi `"false"`, overwrite cần xác nhận và overwrite sau xác nhận, input rỗng, path traversal, tên có dấu chấm và nhánh lỗi FileExistsError | Chặn lỗi ở tầng code Python khi model truyền input rỗng, xác nhận sai kiểu hoặc đường dẫn nguy hiểm; không ghi đè file khi chưa được đồng ý; trả error dict thay vì crash |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
-Tool unit tests: Đã viết 3 test hoàn chỉnh cho tool `save_note`.
-Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: Nếu model gọi đúng tool `save_note(filename="../../etc/passwd", content="evil", confirmed=true)`, eval chỉ kiểm tra tên tool và tham số nên sẽ chấm PASS. Tuy nhiên, nếu không có unit test ở code Python để chặn path traversal, hàm sẽ ghi đè file hệ thống! Unit test đảm bảo code Python phát hiện và trả về `{"error": "invalid_filename"}` an toàn mà không crash.
+Tool unit tests: Đã viết 10 test cho `save_note` (phủ happy path, input xấu/guardrail và nhánh lỗi theo Rubric C4).
+Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được:
+1. **Path Traversal:** Nếu thiếu kiểm tra tại tầng code Python, đường dẫn tương đối như `../../etc/passwd` có thể thoát khỏi thư mục `notes/` (ví dụ trỏ tới `<repo>/etc/passwd`, không phải `/etc/passwd`). Chính code trong `save_note` chặn đường dẫn này và trả `{"error": "invalid_filename"}`; unit test bảo vệ hành vi đó khỏi hồi quy.
+2. **Lách xác nhận bằng chuỗi `"false"`:** Một số model nhỏ (như Ollama) thường sinh boolean dưới dạng chuỗi `"false"`. Trong Python, chuỗi `"false"` là truthy. Eval chỉ kiểm tra schema có thể không phát hiện việc file bị ghi thật khi user không muốn. Unit test xác nhận `confirmed is not True` chặn đứng chuỗi `"false"` và yêu cầu xác nhận lại.
+3. **Ghi đè file đã tồn tại:** Eval routing không phát hiện tool có thể thay thế file cũ. `save_note` trả `needs_overwrite_confirmation` và giữ nguyên nội dung cũ cho tới khi người dùng xác nhận riêng.
 
 ### B5. Bonus Evidence
 

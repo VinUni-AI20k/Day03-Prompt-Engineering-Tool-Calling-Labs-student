@@ -11,6 +11,7 @@ def save_note(
     filename: str = "",
     content: str = "",
     confirmed: bool = False,
+    overwrite_confirmed: bool = False,
     base_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Save research content to a local Markdown file under the notes/ directory.
@@ -24,15 +25,15 @@ def save_note(
             "message": "Filename cannot be empty.",
         }
 
-    clean_name = Path(filename.strip()).name
     # Guard against directory traversal or separator injection
-    if clean_name != filename.strip() or ".." in filename or re.search(r"[\\/]", filename):
+    if "/" in filename or "\\" in filename or any(part in (".", "..") for part in Path(filename.strip()).parts):
         return {
             "tool": "save_note",
             "error": "invalid_filename",
-            "message": "Directory traversal or nested path is not allowed in filename.",
+            "message": "Directory path separators or traversal parts are not allowed in filename.",
         }
 
+    clean_name = Path(filename.strip()).name
     if not (clean_name.endswith(".md") or clean_name.endswith(".txt")):
         clean_name += ".md"
 
@@ -43,7 +44,8 @@ def save_note(
             "message": "Note content cannot be empty.",
         }
 
-    if not confirmed:
+    # Strict boolean check: strings like "false" or truthy objects must not bypass confirmation
+    if confirmed is not True:
         return {
             "tool": "save_note",
             "status": "needs_confirmation",
@@ -54,10 +56,24 @@ def save_note(
             },
         }
 
+    notes_dir = (base_dir or _shared.ROOT) / "notes"
+    target_path = notes_dir / clean_name
+
     try:
-        notes_dir = (base_dir or _shared.ROOT) / "notes"
+        existed = target_path.exists()
+        if existed and overwrite_confirmed is not True:
+            return {
+                "tool": "save_note",
+                "status": "needs_overwrite_confirmation",
+                "message": "A note with this filename already exists. Ask the user before replacing it.",
+                "preview": {
+                    "filename": clean_name,
+                    "chars": len(content),
+                    "will_overwrite": True,
+                },
+            }
+
         notes_dir.mkdir(parents=True, exist_ok=True)
-        target_path = notes_dir / clean_name
         target_path.write_text(content, encoding="utf-8")
         return {
             "tool": "save_note",
@@ -65,6 +81,7 @@ def save_note(
             "filename": clean_name,
             "path": str(target_path),
             "chars": len(content),
+            "overwritten": existed,
         }
     except Exception as exc:
         return _shared.err("save_note", exc)
