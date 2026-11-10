@@ -99,7 +99,6 @@ Tài liệu gồm frontmatter đúng contract, chức năng, trường hợp s�
 - Tổng cộng 57 test case trong `starter_v0/tests/test_tools_todo.py`; kết quả chạy toàn bộ bộ test (`pytest tests/ -v`): **166 passed, 0 skipped, 0 failed** (lưu log tại `starter_v0/analysis/pytest_results.txt`).
 2. Xây dựng bộ eval case của nhóm (`starter_v0/data/eval_group.json`)
 - Viết mới 10 eval case (`G01`–`G10`), gồm 5 single-turn và 5 multi-turn, bao phủ 4 tool mới (`weather`, `github_search`, `deduplicate`, `citation_audit`) và các bẫy routing/argument/boundary thường gặp (`missing_info`, `wrong_tool`, `unnecessary_tool`, sửa constraint và hủy/chuyển tool nhiều lượt).
-- Chạy đánh giá bằng `run_eval.py` với OpenAI / `gpt-4o-mini` (bản `v1`), đạt **9/10 PASS** (`case_accuracy: 0.90`, `tool_routing_accuracy: 0.90`, `argument_accuracy: 0.90`, `multiturn_accuracy: 1.00`), lưu kết quả tại `starter_v0/runs/
 3. Phần đóng góp Báo cáo(`starter_v0/artifacts/REPORT.md`) Mục B2 (Failure Analysis) và Mục B3 (Team Eval Cases).
 
 
