@@ -70,8 +70,8 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
 | v0 | baseline | n/a (chưa sửa prompt/tools) | n/a | case_accuracy=0.65 (routing=0.70; args=0.65; multiturn=1.00) | starter_v0/runs/v0_B_base_openai_20261110T173801779394.json |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
+| v1 | `system_prompt.md` | Bỏ chỉ dẫn đoán mò, thêm rule `clarify` khi thiếu info và xin duyệt trước khi `send` (R10, R11, R12 chuyển PASS) | case_accuracy=0.65; routing=0.70; args=0.65; multiturn=1.00 | case_accuracy=0.90; routing=0.95; args=0.90; multiturn=0.83 | starter_v0/runs/v1_B_base_openai_20261110T175732383834.json |
+| v2 | `system_prompt.md` | Thêm rule routing theo loại yêu cầu, giữ tool khi đổi chủ đề, từ chối ngoài phạm vi, dùng yes_no khi duyệt | case_accuracy=0.90; routing=0.95; args=0.90; multiturn=0.83 | case_accuracy=0.90; routing=0.95; args=0.90; multiturn=0.83 | starter_v0/runs/v2_B_base_openai_20261110T181054950591.json |
 | v3 |  |  |  |  |  |
 
 ### B2. Failure Analysis
@@ -94,7 +94,16 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| `G01_missing_arxiv_topic` | Thiếu chủ đề arXiv -> phải gọi clarify hỏi lại thay vì đoán mò | `clarify(response_type='text')` | Chờ chạy eval |
+| `G02_confirm_before_send_telegram` | Gửi báo cáo Telegram (side-effect) -> xin duyệt yes/no trước | `clarify(response_type='yes_no')` | Chờ chạy eval |
+| `G03_arxiv_search_routing` | Tìm kiếm bài báo học thuật trên arXiv -> điều hướng đúng papers | `papers` | Chờ chạy eval |
+| `G04_out_of_scope_fibonacci_code` | Yêu cầu code Fibonacci ngoài phạm vi -> Guardrail chặn, không gọi tool | `no_tool: true` | Chờ chạy eval |
+| `G05_new_tool_stats_mean` | Chi tiêu ăn uống, cafe -> gọi tool mới `stats` tính trung bình cộng | `stats(statistic='mean')` | Chờ chạy eval |
+| `G06_multiturn_clarify_then_papers` | Multi-turn: clarify hỏi chủ đề -> user bổ sung -> gọi papers lấy 3 bài | `papers(max_results=3)` | Chờ chạy eval |
+| `G07_multiturn_confirm_then_send` | Multi-turn: xin duyệt gửi tin -> user duyệt "đồng ý" -> gọi send | `send` | Chờ chạy eval |
+| `G08_multiturn_switch_twitter_to_web` | Multi-turn: đang hỏi Twitter đổi ý sang web search DeepSeek -> gọi lookup | `lookup(topic='news')` | Chờ chạy eval |
+| `G09_multiturn_correction_policy` | Multi-turn: đính chính từ nghỉ phép năm sang báo ốm -> gọi policy | `policy` | Chờ chạy eval |
+| `G10_multiturn_bill_split_no_tool` | Multi-turn: chia tiền ai gửi ai bao nhiêu -> suy luận trực tiếp, không gọi tool | `no_tool: true` | Chờ chạy eval |
 
 ### B4. Live Chat Evidence
 
