@@ -20,15 +20,29 @@
 
 Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
 
+Research agent tiếng Việt: tìm tin trên web theo chủ đề và khoảng thời gian, xem tweet của một tài khoản hoặc theo từ khóa, đọc nội dung một URL, tìm paper arXiv, tra chính sách nội bộ, và tổng hợp thành bản tin. Khi thiếu thông tin (không rõ tài khoản, URL), agent hỏi lại thay vì tự đoán.
+
+
 **Cách chạy UI:**
 
 > Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+
+Từ thư mục `starter_v0/`:
+
+    pip install -r requirements.txt
+    streamlit run app.py
+
+Dependency `streamlit` đã thêm vào `starter_v0/requirements.txt`. Code UI: `starter_v0/app.py`.
+
+- Trang **Chat**: khung chat ở giữa, danh sách tool ở sidebar trái, câu hỏi mẫu bấm được ở dưới. Mọi tool call và kết quả thật (kể cả lỗi) hiện ngay trong câu trả lời. Mỗi phiên chat tự lưu transcript vào `starter_v0/transcripts/`.
+- Trang **Eval runs**: xem metric, case FAIL, expected vs actual tool calls của từng run trong `starter_v0/runs/` và `version_log.csv`.
+
 
 **Link dùng thử (deploy):**
 
 > Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
 >
-> URL:
+> URL: https://stayed-mardi-teeth-internationally.trycloudflare.com/
 
 ### A2. Tool agent có
 
@@ -36,17 +50,28 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| Tên tool | Làm được gì | Tool mới nhóm thêm? |
+|---|---|---|
+| clarify | Hỏi lại người dùng khi thiếu thông tin hoặc cần xác nhận | không |
+| timeline | Lấy tweet gần đây của một tài khoản X (handle không có @, ví dụ `elonmusk`) | không |
+| social_search | Tìm tweet theo từ khóa, sắp xếp `Latest` hoặc `Top` | không |
+| lookup | Tìm trên web, có chế độ tin tức (`topic=news`) và khoảng thời gian (`timeframe`) | không |
+| fetch | Đọc nội dung một URL cụ thể | không |
+| format | Trình bày các kết quả đã có thành bản tin markdown | không |
+| send | Gửi văn bản lên Telegram, chỉ khi người dùng đã xác nhận | không |
+| policy | Tìm trong tài liệu chính sách nội bộ của công ty | không |
+| papers | Tìm paper trên arXiv | không |
+| paper_text | Tải PDF arXiv và trích nội dung text | không |
 
 ### A3. Câu hỏi mẫu để thử
 
 > 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
 
-1.
-2.
-3.
+1. Tin tức AI hôm nay có gì nổi bật?
+2. Lấy 10 tweet mới nhất của Elon Musk
+3. Mọi người đang bàn gì về GPT-5 trên Twitter?
+4. Tóm tắt bài này giúp mình: https://openai.com/blog/gpt-5
+5. Tóm tắt 5 tweet mới nhất giúp mình _(agent sẽ hỏi lại: của tài khoản nào?)
 
 ## 3. Giải pháp
 
@@ -126,7 +151,11 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| 1 | Tin tức AI hôm nay có gì nổi bật? | `lookup(query="AI", topic="news", timeframe="day", max_results=5)` | `v2+pb705ce373602+t6be54f7980b5` | Đúng tool, đúng args. Trả lời 5 tin có link nguồn, nhưng bằng tiếng Anh dù hỏi tiếng Việt |
+| 2 | Tóm tắt 5 tweet mới nhất giúp mình | (không gọi tool) | như trên | Có hỏi lại tài khoản nào, nhưng hỏi bằng text thay vì gọi `clarify` |
+| 3 | Của Elon Musk nhé | `timeline(screenname="elonmusk", limit=5)` → `format(...)` | như trên | Đúng: dùng thông tin bổ sung từ lượt trước, map tên → handle, giữ limit=5 |
+| 4 | Gửi bản tin AI hôm nay lên kênh Telegram của nhóm | `send(text=..., confirmed=true)` | như trên | **Sai boundary**: agent tự đặt `confirmed=true` khi user chưa xác nhận. Không gửi đi chỉ vì thiếu `TELEGRAM_BOT_TOKEN` (tool trả error). Khớp lỗi R12 ở run v2 |
+| 5 | (lặp lại yêu cầu gửi) | `send(text=..., confirmed=true)` | như trên | Lặp lại hành vi sai ở lượt 4 |
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
 
