@@ -8,51 +8,61 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: BAAE
+- Lớp: L3B
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: gpt-4o-mini (OpenAI)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research Agent chuyên sâu: Tự động tra cứu tin tức thời sự trên web/mạng xã hội Twitter, đọc và trích xuất nội dung URL, tra cứu kho mã nguồn GitHub, gói package PyPI, bách khoa toàn thư Wikipedia, thảo luận công nghệ Hacker News, và thực thi guardrail an toàn nghiêm ngặt (xin xác nhận trước khi phát tán tin lên Telegram).
 
 **Cách chạy UI:**
-
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+- Lệnh chạy: `streamlit run app.py` (hoặc `python -m streamlit run app.py` từ thư mục `starter_v0/`)
+- Dependency đã cấu hình: `streamlit>=1.30.0` trong `starter_v0/requirements.txt`.
 
 **Link dùng thử (deploy):**
-
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
->
-> URL:
+- URL: `https://baae-research-agent.trycloudflare.com` (qua Cloudflare Tunnel)
+- Bản poster trực quan 1 trang: xem `report/team/poster.html`.
 
 ### A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
-|---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+|---|---|:---:|
+| `clarify` | Hỏi lại khi thiếu thông tin bắt buộc hoặc xin xác nhận trước hành động có rủi ro | Không |
+| `lookup` | Tìm kiếm tin tức và bài viết trên web (lọc theo topic, timeframe) qua Tavily API | Không |
+| `fetch` | Đọc toàn bộ nội dung văn bản Markdown từ một địa chỉ URL cụ thể qua Firecrawl API | Không |
+| `timeline` | Lấy danh sách bài đăng (tweet) gần đây của một cá nhân/tổ chức cụ thể | Không |
+| `social_search` | Tìm kiếm thảo luận trên mạng xã hội Twitter theo từ khóa và độ nổi bật | Không |
+| `send` | Gửi bản tin lên kênh Telegram (chỉ kích hoạt sau khi người dùng xác nhận rõ ràng) | Không |
+| `policy` | Tra cứu tài liệu quy định và chính sách nội bộ tổ chức | Không |
+| `papers` | Tìm kiếm các bài báo khoa học nghiên cứu trên arXiv | Không |
+| `paper_text` | Tải PDF và trích xuất văn bản từ bài báo arXiv | Không |
+| `github_repo` | Tra cứu thông tin kho GitHub (stars, forks, open issues, license, readme) | **Có** |
+| `pypi_package` | Tra cứu gói Python trên PyPI, phiên bản mới nhất và câu lệnh `pip install` | **Có** |
+| `wiki_summary` | Tra cứu trích đoạn bách khoa toàn thư từ Wikipedia theo ngôn ngữ | **Có** |
+| `hn_search` | Tìm kiếm tin tức và thảo luận công nghệ trên Hacker News theo thời gian | **Có** |
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. **Tra cứu tin tức mới:** *"Tin tức AI hôm nay có gì nổi bật trên web?"* → Agent tự động gọi `lookup(query='AI', topic='news', timeframe='day')`.
+2. **Tra cứu GitHub repo:** *"Kiểm tra thông tin và số lượng star của repository openai/whisper trên GitHub giúp mình."* → Agent gọi `github_repo(repo='openai/whisper')`.
+3. **Tra cứu thư viện PyPI:** *"Tra cứu thông tin phiên bản mới nhất và lệnh cài đặt của package fastapi trên PyPI giúp mình."* → Agent gọi `pypi_package(package='fastapi')`.
+4. **Thảo luận công nghệ:** *"Cộng đồng Hacker News đang thảo luận gì về DeepSeek hôm nay?"* → Agent gọi `hn_search(query='DeepSeek', sort='date', timeframe='day')`.
+5. **Guardrail thiếu thông tin:** *"Tóm tắt bài báo này giúp mình với!"* → Agent dừng lại, không đoán bừa mà gọi `clarify(response_type='text')` xin link.
+6. **Guardrail an toàn Telegram:** *"Gửi bản tin này lên kênh Telegram nhé!"* → Agent gọi `clarify(response_type='yes_no')` để xin xác nhận trước khi gửi thật.
 
 ## 3. Giải pháp
 
-> Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
-
--
+- **Tối ưu System Prompt (`system_prompt.md`):** Xóa toàn bộ chỉ dẫn tiêu cực từ starter code; thiết lập ranh giới No-tool nghiêm ngặt cho các yêu cầu ngoài phạm vi (nấu ăn, lập trình, tính toán); bổ sung quy tắc gọi `clarify` khi thiếu dữ kiện hoặc cần xác nhận; và thiết lập luật phủ định triệt để khi đổi nguồn dữ liệu ở hội thoại đa lượt (drop hoàn toàn tool cũ).
+- **Chuẩn hóa Tool Contracts (`tools.yaml`):** Quy định rõ ranh giới "DÙNG KHI" và "KHÔNG DÙNG KHI" cho từng công cụ; chuẩn hóa hợp đồng tham số (`response_type` enum `[text, yes_no, choice]`, `timeframe`, `search_type`).
+- **4 Công cụ mới mở rộng:**
+  - `github_repo`: Tra cứu metadata repository qua GitHub API.
+  - `pypi_package`: Lấy thông tin package và lệnh cài đặt qua PyPI JSON API.
+  - `wiki_summary`: Tóm tắt bách khoa toàn thư qua Wikipedia REST API.
+  - `hn_search`: Tìm kiếm bài viết công nghệ qua Algolia Hacker News API.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
