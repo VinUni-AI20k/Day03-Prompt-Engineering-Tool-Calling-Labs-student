@@ -30,6 +30,33 @@
 
 ## Phạm vi phần Vũ Đức Tâm - 2A202603522
 
+1. Xây dựng tool weather
+- Viết implementation tại starter_v0/tools/weather/tool.py.
+- Tích hợp Open-Meteo để tìm tọa độ địa điểm và lấy dữ liệu thời tiết hiện tại.
+- Hỗ trợ tên thành phố, mã quốc gia và đơn vị nhiệt độ Celsius/Fahrenheit.
+- Trả về nhiệt độ, nhiệt độ cảm nhận, độ ẩm, tốc độ gió, trạng thái thời tiết, thời điểm dữ liệu và URL nguồn.
+- Xử lý địa danh trùng tên: ưu tiên tên khớp chính xác và kết quả thủ đô được API xác định; trả danh sách lựa chọn nếu vẫn chưa xác định được địa điểm.
+- Kiểm tra đầu vào và xử lý các trường hợp không tìm thấy địa điểm, timeout, lỗi HTTP hoặc dữ liệu API không hợp lệ.
+- Chuẩn hóa kết quả thành items để sử dụng với tool format.
+2. Xây dựng tool github_search
+- Viết implementation tại starter_v0/tools/github_search/tool.py.
+- Tích hợp GitHub REST API để tìm kiếm repository công khai.
+- Hỗ trợ truy vấn theo chủ đề, ngôn ngữ, owner và số sao bằng cú pháp tìm kiếm GitHub.
+- Hỗ trợ sắp xếp theo mức độ liên quan, stars, forks hoặc thời điểm cập nhật; giới hạn từ 1 đến 10 kết quả.
+- Trả về tên repository, mô tả, URL, stars, forks, ngôn ngữ, license, topics và ngày cập nhật.
+- Hỗ trợ GITHUB_TOKEN tùy chọn; token được gửi trong header.
+- Kiểm tra tham số đầu vào, xử lý lỗi API và loại bỏ kết quả riêng tư hoặc thiếu thông tin cần thiết.
+3. Viết tài liệu cho hai tool
+Hoàn thiện hai file:
+- starter_v0/tools/weather/TOOL.md
+- starter_v0/tools/github_search/TOOL.md
+Tài liệu gồm frontmatter đúng contract, chức năng, trường hợp sử dụng, tham số, kết quả trả về, cách xử lý lỗi, ví dụ gọi tool và liên kết tài liệu API.
+4. Đăng ký và tích hợp vào agent
+- Đăng ký hai hàm trong TOOL_FUNCTIONS tại starter_v0/tools/__init__.py.
+- Bổ sung schema trong starter_v0/artifacts/tools.yaml, gồm mô tả chức năng, quy tắc chọn tool, tham số bắt buộc, giá trị mặc định và giới hạn đầu vào.
+5. Đóng góp tài liệu và báo cáo
+- Bổ sung hai tool vào bảng A2 – Tool agent có trong starter_v0/artifacts/REPORT.md.
+
 ## Phạm vi phần Nguyễn Trung Duy - 2A202603387
 
 - `deduplicate`: lọc URL trùng sau khi chuẩn hóa tracking/fragment, giữ nguồn đầu tiên; không so sánh nội dung bài viết.
