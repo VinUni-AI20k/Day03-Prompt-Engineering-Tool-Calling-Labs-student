@@ -130,7 +130,7 @@ Metric: `case_accuracy` 0.70 → **0.95** (19/20), `tool_routing` 0.75 → 0.95,
 **Nhận xét độ bao phủ**
 
 - **Cân bằng:** 5 single (định tuyến + trích xuất tham số) / 5 multi (kế thừa ngữ cảnh, đổi ý định, sửa yêu cầu, bổ sung tham số).
-- **Phủ 7/10 tool trong `tools.yaml`:** `format`, `papers`, `paper_text`, `lookup`, `timeline`, `social_search`, `policy`, `export_md`. Chưa có case riêng cho `fetch`, `send` (đã có R12/M04 ở bộ base), `clarify` (R10/R11 ở bộ base).
+- **Phủ 8/11 tool trong `tools.yaml`:** `format`, `papers`, `paper_text`, `lookup`, `timeline`, `social_search`, `policy`, `export_md`. Chưa có case riêng cho `fetch`, `send` (đã có R12/M04 ở bộ base), `clarify` (R10/R11 ở bộ base).
 - **Tool mới `export_md`** được kiểm thử bởi G06 (PASS).
 - **Loại lỗi:** `wrong_tool`, `wrong_arg_value`, `missing_info`, `unnecessary_tool` (chưa có `out_of_scope`/`wrong_boundary` ở bộ group, nhưng bộ base đã phủ).
 - **Hai case FAIL là tín hiệu cần sửa, không phải case sai:** G03 và G13 cùng nguyên nhân gốc — `tools.yaml` chưa mô tả quy ước tham số (`sort_by` của `papers`, `policy_area` của `policy`); prompt v2 cũng chưa có rule routing cho hai tool này. Hướng sửa cho v3: bổ sung mô tả tham số/rule routing cho `papers` và `policy`.
