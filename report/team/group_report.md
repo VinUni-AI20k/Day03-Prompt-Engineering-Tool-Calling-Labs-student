@@ -64,9 +64,9 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
 | v0 | baseline | Chưa áp dụng thay đổi; đo điểm xuất phát | N/A | case_accuracy=0.70 | [Run v0](../../starter_v0/runs/v0_B_base_openai_20261110T180441850646.json) |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v1 | system_prompt.md | Prompt baseline bảo model đoán và gửi ngay, nên model không clarify khi thiếu thông tin và không xin xác nhận trước khi send | case_accuracy=0.70 | case_accuracy=0.90 | [Run v1](../../starter_v0/runs/v1_B_base_openai_20261110T184506774099.json) |
+| v2 | system_prompt.md | Prompt v1 thiếu rule routing, nên model dùng social_search cho tin tức (M02) và clarify(text) thay vì yes_no khi được yêu cầu gửi (R12) | case_accuracy=0.90 | case_accuracy=0.95 | [Run v2](../../starter_v0/runs/v2_B_base_openai_20261110T185439904664.json) |
+| v3 | tools.yaml | Declaration mơ hồ nên model không biết yes_no là bước xác nhận bắt buộc trước send (R12) và không rõ convention args | case_accuracy=0.95 | case_accuracy=0.85 | [Run v3](../../starter_v0/runs/v3_B_base_openai_20261110T190328305130.json) |
 
 **Chi tiết v0:** 20/20 case được đo, 0 lỗi provider, 14/20 pass; `tool_routing_accuracy=0.75`, `argument_accuracy=0.70`, `multiturn_accuracy=1.00`. Multi-turn 100% chỉ phản ánh các case multi-turn trong suite này.
 
@@ -75,6 +75,50 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 - `tools_hash`: `e69bc53ed8846a5c2192e950c539806a61a6902b718f06d6773db6a42e9b996c`
 - [Version log](../../starter_v0/artifacts/version_log.csv).
 - Kiểm thử offline được Codex chạy lại: **62 passed, 17 skipped, 0 failed**; [output](../../starter_v0/analysis/cp1_pytest.txt). Các skip là TODO, không phải test đã triển khai.
+
+**Chi tiết v1:** chỉ sửa `system_prompt.md`. Xoá 3 chỉ dẫn xấu của starter (đoán thay vì hỏi, gửi không cần xác nhận, ép một bước một tool) và thay bằng rule: thiếu thông tin thì `clarify(response_type="text")`, trước khi send thì `clarify(response_type="yes_no")`, được gọi nhiều tool. `tools.yaml` giữ nguyên (cùng `tools_hash` với v0). 20/20 case được đo, 0 lỗi provider, 18/20 pass; `tool_routing_accuracy=0.95`, `argument_accuracy=0.90`, `multiturn_accuracy=0.83`.
+
+- `artifact_version`: `v1+p3a8713877bc8+te69bc53ed884`
+- `prompt_hash`: `3a8713877bc84fc26245980323d3f44612e783ec244547896172fc64d54ede01`
+- `tools_hash`: `e69bc53ed8846a5c2192e950c539806a61a6902b718f06d6773db6a42e9b996c`
+
+| Case | v0 | v1 | Ghi chú |
+|---|---|---|---|
+| R10_missing_handle | FAIL | PASS | Gọi `clarify` thay vì tự chọn `sama` (đúng giả thuyết) |
+| R11_missing_url | FAIL | PASS | Gọi `clarify` thay vì bịa URL (đúng giả thuyết) |
+| R08_out_of_scope, R14_out_of_scope_coding | FAIL | PASS | Không gọi `send` nữa. Đây là tác dụng phụ của việc bỏ câu "Pick one tool", không phải mục tiêu của v1. Model **vẫn trả lời bài toán/code** chứ không từ chối; eval chỉ kiểm tra "không gọi tool" nên vẫn chấm PASS (giới hạn của chấm tự động) |
+| R13_parallel_web_and_tweets | FAIL | PASS | `lookup` có `topic=news` và `query="AI"`. `tools.yaml` không đổi nên chưa thể quy cho v1; có thể do dao động giữa các lần chạy |
+| R12_confirm_before_send | FAIL | FAIL | Đã không gửi ngay, nhưng gọi `clarify(response_type="text")` để hỏi nội dung bản tin thay vì `yes_no`. Prompt chưa nói ưu tiên rule nào khi vừa thiếu nội dung vừa cần xác nhận |
+| M02_carryover_timeframe | PASS | **FAIL** (regression) | Gọi `social_search(query="robotics")` thay vì `lookup(topic=news, timeframe=day)`. Prompt v1 chưa có rule routing "tin tức → lookup" |
+
+Kết luận v1: giả thuyết đúng cho R10/R11 (hết đoán). Boundary send (R12) mới sửa được một nửa. Cần routing rule rõ hơn cho v2/v3. Lưu ý: một lần chạy dao động khoảng ±0.05, nên cải thiện từ 0.70 lên 0.90 là có ý nghĩa, còn từng case lẻ như R13 thì chưa chắc.
+
+**Chi tiết v2:** chỉ sửa `system_prompt.md`: giữ 3 rule của v1 và thêm khối "Routing rules" (tin tức/web → `lookup` với `topic=news`/`timeframe`; tweet theo chủ đề → `social_search`; tài khoản cụ thể → `timeline`; URL → `fetch`; gửi/đăng → luôn `clarify(yes_no)` trước; multi-turn giữ ngữ cảnh lượt trước). `tools.yaml` giữ nguyên. 20/20 case được đo, 0 lỗi provider, 19/20 pass; `tool_routing_accuracy=1.00`, `argument_accuracy=0.95`, `multiturn_accuracy=1.00`.
+
+- `artifact_version`: `v2+pcf429f209691+te69bc53ed884`
+- `prompt_hash`: `cf429f209691f6a32c69dbfa3485c6abab1cd7eaafd2bc3d9e9971000a0d35a8`
+- `tools_hash`: `e69bc53ed8846a5c2192e950c539806a61a6902b718f06d6773db6a42e9b996c`
+
+| Case | v1 | v2 | Ghi chú |
+|---|---|---|---|
+| M02_carryover_timeframe | FAIL | PASS | Gọi `lookup(query="robotics", topic="news", timeframe="day")`; regression của v1 đã được sửa (đúng giả thuyết) |
+| R12_confirm_before_send | FAIL | FAIL | Vẫn gọi `clarify(response_type="text")` để hỏi nội dung bản tin. Prompt có 2 rule xung đột: "thiếu info → text" và "gửi → yes_no"; model ưu tiên rule đầu. Declaration của `response_type` chỉ ghi "Kiểu trả lời" nên model không biết `yes_no` là bước xác nhận |
+
+Kết luận v2: giả thuyết đúng cho M02, chưa đủ cho R12. Bước tiếp theo (v3) chuyển sang sửa `tools.yaml`, vì phần còn thiếu nằm ở declaration chứ không phải ở prompt.
+
+**Chi tiết v3:** chỉ sửa `tools.yaml`: viết lại description của cả 10 tool (làm gì, khi nào dùng / không dùng) và mô tả convention args (`query` chỉ là từ khoá; `topic=news`, `timeframe=day` cho "hôm nay"; handle không có `@`; `clarify(yes_no)` bắt buộc trước `send`; `send` chỉ gọi khi `confirmed=true`). Không đổi tên tool/param/enum/default; `pytest tests/test_tool_contract.py` 55 passed. `system_prompt.md` giữ nguyên như v2 (cùng `prompt_hash`). 20/20 case được đo, 0 lỗi provider, 17/20 pass; `tool_routing_accuracy=0.95`, `argument_accuracy=0.85`, `multiturn_accuracy=0.83`.
+
+- `artifact_version`: `v3+pcf429f209691+t2ce1cc673647`
+- `prompt_hash`: `cf429f209691f6a32c69dbfa3485c6abab1cd7eaafd2bc3d9e9971000a0d35a8`
+- `tools_hash`: `2ce1cc673647aee684bd46e988f904c8b2f383ca4ef14ae4cea056c6e94a8de6`
+
+| Case | v2 | v3 | Ghi chú |
+|---|---|---|---|
+| R12_confirm_before_send | FAIL | FAIL | Vẫn gọi `clarify(response_type="text")` hỏi nội dung bản tin, dù description đã ghi rõ `yes_no` bắt buộc trước send. Giả thuyết "declaration mơ hồ" **không đúng** cho case này |
+| R10_missing_handle | PASS | **FAIL** (regression) | Gọi `social_search(query="")` (query rỗng) thay vì `clarify`. Description mới của `timeline` ("chỉ dùng khi user nêu tài khoản") cộng với `social_search` ("Latest = mới nhất") khiến model đẩy câu "5 tweet mới nhất" sang `social_search` |
+| M03_correction_handle | PASS | **FAIL** (regression) | Truyền `screenname="andrejkarpathy"` thay vì `karpathy`. Câu "Never guess a handle" khiến model tự ghép handle từ họ tên thay vì dùng handle thật |
+
+Kết luận v3: giả thuyết bị bác bỏ. Viết lại description không sửa được R12 và còn gây 2 tác dụng phụ (`social_search` hút các câu "tweet mới nhất", và quy tắc "không đoán handle" làm model ghép handle sai). Bài học: description của tool tác động lên routing của **các tool khác** chứ không chỉ tool được sửa, nên mỗi thay đổi declaration cần chạy lại toàn bộ suite. Hướng sửa cho version sau: `social_search.query` không được rỗng (thiếu chủ đề → `clarify`); `timeline.screenname` ghi rõ map tên người nổi tiếng → handle thật (Sam Altman → `sama`, Andrej Karpathy → `karpathy`). Bản tốt nhất hiện tại theo `case_accuracy` là **v2 (0.95)**.
 
 ### B2. Failure Analysis
 
