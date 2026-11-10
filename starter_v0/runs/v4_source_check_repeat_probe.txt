@@ -1,0 +1,77 @@
+source_check item-fidelity probe — Minh, 10/11/2026
+Purpose: G10 fails only some of the time, so one run cannot show whether a prompt
+change helped. This probe runs the two source_check cases from data/eval_group.json
+(G01 single-turn, G10 multi-turn) several times through agent.ResearchAgent with the
+exact run_eval message builder (run_eval.case_messages, tool_choice="required") and
+checks whether the `items` sent to source_check equal the items the user gave.
+Model: Groq openai/gpt-oss-120b via --provider openai. Tools executed for real
+(source_check is offline). Output below is copied verbatim from the terminal;
+these probe calls were not saved as run JSON.
+
+Script: repeat_source_check.py (scratchpad helper, not part of the repo)
+Command (from starter_v0/): python repeat_source_check.py <prompt> artifacts/tools.yaml <repeats>
+
+----- Prompt v3-final-p1 (current main, PR #10), 3 repeats -----
+artifact: probe+pb768ae4b5c47+tfe7f33e09197
+G01 try 1: tools=['source_check'] items_unchanged=True
+G01 try 2: tools=['source_check'] items_unchanged=True
+G01 try 3: tools=['source_check'] items_unchanged=True
+==> G01_source_check_existing_items: 3/3 unchanged
+G10 try 1: tools=['source_check'] items_unchanged=True
+G10 try 2: tools=['source_check'] items_unchanged=True
+G10 try 3: tools=['source_check'] items_unchanged=False | item 2: +{'source': 'blog.google'}
+==> G10_mt_source_check_before_digest: 2/3 unchanged
+
+----- Prompt v4 (p1 + worked example for source_check), 5 repeats -----
+artifact: probe+p15d09dc21db5+tfe7f33e09197
+G01 try 1: tools=['source_check'] items_unchanged=True
+G01 try 2: tools=['source_check'] items_unchanged=True
+G01 try 3: tools=['source_check'] items_unchanged=True
+G01 try 4: tools=['source_check'] items_unchanged=True
+G01 try 5: tools=['source_check'] items_unchanged=True
+==> G01_source_check_existing_items: 5/5 unchanged
+G10 try 1: tools=['source_check'] items_unchanged=True
+G10 try 2: tools=['source_check'] items_unchanged=False | item 2: +{'source': ''}
+G10 try 3: tools=['source_check'] items_unchanged=False | item 2: +{'source': ''}
+G10 try 4: tools=['source_check'] items_unchanged=True
+G10 try 5: tools=['source_check'] items_unchanged=False | item 2: +{'source': ''}
+==> G10_mt_source_check_before_digest: 2/5 unchanged
+
+----- Rejected experiment "v5": v4 prompt + tools.yaml source_check item descriptions -----
+Change tried (reverted, NOT committed): url -> "Chép đúng URL của item gốc. Nếu item gốc
+không có url thì bỏ hẳn key này, không tự tạo."; source -> "Chép đúng source của item gốc.
+Nếu item gốc không có source thì bỏ hẳn key này: không suy ra từ URL/domain, không điền
+chuỗi rỗng." (original: "Tên nguồn, domain hoặc handle; không rỗng"). pytest: 131 passed.
+artifact: probe+p15d09dc21db5+t0d8fcfec1cf8
+G01 try 1: tools=['source_check'] items_unchanged=True
+G01 try 2: tools=['source_check'] items_unchanged=True
+G01 try 3: tools=['source_check'] items_unchanged=True
+G01 try 4: tools=['source_check'] items_unchanged=True
+G01 try 5: tools=['source_check'] items_unchanged=True
+G01 try 6: tools=['source_check'] items_unchanged=True
+==> G01_source_check_existing_items: 6/6 unchanged
+G10 try 1: tools=['source_check'] items_unchanged=True
+G10 try 2: tools=['source_check'] items_unchanged=False | item 2: +{'source': 'blog.google'}
+G10 try 3: tools=['source_check'] items_unchanged=False | item 2: +{'source': 'blog.google'}
+G10 try 4: tools=['source_check'] items_unchanged=False | item 2: +{'source': 'blog.google'}
+G10 try 5: tools=['source_check'] items_unchanged=False | item 2: +{'source': 'blog.google'}
+G10 try 6: tools=['source_check'] items_unchanged=False | item 2: +{'source': 'blog.google'}
+==> G10_mt_source_check_before_digest: 1/6 unchanged
+
+----- Other v4 observations (saved files) -----
+runs/v4_B_group_openai_20261110T145702253546.json            G10: +{'source': 'blog.google'}
+transcripts/v4_openai_20261110T145738372871.transcript.json  live: +{'source': 'blog.google'}
+
+Reading (all G10/live observations):
+| prompt/tools | invented real-looking source | added "" | verbatim |
+| p1           | 3/5 (probe 1/3 + group run + live)         | 0/5 | 2/5 |
+| v4           | 2/7 (probe 0/5 + group run + live)         | 3/7 | 2/7 |
+| v5 rejected  | 5/6 (probe)                                 | 0/6 | 1/6 |
+- An invented source ("blog.google") makes source_check mark the item valid, hiding
+  the missing citation. An empty "" is not verbatim but source_check still reports
+  missing_source, so the gap stays visible.
+- v4 lowers the invented-source rate but does not remove it; samples are small.
+  v5 (telling the model in tools.yaml not to infer from URL/domain) made it worse
+  and was reverted. G01 (single-turn) stayed verbatim in every run (14/14 probe).
+- Conclusion: prompt/declaration wording cannot reliably stop this model from
+  inventing the field in the multi-turn case; treat as a known limitation.

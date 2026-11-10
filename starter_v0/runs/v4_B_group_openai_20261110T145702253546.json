@@ -1,0 +1,785 @@
+{
+  "run_id": "v4_B_group_openai_20261110T145702253546",
+  "version": "v4",
+  "artifact_version": "v4+p15d09dc21db5+tfe7f33e09197",
+  "prompt_hash": "15d09dc21db55cb246064a414d9ebe7abec5f37ab6b19a1997a118af4c0e6794",
+  "tools_hash": "fe7f33e091973304772059e3244800d2f20f774df2477a3ac294b83f0bb39dc8",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openai",
+  "model": "openai/gpt-oss-120b",
+  "system_prompt": "D:\\VINUNI-LAB\\K5-L3A-DAY03-TTM-ResearchAgentToolEval-\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\VINUNI-LAB\\K5-L3A-DAY03-TTM-ResearchAgentToolEval-\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day04_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T14:57:02",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 9,
+    "provider_error_cases": 1,
+    "passed_cases": 8,
+    "case_accuracy": 0.8889,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 0.8889,
+    "multiturn_accuracy": 0.8,
+    "failure_counts": {
+      "wrong_arg_value": 1
+    },
+    "observed_mismatch_counts": {
+      "wrong_arg_value": 1
+    }
+  },
+  "results": [
+    {
+      "id": "G01_source_check_existing_items",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_new_tool_source_check",
+        "difficulty": "medium",
+        "what_it_tests": "Tool mới: item đã có sẵn + yêu cầu kiểm tra URL/nguồn → source_check, không lookup/fetch/format. Chỉ chấm routing vì run_eval không so sánh được args dạng list nhiều object (sorted() trên dict gây TypeError)."
+      },
+      "input": "Chỉ kiểm tra URL và thông tin nguồn của các item đã có sau đây, chưa cần tìm kiếm hay định dạng: [{\"title\":\"Paper\",\"url\":\"https://arxiv.org/abs/1706.03762\",\"source\":\"arxiv.org\"},{\"title\":\"Missing citation\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "source_check",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "source_check",
+            "args": {
+              "items": [
+                {
+                  "source": "arxiv.org",
+                  "title": "Paper",
+                  "url": "https://arxiv.org/abs/1706.03762"
+                },
+                {
+                  "title": "Missing citation"
+                }
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "source_check",
+          "args": {
+            "items": [
+              {
+                "source": "arxiv.org",
+                "title": "Paper",
+                "url": "https://arxiv.org/abs/1706.03762"
+              },
+              {
+                "title": "Missing citation"
+              }
+            ]
+          },
+          "result": {
+            "tool": "source_check",
+            "item_count": 2,
+            "valid_count": 1,
+            "invalid_count": 1,
+            "all_valid": false,
+            "results": [
+              {
+                "index": 0,
+                "valid": true,
+                "issues": []
+              },
+              {
+                "index": 1,
+                "valid": false,
+                "issues": [
+                  "missing_url",
+                  "missing_source"
+                ]
+              }
+            ],
+            "items": [
+              {
+                "source": "arxiv.org",
+                "title": "Paper",
+                "url": "https://arxiv.org/abs/1706.03762"
+              }
+            ],
+            "validation_scope": "citation_metadata_only"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_format_bullets_template",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_format_template",
+        "difficulty": "medium",
+        "what_it_tests": "Dữ liệu đã có sẵn → format (không lookup/fetch); 'gạch đầu dòng' → template=bullets, không phải sections mặc định."
+      },
+      "input": "Trình bày 2 tin sau thành dạng gạch đầu dòng, không cần tìm thêm hay kiểm tra nguồn: (1) 'OpenAI ra mắt GPT-5' - https://openai.com/blog/gpt-5 - nguồn openai.com; (2) 'Anthropic công bố Claude mới' - https://anthropic.com/news/claude - nguồn anthropic.com",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "format",
+            "args": {
+              "template": "bullets"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "BadRequestError: Error code: 400 - Tool choice is required, but model did not call a tool"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G03_papers_sort_submitted",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_papers_sort_and_limit",
+        "difficulty": "medium",
+        "what_it_tests": "'3 paper' → max_results=3; 'mới nộp gần đây nhất' → sort_by=submittedDate, không phải relevance mặc định."
+      },
+      "input": "Tìm 3 paper arXiv mới nộp gần đây nhất về multi-agent reinforcement learning.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "max_results": 3,
+              "sort_by": "submittedDate"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "max_results": 3,
+              "query": "multi-agent reinforcement learning",
+              "sort_by": "submittedDate"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "papers",
+          "args": {
+            "max_results": 3,
+            "query": "multi-agent reinforcement learning",
+            "sort_by": "submittedDate"
+          },
+          "result": {
+            "tool": "arxiv_search",
+            "query": "multi-agent reinforcement learning",
+            "api_query": "all:multi-agent AND all:reinforcement AND all:learning",
+            "total_results": 6802,
+            "items": [
+              {
+                "arxiv_id": "2611.12886v1",
+                "title": "Reframe: Observation-Aligned Multi-Teacher On-Policy Distillation for Agentic Visual Reasoning",
+                "summary": "Agentic reinforcement learning (RL) and multi-teacher on-policy distillation (MOPD) offer complementary routes to post-training. For visual agents, however, tool use presents two related challenges. Models may overlook useful tool-returned observations, while poorly grounded actions can limit the evidence available for subsequent distillation. We introduce Reframe, a post-training framework that treats the observation state, rather than only the output distribution, as an object of alignment. First, Ground-Drop-GRPO (GD-GRPO) trains spatial and temporal specialists with evidence-aware rewards and stochastic removal of the original visual input, encouraging them to acquire grounded evidence and use the returned observations. Second, Observation-Gated-MOPD (OG-MOPD) replaces deficient tool actions with canonical ones mid-rollout and resumes distillation from the repaired observation. The two stages complement each other, as learning to rely on tool-returned observations can help the policy benefit from observation repair. Neither stage requires a task-specific SFT cold start. Extensive experiments over 14 image and video benchmarks demonstrate that Reframe outperforms both Mix-RL and vanilla MOPD. Ablation results show that GD-GRPO increases observation dependence and tool gain compared with outcome-based GRPO.",
+                "authors": [
+                  "Haozhi Yuan",
+                  "Handong Li",
+                  "Yifan Zhang",
+                  "Qianshan Wei"
+                ],
+                "published": "2026-11-09T18:59:54Z",
+                "updated": "2026-11-09T18:59:54Z",
+                "url": "http://arxiv.org/abs/2611.12886v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12886v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.CV",
+                "categories": [
+                  "cs.CV"
+                ]
+              },
+              {
+                "arxiv_id": "2611.12728v1",
+                "title": "Safe Reinforcement Learning for Multi-Turn Clinical Agents: When Dense Rewards Beat Outcome Rewards",
+                "summary": "Reinforcement learning with verifiable rewards is increasingly used to improve language model reasoning, yet its effects on sequential decision procedures remain poorly understood. We study this problem in clinical multi-turn agents that must decide what information to request, when to stop gathering evidence, and which action to take. We introduce three controlled environments: medication refill triage, acute diagnostic work-up, and dosing titration, each with hidden clinical states, query costs, exact adaptive oracles, and deterministic outcome verifiers. Across these tasks, outcome-only group relative policy optimization often improves aggregate reward while producing undesirable procedures, including premature commitment, one-question collapse, and failures on rare high-risk cases. In diagnostics, assigning dense credit to questions that reduce uncertainty improves held-out value and moderate-case support across three training seeds relative to outcome-only reinforcement learning, without the high-risk seed collapse observed under outcome-only training. Separating exploration from exploitation further increases high-risk support at its best checkpoint, but at the cost of excessive information gathering on low-acuity cases. Additional experiments show that the optimal strength of process credit is task-dependent; that after a supervised warmup that already gathers carefully, reinforcement learning raises aggregate reward by trimming questions while degrading high-risk performance; and that reinforcement learning does not reliably repair rare behavior gaps inherited from biased supervised data. Verifiable final outcomes are therefore insufficient for training reliable multi-turn agents: reward design must account for the procedure used to reach an answer, and evaluation must distinguish adaptive information gathering from reward-exploiting shortcuts.",
+                "authors": [
+                  "Brendan P. Murphy",
+                  "Agustina Saenz"
+                ],
+                "published": "2026-11-09T17:14:40Z",
+                "updated": "2026-11-09T17:14:40Z",
+                "url": "http://arxiv.org/abs/2611.12728v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12728v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.LG",
+                "categories": [
+                  "cs.LG",
+                  "cs.AI",
+                  "cs.CL"
+                ]
+              },
+              {
+                "arxiv_id": "2611.12638v1",
+                "title": "FAROS: Forecast-Aware Risk-Informed Online Reinforcement Learning for Proactive O-RAN Slicing",
+                "summary": "Proactive Open Radio Access Network (O-RAN) slicing requires decisions before an approaching quality-of-service (QoS) loss becomes difficult to reverse. We present FAROS, a Forecast-Aware Risk-Informed O-RAN Slicing framework that combines an eight-step QoS forecast, training-only PCMCI+-supported temporal risk, Multi-Agent Proximal Policy Optimization (MAPPO) under centralized training and decentralized execution (CTDE), symbolic feasibility constraints, and reliability-aware Top-K arbitration. MAPPO supplies the actor proposal, while A5v2 checks admissibility and one-step utility before execution. Evaluation uses ten validation-selected frozen checkpoints, 500 matched start indices per seed under the risky-start protocol, and 150,000 agent-level decisions. FAROS obtains mean reward 0.2778 and ten-step recovery 90.56% across ten seeds. A fixed model-matched diagnostic rule reaches reward 0.3015 and recovery 97.57% under the same transition-reward contract, so we make no superiority claim over direct threshold logic. A same-actor M4 shield control also reaches zero risky-state prohibited actions. In the M5 trace, A5v2 changes 22.61% of actor proposals and reduces the predicate-defined prohibited-action rate from 16.79% at proposal time to zero at execution; this property is enforced by the arbiter rather than learned by MAPPO. Independent ns-3 experiments test the six-action interface at packet level and remain separate from end-to-end FAROS claims.",
+                "authors": [
+                  "Peyman Eftekhari",
+                  "Seyyed Kasra Mortazavi",
+                  "Reza Farahani",
+                  "Robert Legenstein",
+                  "Kyandoghere Kyamakya",
+                  "Martin Gebser"
+                ],
+                "published": "2026-11-09T16:15:23Z",
+                "updated": "2026-11-09T16:15:23Z",
+                "url": "http://arxiv.org/abs/2611.12638v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12638v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.NI",
+                "categories": [
+                  "cs.NI"
+                ]
+              }
+            ],
+            "rate_limit_note": "arXiv may return 429 if called too frequently; this tool waits at least 3 seconds between requests in-process."
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_social_search_mention_not_timeline",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_mention_vs_user_timeline",
+        "difficulty": "hard",
+        "what_it_tests": "Tweet NHẮC TỚI một sản phẩm → social_search (Latest, limit=20), không đoán handle rồi gọi timeline (vd. AnthropicAI)."
+      },
+      "input": "Lấy 20 tweet mới nhất có nhắc tới Claude.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "search_type": "Latest",
+              "limit": 20
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "limit": 20,
+              "query": "Claude",
+              "search_type": "Latest"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "limit": 20,
+            "query": "Claude",
+            "search_type": "Latest"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G05_lookup_month_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "easy",
+        "what_it_tests": "'tháng này' → timeframe=month (base mới cover day/week); tin tức → topic=news."
+      },
+      "input": "Tổng hợp tin tức về đạo luật AI của EU trong tháng này.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "max_results": 10,
+              "query": "EU AI Act",
+              "timeframe": "month",
+              "topic": "news"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "max_results": 10,
+            "query": "EU AI Act",
+            "timeframe": "month",
+            "topic": "news"
+          },
+          "result": {
+            "tool": "web_search",
+            "error": "RuntimeError",
+            "message": "Missing TAVILY_API_KEY env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G06_mt_decline_send",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_decline_send",
+        "difficulty": "medium",
+        "what_it_tests": "Người dùng từ chối ở bước xác nhận → KHÔNG gọi send (kể cả confirmed=false) và không gọi lại tool nào; chỉ xác nhận đã dừng."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Làm bản tin AI hôm nay rồi đăng lên Telegram giúp mình"
+        },
+        {
+          "role": "assistant",
+          "content": "Mình đã soạn xong bản tin AI hôm nay. Bạn xác nhận đăng lên Telegram chứ?"
+        },
+        {
+          "role": "user",
+          "content": "Khoan, đừng đăng. Để mai mình duyệt lại đã."
+        }
+      ],
+      "expect": {
+        "no_tool": true,
+        "behavior": "acknowledge_without_sending"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Đã hiểu, mình sẽ không đăng bản tin ngay bây giờ. Khi bạn sẵn sàng duyệt lại, chỉ cần cho mình biết là được!",
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G07_mt_paper_followup_text",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_carry_paper_id",
+        "difficulty": "hard",
+        "what_it_tests": "'paper đó' → lấy arXiv ID 1706.03762 từ lượt trước, gọi paper_text (không gọi lại papers) với max_pages=3."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm paper Attention Is All You Need trên arXiv"
+        },
+        {
+          "role": "assistant",
+          "content": "Mình tìm thấy: 'Attention Is All You Need' (Vaswani et al., 2017), arXiv ID 1706.03762."
+        },
+        {
+          "role": "user",
+          "content": "Đọc giúp mình 3 trang đầu của paper đó"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "paper_text",
+            "args": {
+              "arxiv_url": "1706.03762",
+              "max_pages": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "paper_text",
+            "args": {
+              "arxiv_url": "https://arxiv.org/abs/1706.03762",
+              "max_pages": 3
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_arg_value",
+        "failures": [
+          "arxiv_url: expected '1706.03762', got 'https://arxiv.org/abs/1706.03762'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "paper_text",
+          "args": {
+            "arxiv_url": "https://arxiv.org/abs/1706.03762",
+            "max_pages": 3
+          },
+          "result": {
+            "tool": "get_arxiv_paper_text",
+            "arxiv_id": "1706.03762",
+            "url": "https://arxiv.org/abs/1706.03762",
+            "pdf_url": "https://arxiv.org/pdf/1706.03762.pdf",
+            "pdf_path": "D:\\VINUNI-LAB\\K5-L3A-DAY03-TTM-ResearchAgentToolEval-\\starter_v0\\arxiv_papers\\1706.03762.pdf",
+            "txt_path": "D:\\VINUNI-LAB\\K5-L3A-DAY03-TTM-ResearchAgentToolEval-\\starter_v0\\arxiv_papers\\1706.03762.txt",
+            "page_count": 15,
+            "pages_read": 3,
+            "chars_returned": 8000,
+            "items": [
+              {
+                "title": "arXiv paper 1706.03762",
+                "url": "https://arxiv.org/abs/1706.03762",
+                "source": "arxiv.org",
+                "summary": "Provided proper attribution is provided, Google hereby grants permission to\nreproduce the tables and figures in this paper solely for use in journalistic or\nscholarly works.\nAttention Is All You Need\nAshish Vaswani∗\nGoogle Brain\navaswani@google.com\nNoam Shazeer∗\nGoogle Brain\nnoam@google.com\nNiki Parmar∗\nGoogle Research\nnikip@google.com\nJakob Uszkoreit∗\nGoogle Research\nusz@google.com\nLlion Jones∗\nGoogle Research\nllion@google.com\nAidan N. Gomez∗ †\nUniversity of Toronto\naidan@cs.toronto.edu\nŁukasz Kaiser∗\nGoogle Brain\nlukaszkaiser@google.com\nIllia Polosukhin∗ ‡\nillia.polosukhin@gmail.com\nAbstract\nThe dominant sequence transduction models are based on complex recurrent or\nconvolutional neural networks that include an encoder and a decoder. The best\nperforming models also connect the encoder and decoder through an attention\nmechanism. We propose a new simple network architecture, the Transformer,\nbased solely on attention mechanisms, dispensing with recurrence and convolutions\nentirely. Experiments on two machine translation tasks show these models to\nbe superior in quality while being more parallelizable and requiring significantly\nless time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-\nto-German translation task, improving over the existing best results, including\nensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task,\nour model establishes a new single-model state-of-the-art BLEU score of 41.8 after\ntraining for 3.5 days on eight GPUs, a small fraction of the training costs of the\nbest models from the literature. We show that the Transformer generalizes well to\nother tasks by applying it successfully to English constituency parsing both with\nlarge and limited training data.\n∗Equal contribution. Listing order is random. Jakob proposed replacing RNNs with self-attention and started\nthe effort to evaluate this idea. Ashish, with Illia, designed and implemented the first Transformer models and\nhas been crucially involved in every aspect of this work. Noam proposed scaled dot-product attention, multi-head\nattention and the parameter-free position representation and became the other person involved in nearly every\ndetail. Niki designed, implemented, tuned and evaluated countless model variants in our original codebase and\ntensor2tensor. Llion also experimented with novel model variants, was responsible for our initial codebase, and\nefficient inference and visualizations. Lukasz and Aidan spent countless long days designing various parts of and\nimplementing tensor2tensor, replacing our earlier codebase, greatly improving results and massively accelerating\nour research.\n†Work performed while at Google Brain.\n‡Work performed while at Google Research.\n31st Conference on Neural Information Processing Systems (NIPS 2017), Long Beach, CA, USA.\narXiv:1706.03762v7  [cs.CL]  2 Aug 2023\n\n1 Introduction\nRecurrent neural networks, long short-term memory [13] and gated recurrent [7] neural networks\nin particular, have been firmly established as state of the art approaches in sequence modeling and\ntransduction problems such as language modeling and machine translation [ 35, 2, 5]. Numerous\nefforts have since continued to push the boundaries of recurrent language models and encoder-decoder\narchitectures [38, 24, 15].\nRecurrent models typically factor computation along the symbol positions of the input and output\nsequences. Aligning the positions to steps in computation time, they generate a sequence of hidden\nstates ht, as a function of the previous hidden state ht−1 and the input for position t. This inherently\nsequential nature precludes parallelization within training examples, which becomes critical at longer\nsequence lengths, as memory constraints limit batching across examples. Recent work has achieved\nsignificant improvements in computational efficiency through factorization tricks [21] and conditional\ncomputation [32], while also improving model performance in case of the latter. The fundamental\nconstraint of sequential computation, however, remains.\nAttention mechanisms have become an integral part of compelling sequence modeling and transduc-\ntion models in various tasks, allowing modeling of dependencies without regard to their distance in\nthe input or output sequences [2, 19]. In all but a few cases [27], however, such attention mechanisms\nare used in conjunction with a recurrent network.\nIn this work we propose the Transformer, a model architecture eschewing recurrence and instead\nrelying entirely on an attention mechanism to draw global dependencies between input and output.\nThe Transformer allows for significantly more parallelization and can reach a new state of the art in\ntranslation quality after being trained for as little as twelve hours on eight P100 GPUs.\n2 Background\nThe goal of reducing sequential computation also forms the foundation of the Extended Neural GPU\n[16], ByteNet [18] and ConvS2S [9], all of which use convolutional neural networks as basic building\nblock, computing hidden representations in parallel for all input and output positions. In these models,\nthe number of operations required to relate signals from two arbitrary input or output positions grows\nin the distance between positions, linearly for ConvS2S and logarithmically for ByteNet. This makes\nit more difficult to learn dependencies between distant positions [ 12]. In the Transformer this is\nreduced to a constant number of operations, albeit at the cost of reduced effective resolution due\nto averaging attention-weighted positions, an effect we counteract with Multi-Head Attention as\ndescribed in section 3.2.\nSelf-attention, sometimes called intra-attention is an attention mechanism relating different positions\nof a single sequence in order to compute a representation of the sequence. Self-attention has been\nused successfully in a variety of tasks including reading comprehension, abstractive summarization,\ntextual entailment and learning task-independent sentence representations [4, 27, 28, 22].\nEnd-to-end memory networks are based on a recurrent attention mechanism instead of sequence-\naligned recurrence and have been shown to perform well on simple-language question answering and\nlanguage modeling tasks [34].\nTo the best of our knowledge, however, the Transformer is the first transduction model relying\nentirely on self-attention to compute representations of its input and output without using sequence-\naligned RNNs or convolution. In the following sections, we will describe the Transformer, motivate\nself-attention and discuss its advantages over models such as [17, 18] and [9].\n3 Model Architecture\nMost competitive neural sequence transduction models have an encoder-decoder structure [5, 2, 35].\nHere, the encoder maps an input sequence of symbol representations (x1, ..., xn) to a sequence\nof continuous representations z = (z1, ..., zn). Given z, the decoder then generates an output\nsequence (y1, ..., ym) of symbols one element at a time. At each step the model is auto-regressive\n[10], consuming the previously generated symbols as additional input when generating the next.\n2\n\nFigure 1: The Transformer - model architecture.\nThe Transformer follows this overall architecture using stacked self-attention and point-wise, fully\nconnected layers for both the encoder and decoder, shown in the left and right halves of Figure 1,\nrespectively.\n3.1 Encoder and Decoder Stacks\nEncoder: The encoder is composed of a stack of N = 6 identical layers. Each layer has two\nsub-layers. The first is a multi-head self-attention mechanism, and the second is a simple, position-\nwise fully connected feed-forward network. We employ a residual connection [11] around each of\nthe two sub-layers, followed by layer normalization [ 1]. That is, the output of each sub-layer is\nLayerNorm(x + Sublayer(x)), where Sublayer(x) is the function implemented by the sub-layer\nitself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding\nlayers"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G08_mt_thanks_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_close_conversation",
+        "difficulty": "easy",
+        "what_it_tests": "Lời cảm ơn/kết thúc sau khi đã trả lời → trả lời ngắn, KHÔNG gọi lại lookup hay tool nào."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì nổi bật?"
+        },
+        {
+          "role": "assistant",
+          "content": "Đây là 3 tin AI nổi bật hôm nay kèm nguồn: (1) ... (2) ... (3) ..."
+        },
+        {
+          "role": "user",
+          "content": "Ok cảm ơn, vậy là đủ rồi."
+        }
+      ],
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Bạn rất hoan nghênh! Nếu cần thêm thông tin gì khác, cứ cho mình biết nhé.",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G09_mt_clarify_then_topic_search",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_fill_topic",
+        "difficulty": "medium",
+        "what_it_tests": "Sau khi đã hỏi lại, người dùng bổ sung chủ đề → social_search với search_type=Top; không hỏi lại lần nữa, không gọi timeline."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm tweet giúp mình"
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn muốn xem tweet của một tài khoản cụ thể, hay tweet theo chủ đề?"
+        },
+        {
+          "role": "user",
+          "content": "Theo chủ đề AI agents, lấy những tweet phổ biến nhất"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "limit": 5,
+              "query": "AI agents",
+              "search_type": "Top"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "limit": 5,
+            "query": "AI agents",
+            "search_type": "Top"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G10_mt_source_check_before_digest",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_new_tool_source_check",
+        "difficulty": "hard",
+        "what_it_tests": "Tool mới trong hội thoại nhiều lượt: lấy item từ lượt 1 (có item thiếu https và thiếu source) → source_check, không format/fetch. Chỉ chấm routing (cùng lý do G01)."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mình có 3 item: [{\"title\":\"GPT-5 launch\",\"url\":\"https://openai.com/blog/gpt-5\",\"source\":\"openai.com\"},{\"title\":\"Claude update\",\"url\":\"anthropic.com/news/claude\",\"source\":\"anthropic.com\"},{\"title\":\"Gemini roadmap\",\"url\":\"https://blog.google/technology/ai/\"}]"
+        },
+        {
+          "role": "assistant",
+          "content": "Mình đã nhận 3 item. Bạn muốn làm gì tiếp với các item này?"
+        },
+        {
+          "role": "user",
+          "content": "Trước khi làm bản tin, kiểm tra URL và nguồn của 3 item trên giúp mình, chưa cần định dạng."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "source_check",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "source_check",
+            "args": {
+              "items": [
+                {
+                  "source": "openai.com",
+                  "title": "GPT-5 launch",
+                  "url": "https://openai.com/blog/gpt-5"
+                },
+                {
+                  "source": "anthropic.com",
+                  "title": "Claude update",
+                  "url": "anthropic.com/news/claude"
+                },
+                {
+                  "source": "blog.google",
+                  "title": "Gemini roadmap",
+                  "url": "https://blog.google/technology/ai/"
+                }
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "source_check",
+          "args": {
+            "items": [
+              {
+                "source": "openai.com",
+                "title": "GPT-5 launch",
+                "url": "https://openai.com/blog/gpt-5"
+              },
+              {
+                "source": "anthropic.com",
+                "title": "Claude update",
+                "url": "anthropic.com/news/claude"
+              },
+              {
+                "source": "blog.google",
+                "title": "Gemini roadmap",
+                "url": "https://blog.google/technology/ai/"
+              }
+            ]
+          },
+          "result": {
+            "tool": "source_check",
+            "item_count": 3,
+            "valid_count": 2,
+            "invalid_count": 1,
+            "all_valid": false,
+            "results": [
+              {
+                "index": 0,
+                "valid": true,
+                "issues": []
+              },
+              {
+                "index": 1,
+                "valid": false,
+                "issues": [
+                  "invalid_url"
+                ]
+              },
+              {
+                "index": 2,
+                "valid": true,
+                "issues": []
+              }
+            ],
+            "items": [
+              {
+                "source": "openai.com",
+                "title": "GPT-5 launch",
+                "url": "https://openai.com/blog/gpt-5"
+              },
+              {
+                "source": "blog.google",
+                "title": "Gemini roadmap",
+                "url": "https://blog.google/technology/ai/"
+              }
+            ],
+            "validation_scope": "citation_metadata_only"
+          }
+        }
+      ]
+    }
+  ]
+}
