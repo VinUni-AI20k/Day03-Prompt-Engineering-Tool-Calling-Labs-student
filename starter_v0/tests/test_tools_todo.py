@@ -110,6 +110,24 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
+def test_calculator_happy_path() -> None:
+    result = TOOL_FUNCTIONS["calculator"]("27 * 14")
+
+    assert result["result"] == 378
+    assert result["tool"] == "calculator"
+
+
+def test_calculator_empty_input_returns_error() -> None:
+    result = TOOL_FUNCTIONS["calculator"]("")
+
+    assert result.get("error") == "ValueError"
+
+
+def test_calculator_rejects_unsupported_python_code() -> None:
+    result = TOOL_FUNCTIONS["calculator"]("__import__('os').getcwd()")
+
+    assert result.get("error") == "ValueError"
+
 def test_my_new_tool_happy_path() -> None:
     pytest.skip(TODO)
 
