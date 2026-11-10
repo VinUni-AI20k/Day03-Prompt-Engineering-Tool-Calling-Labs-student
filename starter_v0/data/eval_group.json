@@ -1,62 +1,37 @@
 {
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
-  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "description": "10 team eval cases (5 single-turn, 5 multi-turn) covering Person 2 tools (weather, github_search), Person 3 tools (deduplicate, citation_audit), and common failure traps.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
   "cases": [
     {
-      "id": "G01_weather_current_city",
+      "id": "G01_weather_fahrenheit_routing",
       "phase": "B",
       "suite": "group",
-      "query": "Thời tiết hiện tại ở Hanoi theo độ C thế nào?",
-      "failure_type": "wrong_tool",
+      "query": "Thời tiết hiện tại ở Tokyo theo độ F (fahrenheit) lúc này thế nào?",
+      "failure_type": "wrong_arg_value",
       "expect": {
         "tool_calls": [
           {
             "name": "weather",
             "args": {
-              "location": "Hanoi",
-              "units": "celsius"
+              "location": "Tokyo",
+              "units": "fahrenheit"
             }
           }
         ]
       },
       "metadata": {
-        "skill": "weather_current_location",
-        "difficulty": "easy",
-        "what_it_tests": "Thời tiết hiện tại tại địa điểm cụ thể phải dùng weather, không dùng lookup; giữ đúng đơn vị độ C."
-      }
-    },
-    {
-      "id": "G02_github_top_repositories",
-      "phase": "B",
-      "suite": "group",
-      "query": "Tìm 3 repository GitHub nhiều sao nhất về RAG.",
-      "failure_type": "wrong_arg_value",
-      "expect": {
-        "tool_calls": [
-          {
-            "name": "github_search",
-            "args": {
-              "query": "RAG",
-              "sort": "stars",
-              "order": "desc",
-              "max_results": 3
-            }
-          }
-        ]
-      },
-      "metadata": {
-        "skill": "github_search_sort_and_limit",
+        "skill": "weather_routing_and_units",
         "difficulty": "medium",
-        "what_it_tests": "Khám phá repository phải dùng github_search và ánh xạ nhiều sao nhất thành sort=stars, order=desc, max_results=3."
+        "what_it_tests": "Route current weather query to weather (not lookup) and extract units=fahrenheit."
       }
     },
     {
-      "id": "G03_weather_missing_location",
+      "id": "G02_weather_missing_location_trap",
       "phase": "B",
       "suite": "group",
-      "query": "Cho mình biết thời tiết hiện tại thế nào?",
+      "query": "Kiểm tra giúp mình thời tiết hiện tại xem có mưa không?",
       "failure_type": "missing_info",
       "expect": {
         "tool_calls": [
@@ -69,102 +44,125 @@
         ]
       },
       "metadata": {
-        "skill": "clarify_missing_weather_location",
+        "skill": "clarify_missing_location",
         "difficulty": "medium",
-        "what_it_tests": "Thiếu địa điểm thời tiết phải hỏi clarify dạng text, không đoán vị trí người dùng."
+        "what_it_tests": "Missing location trap: must call clarify instead of guessing a city."
       }
     },
     {
-      "id": "G04_send_after_explicit_confirmation",
+      "id": "G03_github_search_stars_limit",
       "phase": "B",
       "suite": "group",
-      "query": "Tôi xác nhận gửi chính xác nội dung 'Bản tin AI hôm nay' lên Telegram.",
-      "failure_type": "wrong_boundary",
+      "query": "Tìm giúp mình 3 repository mã nguồn mở về AI agent có nhiều sao nhất trên GitHub.",
+      "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "send",
+            "name": "github_search",
             "args": {
-              "text": "Bản tin AI hôm nay",
-              "confirmed": true
+              "sort": "stars",
+              "max_results": 3
             }
           }
         ]
       },
       "metadata": {
-        "skill": "send_explicit_confirmation",
+        "skill": "github_search_routing_and_args",
         "difficulty": "medium",
-        "what_it_tests": "Khi người dùng đã xác nhận rõ và cung cấp nội dung chính xác, send phải nhận confirmed=true và không hỏi lại."
+        "what_it_tests": "Route repository discovery to github_search (not lookup) with sort=stars and max_results=3."
       }
     },
     {
-      "id": "G05_out_of_scope_translation",
+      "id": "G04_weather_vs_news_trap",
       "phase": "B",
       "suite": "group",
-      "query": "Dịch câu 'Good morning' sang tiếng Việt giúp mình.",
-      "failure_type": "out_of_scope",
+      "query": "Tin tức thời sự hôm nay về bão và mưa lớn ở miền Trung trên báo chí có gì mới?",
+      "failure_type": "wrong_tool",
       "expect": {
-        "no_tool": true,
-        "behavior": "refuse"
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ]
       },
       "metadata": {
-        "skill": "out_of_scope_translation",
-        "difficulty": "easy",
-        "what_it_tests": "Yêu cầu dịch thuật ngoài phạm vi research không được gọi bất kỳ tool nào."
+        "skill": "distinguish_news_from_weather",
+        "difficulty": "hard",
+        "what_it_tests": "Trap mentioning storm/rain: news report query must route to lookup(topic=news, timeframe=day), not weather."
       }
     },
     {
-      "id": "G06_multiturn_weather_correction",
+      "id": "G05_unnecessary_tool_capabilities_trap",
+      "phase": "B",
+      "suite": "group",
+      "query": "Bạn có những công cụ nào để tra thời tiết, tìm repo GitHub, kiểm tra trùng lặp nguồn và kiểm tra trích dẫn?",
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "metadata": {
+        "skill": "no_tool_meta_capabilities",
+        "difficulty": "medium",
+        "what_it_tests": "Unnecessary tool trap: meta question mentioning weather, github_search, deduplicate and citation_audit keywords must answer directly without calling tools."
+      }
+    },
+    {
+      "id": "G06_mt_weather_clarify_then_fill",
       "phase": "B",
       "suite": "group",
       "turns": [
         {
           "role": "user",
-          "content": "Xem thời tiết hiện tại ở Hanoi giúp mình."
+          "content": "Cho mình hỏi thời tiết hiện tại bên ngoài thế nào?"
         },
         {
           "role": "user",
-          "content": "Đổi địa điểm thành Đà Nẵng nhé."
+          "content": "Ở Seoul nhé"
         },
         {
           "role": "user",
-          "content": "Hiển thị theo độ F, vẫn là thời tiết hiện tại."
+          "content": "Dùng độ C thôi"
         }
       ],
-      "failure_type": "wrong_arg_value",
+      "failure_type": "missing_info",
       "expect": {
         "tool_calls": [
           {
             "name": "weather",
             "args": {
-              "location": "Đà Nẵng",
-              "units": "fahrenheit"
+              "location": "Seoul",
+              "units": "celsius"
             }
           }
         ]
       },
       "metadata": {
-        "skill": "multiturn_weather_correction",
-        "difficulty": "hard",
-        "what_it_tests": "Giữ loại yêu cầu thời tiết hiện tại, thay địa điểm mới nhất và đổi đơn vị từ mặc định sang Fahrenheit."
+        "skill": "multiturn_weather_fill",
+        "difficulty": "medium",
+        "what_it_tests": "Multi-turn fill: carry location=Seoul and units=celsius across turns."
       }
     },
     {
-      "id": "G07_multiturn_github_constraints",
+      "id": "G07_mt_github_correction_sort_limit",
       "phase": "B",
       "suite": "group",
       "turns": [
         {
           "role": "user",
-          "content": "Tìm repository GitHub về FastAPI."
+          "content": "Tìm 5 repository trên GitHub về FastAPI nhiều sao nhất"
         },
         {
           "role": "user",
-          "content": "Chỉ lấy repository Python."
+          "content": "Đổi sang sắp xếp theo cập nhật gần đây nhất đi"
         },
         {
           "role": "user",
-          "content": "Lấy 4 repo nhiều sao nhất, giữ nguyên chủ đề."
+          "content": "Chỉ lấy 2 repo thôi, vẫn chủ đề FastAPI"
         }
       ],
       "failure_type": "wrong_arg_value",
@@ -173,107 +171,88 @@
           {
             "name": "github_search",
             "args": {
-              "query": "FastAPI language:Python",
-              "sort": "stars",
-              "order": "desc",
-              "max_results": 4
+              "sort": "updated",
+              "max_results": 2
             }
           }
         ]
       },
       "metadata": {
-        "skill": "multiturn_github_carryover",
+        "skill": "multiturn_github_correction",
         "difficulty": "hard",
-        "what_it_tests": "Carry chủ đề FastAPI, thêm qualifier language:Python và áp dụng limit/sort từ lượt cuối."
+        "what_it_tests": "Multi-turn correction: override sort stars->updated and max_results 5->2 while keeping topic FastAPI."
       }
     },
     {
-      "id": "G08_multiturn_send_confirmation",
+      "id": "G08_mt_deduplicate_existing_items",
       "phase": "B",
       "suite": "group",
       "turns": [
         {
           "role": "user",
-          "content": "Nội dung bản tin là: AI agent ra mắt hôm nay."
+          "content": "Đây là 2 nguồn mình đã thu thập: 1) title='OpenAI News', url='https://openai.com/news?utm_source=x' ; 2) title='OpenAI News copy', url='https://openai.com/news#top'"
         },
         {
           "role": "user",
-          "content": "Gửi bản tin đó lên Telegram giúp mình."
-        },
-        {
-          "role": "user",
-          "content": "Có, tôi xác nhận gửi đúng nội dung đó."
+          "content": "Hãy lọc bỏ các URL trùng lặp khỏi 2 nguồn trên, không cần tìm kiếm thêm hay định dạng."
         }
       ],
-      "failure_type": "wrong_boundary",
+      "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "send",
-            "args": {
-              "text": "AI agent ra mắt hôm nay.",
-              "confirmed": true
-            }
+            "name": "deduplicate",
+            "args": {}
           }
         ]
       },
       "metadata": {
-        "skill": "multiturn_confirm_then_send",
-        "difficulty": "hard",
-        "what_it_tests": "Carry đúng nội dung từ lượt đầu và chỉ gọi send confirmed=true sau lượt xác nhận rõ ràng."
-      }
-    },
-    {
-      "id": "G09_multiturn_url_replacement",
-      "phase": "B",
-      "suite": "group",
-      "turns": [
-        {
-          "role": "user",
-          "content": "Tóm tắt bài này giúp mình."
-        },
-        {
-          "role": "user",
-          "content": "URL là https://openai.com/research/."
-        },
-        {
-          "role": "user",
-          "content": "Đổi sang https://www.anthropic.com/research và chỉ đọc link mới."
-        }
-      ],
-      "failure_type": "wrong_arg_value",
-      "expect": {
-        "tool_calls": [
-          {
-            "name": "fetch",
-            "args": {
-              "url": "https://www.anthropic.com/research"
-            }
-          }
-        ]
-      },
-      "metadata": {
-        "skill": "multiturn_latest_url_wins",
+        "skill": "multiturn_deduplicate_routing",
         "difficulty": "medium",
-        "what_it_tests": "URL được sửa ở lượt cuối phải ghi đè URL cũ; chỉ gọi fetch một lần cho link mới."
+        "what_it_tests": "Multi-turn local tool routing: call deduplicate on supplied items without extra lookup/fetch/format."
       }
     },
     {
-      "id": "G10_multiturn_switch_papers_to_github",
+      "id": "G09_mt_citation_audit_existing_items",
       "phase": "B",
       "suite": "group",
       "turns": [
         {
           "role": "user",
-          "content": "Tìm paper về RAG."
+          "content": "Danh sách nguồn hiện có: 1) title='Paper A', source='arxiv.org', url='https://arxiv.org/abs/1706.03762' ; 2) title='', source='', url='ftp://bad-link'"
         },
         {
           "role": "user",
-          "content": "Không cần paper nữa, chuyển sang tìm repository GitHub."
+          "content": "Hãy kiểm tra lỗi metadata trích dẫn (thiếu tiêu đề, thiếu nguồn, URL không hợp lệ) của danh sách trên, không gọi fetch."
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "citation_audit",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_citation_audit_routing",
+        "difficulty": "medium",
+        "what_it_tests": "Multi-turn local audit routing: call citation_audit on supplied items without calling fetch."
+      }
+    },
+    {
+      "id": "G10_mt_switch_weather_to_github",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Xem thời tiết hiện tại ở Hà Nội giúp mình."
         },
         {
           "role": "user",
-          "content": "Chủ đề vẫn là RAG, lấy 2 kết quả."
+          "content": "Thôi bỏ tra thời tiết đi, đổi sang tìm 2 repository GitHub về FastMCP cập nhật gần đây nhất, không gọi weather nữa."
         }
       ],
       "failure_type": "wrong_tool",
@@ -282,16 +261,16 @@
           {
             "name": "github_search",
             "args": {
-              "query": "RAG",
+              "sort": "updated",
               "max_results": 2
             }
           }
         ]
       },
       "metadata": {
-        "skill": "multiturn_switch_research_source",
+        "skill": "multiturn_switch_to_github",
         "difficulty": "hard",
-        "what_it_tests": "Lệnh chuyển nguồn ở lượt sau phải bỏ papers, giữ chủ đề RAG và gọi duy nhất github_search."
+        "what_it_tests": "Multi-turn tool switch: drop cancelled weather request and call only github_search(sort=updated, max_results=2)."
       }
     }
   ]
