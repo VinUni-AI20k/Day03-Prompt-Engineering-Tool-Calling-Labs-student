@@ -123,3 +123,32 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tools ----------------
+  - name: deduplicate
+    description: >-
+      Loại kết quả nghiên cứu bị trùng trong danh sách items đã có, trước khi
+      trình bày bằng format. Dùng khi người dùng yêu cầu bỏ mục trùng theo URL
+      hoặc tiêu đề; giữ mục đầu tiên, thứ tự và mọi trường dữ liệu. Không tìm
+      nguồn mới, không gộp các bài chỉ giống ý nghĩa, không xác minh thông tin.
+      Chỉ gọi khi có danh sách items; nếu thiếu danh sách thì hỏi lại người dùng.
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Danh sách kết quả đã có. Mỗi item là object; giữ nguyên các trường bổ sung và giữ mọi item thiếu key hoặc có key rỗng."
+          items:
+            type: object
+            properties:
+              title: {type: string, description: "Tiêu đề; dùng làm key khi key_by=title. Có thể bỏ qua nếu thiếu."}
+              url: {type: string, description: "URL nguồn; dùng làm key mặc định. Có thể bỏ qua nếu thiếu."}
+              source: {type: string}
+              summary: {type: string}
+              section: {type: string}
+        key_by:
+          type: string
+          enum: [url, title]
+          default: url
+          description: "Trường so sánh: url hoặc title. Bỏ khoảng trắng đầu/cuối, không phân biệt hoa/thường; URL bỏ thêm dấu / cuối."
+      required: [items]
