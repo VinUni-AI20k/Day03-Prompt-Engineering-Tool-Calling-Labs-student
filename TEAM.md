@@ -2,17 +2,17 @@
 
 ## Thông tin nhóm
 
-- Tên nhóm:
-- Lớp: L3A / L3B
-- Repo nhóm: `K5-L3A-DAY03-TenNhom-ResearchAgentToolEval` hoặc `K5-L3B-DAY03-TenNhom-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
-- URL repo, nhánh nộp, commit chốt:
+- Tên nhóm: Ban5
+- Lớp: L3B
+- Repo nhóm: `K5-L3B-DAY03-Ban5-ResearchAgentToolEval`
+- URL repo, nhánh nộp, commit chốt: https://github.com/haiquanng/K5-L3B-DAY03-Ban5-ResearchAgentToolEval.git (nhánh: 2A202604013_NguyenBaoTrung)
 
 ## Thành viên
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 |        |      |       |        |         |
-|   2 |        |      |       |        |         |
+|   1 | Nguyễn Bảo Trung | 2A202604013 | nbtrungrhm@gmail.com | trungnb | |
+|   2 | | | | | |
 
 ## Cá nhân
 
@@ -22,11 +22,11 @@ Mỗi thành viên đồng thời tạo một báo cáo riêng trong `report/` t
 report/team/MSSV_HoTen.md
 ```
 
-Ví dụ: `report/team/20241234_NguyenVanAn.md`.
+Ví dụ: `report/team/2A202604013_NguyenBaoTrung.md`.
 
 Sao chép mục dưới đây cho từng thành viên.
 
-## HoVaTen-MSSV
+## Nguyễn Bảo Trung - 2A202604013
 
 ### Phần việc phụ trách
 
