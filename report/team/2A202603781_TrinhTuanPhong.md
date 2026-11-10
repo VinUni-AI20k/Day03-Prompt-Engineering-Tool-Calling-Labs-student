@@ -4,7 +4,7 @@
 
 - Họ tên: Trịnh Tuấn Phong
 - MSSV: 2A202603781
-- Email: it96cokhibachkhoaphong@gmail.com
+- Email:  26ai.phongtt2@vinuni.edu.vn
 
 ## 2. Phần việc phụ trách
 
