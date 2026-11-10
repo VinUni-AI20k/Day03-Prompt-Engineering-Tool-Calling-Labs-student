@@ -129,7 +129,9 @@ Chỉ điền nếu nhóm làm bonus này.
 | v4-local |  |  |  |  |  |  |  |
 | v5-local |  |  |  |  |  |  |  |
 
-Tình trạng run hiện tại: chưa có baseline local hợp lệ và chưa có vòng `v4-local`/`v5-local`. Preflight tool-calling cho `qwen2.5:3b` dừng với lỗi Ollama/CUDA `device kernel image is invalid`; lần này không được tính là benchmark. Cần khắc phục runtime rồi chạy lại trước khi điền số liệu.
+Bằng chứng setup local (chưa phải benchmark): preflight của repo với alias CPU `qwen2.5:3b-cpu` đã trả về tool call `social_search`; `ollama ps` xác nhận `100% CPU`. Chi tiết lệnh và kết quả: [local_cpu_preflight_2026-11-10.md](evidence/local_cpu_preflight_2026-11-10.md). Lỗi CUDA của lần preflight GPU trước vẫn được ghi nhận riêng, nhưng hiện đã có đường chạy CPU.
+
+B7 chưa có baseline local hợp lệ hoặc các vòng `v4-local`/`v5-local`: nhánh này vẫn đang ở prompt v0; PR của thành viên phụ trách prompt có run v3 nhưng gặp 1 provider error ở R09 (503), nên chưa đủ điều kiện làm bản đối chiếu. Model thứ hai hiện có là `llama3.2:1b`, nằm ngoài khoảng 3B–8B nêu trong hướng dẫn. Preflight CPU chỉ chứng minh provider nhận tool call, không được tính là eval. Cần có run v3 hợp lệ, hai model phù hợp và run JSON đầy đủ trước khi điền điểm.
 
 Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
