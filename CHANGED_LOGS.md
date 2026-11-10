@@ -12,11 +12,84 @@ Mới nhất ở trên cùng. Chỉ ghi những gì đã làm và đo thật.
 | v0 | QuanNH | Chưa sửa gì (đo mốc ban đầu) | 13/20 | `starter_v0/runs/v0_B_base_openai_20261110T173801779394.json` |
 | v1 | QuanNH | Sửa lời dặn cho trợ lý: hỏi lại khi thiếu thông tin, xin xác nhận trước khi gửi | 18/20 | `starter_v0/runs/v1_B_base_openai_20261110T175732383834.json` |
 | v2 | QuanNH | Sửa lời dặn: nói rõ công cụ nào dùng cho việc nào, từ chối việc ngoài phạm vi, xin xác nhận dạng có/không | 18/20 | `starter_v0/runs/v2_B_base_openai_20261110T181054950591.json` |
-| v3 | | | | |
+| v3 | DucLT | Mô tả rõ điều kiện dùng tool, ưu tiên xác nhận gửi/đăng và quy ước tham số; giữ prompt v2, gpt-4o-mini | 20/20 | `starter_v0/runs/v3_B_base_openai_20261110T183553607506.json` |
 
-Số liệu chi tiết: `starter_v0/artifacts/version_log.csv`. Bảng lỗi từng tình huống: `starter_v0/analysis/v0.csv`, `v1.csv`.
+Số liệu chi tiết: `starter_v0/artifacts/version_log.csv`. Bảng lỗi từng tình huống: `starter_v0/analysis/v0.csv`, `v1.csv`, `v2.csv`, `v3.csv`.
 
 ## Chi tiết
+
+### v3 — Viết rõ cách chọn tool và kiểu câu hỏi xác nhận
+
+- **Người thực hiện:** DucLT.
+- **Sửa file nào:** chỉ các trường `description` trong `starter_v0/artifacts/tools.yaml`. Giữ nguyên `system_prompt.md`, code tool, tên/tham số, giá trị mặc định, bộ chấm và các case eval. Model vẫn là `gpt-4o-mini`.
+- **Giả thuyết duy nhất:** nếu mô tả tool nói rõ khi nào dùng, khi nào không dùng và quy tắc nào được ưu tiên khi có nhiều điều kiện cùng đúng, model sẽ chọn đúng tool và tham số hơn.
+
+**1. Đọc log để xác định sai ở đâu**
+
+Không chỉ nhìn tổng điểm. Với từng case FAIL, đối chiếu `expect`, `actual_tool_calls` và `failures` trong run JSON:
+
+| Case | Bộ kiểm tra yêu cầu | Model thực sự làm | Cần sửa ở đâu |
+|---|---|---|---|
+| R12 | `clarify(response_type="yes_no")` | Gọi đúng clarify nhưng truyền `text`, hỏi người dùng cung cấp nội dung bản tin | Quy tắc chọn kiểu câu hỏi |
+| M06 | Chỉ gọi lookup sau khi người dùng nói bỏ Twitter | v2 gọi lookup và thêm social_search | Điều kiện ngừng dùng công cụ cũ |
+
+R12 không phải lỗi API hay lỗi hàm clarify: model đã truyền rõ `text`, và tool trả lại đúng giá trị đó. Yêu cầu đăng bản tin đồng thời thiếu nội dung, nên có hai quy tắc cùng áp dụng: “thiếu dữ kiện thì hỏi” và “trước khi gửi phải xin xác nhận”. Hành vi quan sát được phù hợp với việc model chọn hỏi dữ kiện trước. Đây là suy luận từ log, không phải quan sát trực tiếp suy nghĩ bên trong model.
+
+**2. Viết mô tả thành quy tắc quyết định, kèm ví dụ đối chiếu**
+
+Trước hết viết lại mô tả của cả 11 tool: làm gì, khi nào dùng/không dùng, quy ước tham số. Với social_search, nói rõ chỉ tìm bài đăng mạng xã hội nếu người dùng vẫn yêu cầu nguồn đó; khi đã nói bỏ Twitter/chuyển sang tin web thì không gọi thêm theo ngữ cảnh cũ.
+
+Lần đo đầu v3 đạt **19/20**: M06 đúng lại nhưng R12 vẫn sai. Vì vậy, vẫn trong v3, chỉ làm rõ thêm description của clarify bằng bảng quyết định sau:
+
+| Ưu tiên | Người dùng đang cần gì? | Cách gọi clarify |
+|---|---|---|
+| 1 | Gửi/đăng nhưng chưa xác nhận, kể cả chưa đưa nội dung | `response_type="yes_no"`, hỏi xác nhận ý định trước |
+| 2 | Đọc/tìm kiếm nhưng thiếu account, URL hoặc chủ đề | `response_type="text"`, hỏi dữ kiện còn thiếu |
+| 3 | Chọn một phương án trong danh sách | `response_type="choice"`, cung cấp `options` |
+
+Ví dụ đối chiếu được thêm ngay trong description để model thấy cách áp dụng:
+
+- “Gửi bản tóm tắt qua Telegram” khi chưa có bản nháp → hỏi “Bạn xác nhận muốn gửi qua Telegram sau khi cung cấp và duyệt nội dung cuối chứ?”, dùng `yes_no`.
+- “Đọc bài viết đó” khi chưa có link → hỏi URL, dùng `text`.
+
+Điểm mấu chốt là **chọn kiểu câu hỏi theo mục đích yêu cầu**, thay vì cứ thấy thiếu thông tin là dùng text. Không đổi mặc định của clarify thành yes_no vì sẽ ảnh hưởng các yêu cầu thiếu URL/account.
+
+Xác nhận ý định gửi chưa cho phép gửi nội dung chưa biết. Agent vẫn phải có nội dung cuối và được người dùng duyệt nội dung đó trước khi gọi `send(confirmed=true)`.
+
+**3. Giữ phép đo công bằng và kiểm tra toàn bộ case**
+
+Không sửa đáp án eval, không chèn điều kiện nhận diện riêng R12, không sửa tool call sau khi model trả về. Sau lần đo v3 đầu, chỉ description của clarify thay đổi; prompt, schema, model và các tool khác giữ nguyên. Kiểm tra toàn bộ suite, không chỉ chạy riêng R12, để phát hiện trường hợp sửa một lỗi nhưng làm hỏng case khác.
+
+Chạy từ `starter_v0/`, sau khi kích hoạt `.venv`:
+
+```bash
+python -m pytest -q
+python run_eval.py --provider openai --version v3 --suite base --eval-cases data/eval_base.json
+python scripts/parse_runs.py runs/v3_B_base_openai_20261110T183553607506.json --output analysis/v3.csv
+```
+
+Tên run JSON trong lệnh parse là file của lần đo cuối đã thực hiện; lần chạy mới sẽ sinh tên có thời gian khác.
+
+**4. Kết quả đo và bằng chứng**
+
+| Chỉ số | v2 | v3 đầu | v3 cuối |
+|---|---|---|---|
+| Case đạt | 18/20 | 19/20 | **20/20** |
+| R12 — xác nhận gửi | FAIL | FAIL | **PASS: yes_no** |
+| M06 — bỏ Twitter | FAIL | PASS | **PASS: chỉ lookup** |
+| Case từng PASS ở v2 bị hỏng | — | 0 | **0** |
+
+- Lần v3 cuối: đo đủ **20/20 case**, **0 lỗi provider**; chọn tool, tham số và hội thoại nhiều lượt đều đạt 1.00.
+- Cả 18 case từng PASS ở v1 cũng giữ PASS. Unit test: **104 passed, 0 failed, 0 skipped**.
+- Run cuối: `starter_v0/runs/v3_B_base_openai_20261110T183553607506.json`.
+- Bảng từng case: `starter_v0/analysis/v3.csv`; dòng v3 trong `starter_v0/artifacts/version_log.csv` trỏ tới run cuối này.
+- Run đầu 19/20 được giữ nguyên để thấy quá trình chỉnh: `starter_v0/runs/v3_B_base_openai_20261110T182541886906.json`. Không thay kết quả cũ bằng kết quả mới.
+- Bản cuối: `v3+p1a376861025b+tbf2ad343d04f`. Prompt hash trùng v2; tools hash đổi theo nội dung description. Hash đầy đủ nằm trong run JSON và version log.
+- Ghi chú nhãn: một lần kiểm tra tạm từng được gắn nhãn v4 trước khi thống nhất giữ v3; file gốc được chuyển ra `/tmp/duclt_mislabeled_eval_20261110T183257225088.json`, không tính thành version riêng. Kết quả chính thức ở trên là lần chạy lại với đúng `--version v3`.
+
+**Bài học để nhóm áp dụng lại:** đọc tool call thật → phân biệt lỗi chọn tool với lỗi tham số/code → tìm các quy tắc cạnh tranh → viết rõ thứ tự ưu tiên và ví dụ đối chiếu → đo lại toàn bộ suite → lưu cả kết quả chưa đạt lẫn kết quả cuối.
+
+**Giới hạn và việc tiếp theo:** 20/20 là kết quả trên bộ base đã đo, chưa bảo đảm mọi câu hỏi mới. v3 kế thừa tool stats từ commit trước, còn v1/v2 dùng bộ lịch sử 10 tool; so sánh v2 với v3 vì thế còn khác biệt về bộ tool. Run JSON v1/v2 hiện không có ở local nên đối chiếu từng case dùng CSV đã lưu. Tiếp theo cần thử thêm các cách diễn đạt khác, hủy gửi và thay đổi nội dung sau xác nhận trong eval nhóm/UI.
 
 ### v2 — Dặn rõ công cụ nào dùng cho việc nào
 
