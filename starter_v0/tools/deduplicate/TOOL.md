@@ -116,11 +116,27 @@ assert len(by_title["items"]) == 1
 
 ## Kiểm thử offline
 
-Từ thư mục `starter_v0`:
+Dự án dùng Python 3.12, được cố định bằng `.python-version` tại thư mục gốc repo.
+
+Trên Windows, dùng môi trường Python 3.12 riêng để cài các thư viện phục vụ
+tests. Nếu dùng Python 3.15 mà PyYAML phải build từ source và báo thiếu Microsoft
+Visual C++, có thể dùng các lệnh dưới đây từ thư mục `starter_v0`:
 
 ```powershell
-python -m pytest -v tests/test_tools_todo.py -k deduplicate
-python -m pytest -v tests/test_tool_contract.py
+uv venv --python 3.12 .venv312
+uv pip install --python .venv312\Scripts\python.exe --only-binary pyyaml pytest requests PyYAML pypdf
+```
+
+`uv` tự tải Python 3.12 nếu chưa có. `--only-binary pyyaml` yêu cầu bản PyYAML
+đóng gói sẵn thay vì build bằng C++. Thư mục `.venv312/` được gitignore; môi
+trường `.venv/` đang có không bị thay đổi.
+
+Chạy tests bằng chính Python của môi trường mới:
+
+```powershell
+.\.venv312\Scripts\python.exe -m pytest -v tests/test_tools_todo.py -k deduplicate
+.\.venv312\Scripts\python.exe -m pytest -v tests/test_tool_contract.py
+.\.venv312\Scripts\python.exe -m pytest -q
 ```
 
 Tests kiểm tra loại trùng và giữ thứ tự/mục đầu tiên, xử lý key thiếu/rỗng,
