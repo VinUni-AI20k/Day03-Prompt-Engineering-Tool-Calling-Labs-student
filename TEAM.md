@@ -15,7 +15,7 @@
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 | Nghị | _(điền)_ | _(điền)_ | quocnghidev | Prompt & tối ưu eval (C1–C3) |
+|   1 | Lã Quốc Nghị | 2A202603947 | quocnghidev@gmail.com | quocnghidev | Prompt & tối ưu eval (C1–C3) |
 |   2 | Đạt | _(điền)_ | _(điền)_ | _(điền)_ | Tool mới + unit test + khung UI (C4) |
 |   3 | Hà | _(điền)_ | _(điền)_ | _(điền)_ | Eval nhóm + live chat + báo cáo + hoàn thiện UI (C5–C7) |
 
@@ -33,7 +33,9 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 ---
 
-## Nghị
+## Lã Quốc Nghị — 2A202603947
+
+Báo cáo cá nhân: [report/team/2A202603947_LaQuocNghi.md](report/team/2A202603947_LaQuocNghi.md)
 
 ### Phần việc phụ trách
 
