@@ -117,11 +117,13 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/stats/tool.py`, `starter_v0/tools/stats/TOOL.md` | Tính toán thống kê mô tả: `mean`, `median`, `stdev` từ danh sách số thực | Chặn input rỗng, từ chối kiểu dữ liệu không phải số hữu hạn, trả về error dict an toàn thay vì crash |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`, `starter_v0/analysis/duclt_pytest.txt` | 104 passed (bao gồm unit tests cho stats và toàn bộ 10 tools) | Test các trường hợp biên: danh sách 1 phần tử khi tính stdev, input xấu (strings, boolean, NaN, inf) |
+| UI (lệnh chạy + link dùng thử) | `starter_v0/chat.py` (CLI chat) | Tương tác live với agent qua CLI | Guardrail từ chối câu hỏi ngoài phạm vi, hỏi xác nhận trước khi gọi tool send |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests:
+- Số test đã viết: 17 unit test trong `test_tools_todo.py` + 3 test cho tool mới `stats` (toàn bộ test suite: 104 passed, 0 failed, 0 skipped).
+- Ví dụ lỗi unit test bắt được nhưng eval không bắt được: Khi model truyền tham số xấu vào tool (ví dụ `values` chứa boolean `True`, chuỗi `"2"` thay vì số, hoặc số phần tử < 2 khi tính `stdev`), unit test đảm bảo hàm trả về dict lỗi `{tool, error, message}` thay vì throw Exception làm sập tiến trình agent. Eval benchmark chỉ kiểm tra tên tool và args ở tầng ngoài, không bắt được exception nội bộ này.
 
 ### B5. Bonus Evidence
 
