@@ -8,7 +8,7 @@ Ví dụ: `20241234_NguyenVanAn.md`.
 
 - Họ tên: Trần Trung Kiên
 - MSSV: 2A202604014
-- Email:
+- Email: 26ai.kientt3@vinuni.edu.vn
 
 ## 2. Phần việc phụ trách
 
@@ -29,7 +29,15 @@ Tổng hợp B3 từ 10 case eval của nhóm và kết quả chạy.
 ## 4. Bằng chứng
 
 - File/commit/PR:
++ B1_B2_v0
++ v1 Hypothesis Update
++ B1_B2_v0
++ TEAM.md and geoup_report Update - Tran Trung Kien
+
 - AI/công cụ đã dùng và cách tự kiểm tra kết quả:
++ Sử dụng Codex để giải thích cấu trúc báo cáo và gợi ý giả thuyết cải tiến prompt/tool declaration.
++ Kiểm tra bằng cách đối chiếu yêu cầu của case, expected tool calls, actual tool calls và thông báo lỗi trong kết quả eval.
+
 
 ## 5. Tự đánh giá
 
