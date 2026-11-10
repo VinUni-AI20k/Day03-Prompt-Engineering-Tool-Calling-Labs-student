@@ -120,8 +120,8 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | tools/openalex/tool.py, tools/openalex/TOOL.md; tools/semantic_scholar/tool.py, tools/semantic_scholar/TOOL.md | Tạo thành công 2 tool tìm kiếm bài báo khoa học thông qua OpenAlex API và Semantic Scholar API. Có khả năng truy xuất, chuẩn hóa thông tin bài báo như tiêu đề, tác giả, năm xuất bản, abstract, DOI và số lượt trích dẫn. | Phụ thuộc vào API bên ngoài nên có thể gặp lỗi kết nối, giới hạn số request hoặc thiếu dữ liệu ở một số bài báo. Có xử lý lỗi và giới hạn số lượng kết quả trả về. |
+| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) | Kiểm thử các trường hợp tìm kiếm thành công (Happy Path), dữ liệu đầu vào không hợp lệ (Bad Input) và API gặp lỗi (Failure Case). | Cần kiểm tra kết quả pytest thực tế. Unit test sử dụng dữ liệu giả lập nên chưa đảm bảo hoàn toàn khả năng hoạt động với API thực tế. |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
