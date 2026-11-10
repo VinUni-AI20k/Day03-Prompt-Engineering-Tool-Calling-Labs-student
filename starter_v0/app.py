@@ -156,11 +156,13 @@ transcript = st.session_state.transcript
 
 with st.sidebar:
     st.divider()
-    st.caption(f"artifact_version: `{transcript['artifact_version']}`")
-    st.caption(f"prompt_hash: `{transcript.get('prompt_hash', '')}`")
-    st.caption(f"tools_hash: `{transcript.get('tools_hash', '')}`")
-    st.caption(f"model: `{selected_model}`")
-    st.caption(f"Transcript: `{st.session_state.transcript_path.relative_to(ROOT)}`")
+    # Version evidence is also saved in every transcript; keep it collapsed for end users.
+    with st.expander("🔍 Thông tin kỹ thuật (version/hash)", expanded=False):
+        st.caption(f"artifact_version: `{transcript['artifact_version']}`")
+        st.caption(f"prompt_hash: `{transcript.get('prompt_hash', '')}`")
+        st.caption(f"tools_hash: `{transcript.get('tools_hash', '')}`")
+        st.caption(f"model: `{selected_model}`")
+        st.caption(f"Transcript: `{st.session_state.transcript_path.relative_to(ROOT)}`")
     st.divider()
     st.subheader("🧰 Tools")
     for decl in tool_declarations:
