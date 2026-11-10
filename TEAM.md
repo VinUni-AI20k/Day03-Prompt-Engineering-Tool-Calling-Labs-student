@@ -13,8 +13,9 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 | 1 | Vũ Văn Bình | Chưa cung cấp | Chưa cung cấp | Chưa cung cấp | Setup, chạy baseline v0, tổng hợp bằng chứng CP1 |
-| 2 | Trần Thị Hà Anh | 2A202603887 | anhtth.it.work@gmail.com | hnha02 | CP3: phát triển 4 tool mới, unit test, eval routing |
-| 3 | Nguyễn Trọng Nghĩa | 2A202603835 | nghiatrongnguyen2304@gmail.com | trongnghia2304 | CP4: viết 10 eval case nhóm, chạy suite group, bảng B3 |
+| 2 | Nguyễn Nghiêm Khánh Tiệp | 2A202603863 | tiepnnk04@gmail.com | tiepnnk01-10 | CP2: tối ưu system prompt và tool declaration (v1–v3), version log, bảng B1 |
+| 3 | Trần Thị Hà Anh | 2A202603887 | anhtth.it.work@gmail.com | hnha02 | CP3: phát triển 4 tool mới, unit test, eval routing |
+| 4 | Nguyễn Trọng Nghĩa | 2A202603835 | nghiatrongnguyen2304@gmail.com | trongnghia2304 | CP4: viết 10 eval case nhóm, chạy suite group, bảng B3 |
 
 Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin thực tế. Không suy ra tài khoản GitHub cá nhân từ chủ sở hữu repo.
 
@@ -40,6 +41,30 @@ Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin
 - [Báo cáo nhóm](report/team/group_report.md), mục B1 và B2.
 - [Báo cáo cá nhân tạm](report/team/CHUA_CO_MSSV_VuVanBinh.md); cần đổi tiền tố sang MSSV thật trước khi nộp.
 - Commit kỹ thuật của cá nhân: chưa ghi nhận trong phần việc này; cần bổ sung sau khi commit thực tế.
+
+## Nguyễn Nghiêm Khánh Tiệp — 2A202603863
+
+### Phần việc phụ trách
+
+- CP2: tối ưu `system_prompt.md` và `tools.yaml` qua 3 version (v1, v2, v3), mỗi version kiểm chứng một giả thuyết và chạy lại base eval (20 case, OpenAI `gpt-4o-mini`).
+- Ghi `artifacts/version_log.csv` cho v1–v3 và điền bảng B1 cùng phân tích từng case trong báo cáo nhóm.
+- Hỗ trợ CP1: chạy preflight và một lần base eval v0 để kiểm tra setup.
+
+### Đóng góp cụ thể
+
+- v1 (`system_prompt.md`): bỏ 3 chỉ dẫn xấu của starter, thêm rule clarify/xác nhận trước khi `send` — `case_accuracy` 0.70 → 0.90 (sửa R10, R11).
+- v2 (`system_prompt.md`): thêm khối Routing rules — `case_accuracy` 0.95, `tool_routing_accuracy` và `multiturn_accuracy` đạt 1.00; sửa regression M02 của v1.
+- v3 (`tools.yaml`): viết lại description 10 tool và convention args — 0.85, giả thuyết bị bác bỏ (R12 vẫn FAIL, regression R10 và M03); đã phân tích nguyên nhân regression.
+- Chạy `pytest tests/test_tool_contract.py` (55 passed) sau khi sửa `tools.yaml`; chỉ dùng run có `provider_error_cases == 0`.
+- Ghi nhận giới hạn chấm tự động (R08/R14) và độ dao động giữa các lần chạy (v0 chạy lại 0.65 so với 0.70).
+
+### Bằng chứng
+
+- Run: [v1](starter_v0/runs/v1_B_base_openai_20261110T184506774099.json), [v2](starter_v0/runs/v2_B_base_openai_20261110T185439904664.json), [v3](starter_v0/runs/v3_B_base_openai_20261110T190328305130.json).
+- [Version log](starter_v0/artifacts/version_log.csv): dòng v1, v2, v3.
+- Bảng B1 và các mục "Chi tiết v1/v2/v3" trong [báo cáo nhóm](report/team/group_report.md).
+- Commit `252da65` (Complete CP2: v1, v2, v3); PR #1, merge commit `e1ff04e`.
+- Báo cáo cá nhân: [`report/team/2A202603863_NguyenNghiemKhanhTiep.md`](report/team/2A202603863_NguyenNghiemKhanhTiep.md).
 
 ## Trần Thị Hà Anh — 2A202603887
 
