@@ -110,13 +110,87 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+# EXPORT REPORT TOOL
+
+@pytest.mark.parametrize("file_format", ["md", "csv", "xlsx"])
+def test_export_report_happy_path(tmp_path, monkeypatch, file_format) -> None:
+    import csv
+    import importlib
+    from pathlib import Path
+
+    module = importlib.import_module("tools.export_report.tool")
+    monkeypatch.setattr(module, "EXPORTS_DIR", tmp_path)
+    items = [{"title": "Tin tiếng Việt", "url": "https://example.com", "source": "example.com", "summary": "Dòng 1, có dấu\nDòng 2"}]
+    result = TOOL_FUNCTIONS["export_report"](items, file_format=file_format, headline="Bản tin")
+    assert result["status"] == "exported"
+    assert result["item_count"] == 1
+    path = Path(result["file_path"])
+    assert path.parent == tmp_path
+    if file_format == "csv":
+        with path.open(encoding="utf-8-sig", newline="") as handle:
+            assert list(csv.DictReader(handle)) == items
+    elif file_format == "xlsx":
+        from openpyxl import load_workbook
+        workbook = load_workbook(path)
+        assert list(workbook.active.values) == [tuple(module.COLUMNS), tuple(items[0][key] for key in module.COLUMNS)]
+        workbook.close()
+    else:
+        text = path.read_text(encoding="utf-8")
+        assert "# Bản tin" in text
+        assert all(value in text for value in items[0].values())
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+@pytest.mark.parametrize("kwargs", [
+    {"items": []}, {"items": None}, {"items": ["bad"]},
+    {"items": [{"title": 123}]}, {"file_format": "pdf"},
+    {"filename": "../../report"}, {"filename": "C:\\report"},
+])
+def test_export_report_bad_input_from_model(tmp_path, monkeypatch, kwargs) -> None:
+    import importlib
+
+    module = importlib.import_module("tools.export_report.tool")
+    monkeypatch.setattr(module, "EXPORTS_DIR", tmp_path)
+    args = {"items": [{"title": "Source"}], **kwargs}
+    assert TOOL_FUNCTIONS["export_report"](**args)["error"] == "ValueError"
+    assert list(tmp_path.iterdir()) == []
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_export_report_failure_returns_error_dict(tmp_path, monkeypatch) -> None:
+    import importlib
+    from pathlib import Path
+
+    module = importlib.import_module("tools.export_report.tool")
+    monkeypatch.setattr(module, "EXPORTS_DIR", tmp_path)
+    def denied(*args, **kwargs):
+        raise PermissionError("Access denied")
+    monkeypatch.setattr(Path, "open", denied)
+    result = TOOL_FUNCTIONS["export_report"]([{"title": "Source"}])
+    assert result["error"] == "PermissionError"
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("file_format", ["csv", "xlsx"])
+def test_export_report_formula_text_and_unique_files(tmp_path, monkeypatch, file_format) -> None:
+    import csv
+    import importlib
+    from pathlib import Path
+
+    module = importlib.import_module("tools.export_report.tool")
+    monkeypatch.setattr(module, "EXPORTS_DIR", tmp_path)
+    items = [{"title": "=1+1", "summary": None}]
+    first = TOOL_FUNCTIONS["export_report"](items, file_format=file_format)
+    original = Path(first["file_path"]).read_bytes()
+    second = TOOL_FUNCTIONS["export_report"](items, file_format=file_format)
+    assert first["file_path"] != second["file_path"]
+    assert Path(first["file_path"]).read_bytes() == original
+    if file_format == "csv":
+        with Path(first["file_path"]).open(encoding="utf-8-sig", newline="") as handle:
+            row = next(csv.DictReader(handle))
+        assert row["title"] == "'=1+1"
+        assert row["summary"] == ""
+    else:
+        from openpyxl import load_workbook
+        workbook = load_workbook(first["file_path"])
+        assert workbook.active["A2"].value == "=1+1"
+        assert workbook.active["A2"].data_type == "s"
+        workbook.close()
