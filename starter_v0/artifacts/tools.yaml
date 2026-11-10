@@ -171,3 +171,23 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tool (CP3) ----------------
+  - name: top_papers
+    description: >-
+      Trả về danh sách bài báo ĐÃ XUẤT BẢN trên tạp chí (journal) và/hoặc hội nghị (conference)
+      trong N tháng gần đây, xếp hạng theo số trích dẫn, độ liên quan hoặc mới nhất.
+      DÙNG khi user hỏi "top / nổi bật / được trích dẫn nhiều nhất / có ảnh hưởng nhất / mới nhất"
+      về bài báo, paper trên tạp chí, hội nghị trong một khoảng thời gian.
+      KHÔNG DÙNG cho preprint arXiv (dùng `papers`), đọc nội dung một paper (dùng `paper_text`),
+      hay tin tức AI (dùng `lookup`).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Chủ đề/từ khóa tiếng Anh, ví dụ 'AI agents', 'large language models'. Để rỗng nếu user không nêu chủ đề."}
+        months: {type: integer, default: 9, description: "Số tháng tính lùi từ hôm nay (1-24). '9 tháng qua' -> 9, 'nửa năm' -> 6, 'một năm' -> 12. User không nói -> 9."}
+        limit: {type: integer, default: 10, description: "Số bài trả về (1-25). 'top 5' -> 5, 'top 20' -> 20. User không nói -> 10."}
+        venue_type: {type: string, enum: [all, journal, conference], default: "all", description: "'journal' nếu user chỉ muốn tạp chí, 'conference' nếu chỉ hội nghị, 'all' nếu cả hai hoặc không nói."}
+        sort_by: {type: string, enum: [citations, relevance, newest], default: "citations", description: "'citations' = trích dẫn nhiều nhất / top / có ảnh hưởng (mặc định); 'relevance' = liên quan nhất tới chủ đề (cần query); 'newest' = mới đăng gần đây nhất."}
+        source: {type: string, enum: [openalex, semantic_scholar], default: "openalex", description: "Nguồn dữ liệu. Mặc định 'openalex'; chỉ dùng 'semantic_scholar' khi user yêu cầu rõ Semantic Scholar."}
+      required: [query]

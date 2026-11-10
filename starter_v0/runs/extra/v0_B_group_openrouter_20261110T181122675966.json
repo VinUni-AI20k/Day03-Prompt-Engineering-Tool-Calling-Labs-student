@@ -1,0 +1,281 @@
+{
+  "run_id": "v0_B_group_openrouter_20261110T181122675966",
+  "version": "v0",
+  "artifact_version": "v0+pf0c107a9d7a1+t5c60f2ec38c6",
+  "prompt_hash": "f0c107a9d7a14032c948d642d7c36f2a85cb6d69a099530093a874c94d472446",
+  "tools_hash": "5c60f2ec38c69767cd423193eba42b60dfcefd3c002bf9cb1aa330c7bdfb717b",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "system_prompt": "/home/phuong/Documents/Vin20K/Lab3/K5-L3-GiCungDuoc-DAY03-ResearchAgentToolEval/starter_v0/artifacts/system_prompt.md",
+  "tools": "/home/phuong/Documents/Vin20K/Lab3/K5-L3-GiCungDuoc-DAY03-ResearchAgentToolEval/starter_v0/artifacts/tools.yaml",
+  "eval_cases": "data/eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T18:11:22",
+  "summary": {
+    "total_cases": 1,
+    "measured_cases": 1,
+    "provider_error_cases": 0,
+    "passed_cases": 1,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": null,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_top_papers_routing",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_top_cited_published_papers",
+        "difficulty": "medium",
+        "what_it_tests": "Hỏi bài báo được trích dẫn nhiều nhất trên tạp chí/hội nghị trong 9 tháng → phải route tới tool mới top_papers (không phải papers/arXiv hay lookup) với months=9."
+      },
+      "input": "Cho mình 10 bài báo được trích dẫn nhiều nhất về AI agents đăng trên tạp chí và hội nghị trong 9 tháng qua",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "top_papers",
+            "args": {
+              "months": 9
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "top_papers",
+            "args": {
+              "query": "AI agents",
+              "months": 9,
+              "limit": 10,
+              "venue_type": "all",
+              "sort_by": "citations",
+              "source": "openalex"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "top_papers",
+          "args": {
+            "query": "AI agents",
+            "months": 9,
+            "limit": 10,
+            "venue_type": "all",
+            "sort_by": "citations",
+            "source": "openalex"
+          },
+          "result": {
+            "tool": "top_papers",
+            "query": "AI agents",
+            "months": 9,
+            "venue_type": "all",
+            "limit": 10,
+            "sort_by": "citations",
+            "source": "openalex",
+            "from_date": "2026-02-10",
+            "to_date": "2026-11-10",
+            "total_matches": 160061,
+            "items": [
+              {
+                "title": "A Survey of Large Language Models",
+                "authors": [
+                  "Wayne Xin Zhao",
+                  "Kun Zhou",
+                  "Junyi Li",
+                  "Tianyi Tang",
+                  "Zican Dong"
+                ],
+                "venue": "Frontiers of Computer Science",
+                "venue_type": "journal",
+                "publication_date": "2026-05-09",
+                "cited_by_count": 8095,
+                "doi": "https://doi.org/10.1007/s11704-026-60308-3",
+                "url": "https://doi.org/10.1007/s11704-026-60308-3",
+                "source": "openalex.org",
+                "summary": "A Survey of Large Language Models (Frontiers of Computer Science, 2026-05-09) - 8095 citations"
+              },
+              {
+                "title": "Accelerating scientific discovery with Co-Scientist",
+                "authors": [
+                  "Juraj Gottweis",
+                  "Wei‐Hung Weng",
+                  "Alexander Daryin",
+                  "Tao Tu",
+                  "Petar Sirkovic"
+                ],
+                "venue": "Nature",
+                "venue_type": "journal",
+                "publication_date": "2026-05-19",
+                "cited_by_count": 953,
+                "doi": "https://doi.org/10.1038/s41586-026-10644-y",
+                "url": "https://doi.org/10.1038/s41586-026-10644-y",
+                "source": "openalex.org",
+                "summary": "Accelerating scientific discovery with Co-Scientist (Nature, 2026-05-19) - 953 citations"
+              },
+              {
+                "title": "An open vision-language model for diverse medical applications",
+                "authors": [
+                  "Andrew Sellergren",
+                  "Sahar Kazemzadeh",
+                  "Fereshteh Mahvar",
+                  "Atilla P. Kiraly",
+                  "Madeleine Traverse"
+                ],
+                "venue": "Nature Medicine",
+                "venue_type": "journal",
+                "publication_date": "2026-10-01",
+                "cited_by_count": 951,
+                "doi": "https://doi.org/10.1038/s41591-026-04626-w",
+                "url": "https://doi.org/10.1038/s41591-026-04626-w",
+                "source": "openalex.org",
+                "summary": "An open vision-language model for diverse medical applications (Nature Medicine, 2026-10-01) - 951 citations"
+              },
+              {
+                "title": "Model Context Protocol (MCP): Landscape, Security Threats, and Future Research Directions",
+                "authors": [
+                  "Xinyi Hou",
+                  "Yanjie Zhao",
+                  "Shenao Wang",
+                  "Haoyu Wang"
+                ],
+                "venue": "ACM Transactions on Software Engineering and Methodology",
+                "venue_type": "journal",
+                "publication_date": "2026-02-16",
+                "cited_by_count": 752,
+                "doi": "https://doi.org/10.1145/3796519",
+                "url": "https://doi.org/10.1145/3796519",
+                "source": "openalex.org",
+                "summary": "Model Context Protocol (MCP): Landscape, Security Threats, and Future Research Directions (ACM Transactions on Software Engineering and Methodology, 2026-02-16) - 752 citations"
+              },
+              {
+                "title": "Can ChatGPT forecast stock price movements? Return predictability and large language models",
+                "authors": [
+                  "Alejandro Lopez-Lira",
+                  "Yuehua Tang"
+                ],
+                "venue": "Journal of Financial Economics",
+                "venue_type": "journal",
+                "publication_date": "2026-07-24",
+                "cited_by_count": 709,
+                "doi": "https://doi.org/10.1016/j.jfineco.2026.104335",
+                "url": "https://doi.org/10.1016/j.jfineco.2026.104335",
+                "source": "openalex.org",
+                "summary": "Can ChatGPT forecast stock price movements? Return predictability and large language models (Journal of Financial Economics, 2026-07-24) - 709 citations"
+              },
+              {
+                "title": "Evaluating large language models for accuracy incentivizes hallucinations",
+                "authors": [
+                  "Adam Tauman Kalai",
+                  "Ofir Nachum",
+                  "Santosh Vempala",
+                  "Edwin Zhang"
+                ],
+                "venue": "Nature",
+                "venue_type": "journal",
+                "publication_date": "2026-04-22",
+                "cited_by_count": 706,
+                "doi": "https://doi.org/10.1038/s41586-026-10549-w",
+                "url": "https://doi.org/10.1038/s41586-026-10549-w",
+                "source": "openalex.org",
+                "summary": "Evaluating large language models for accuracy incentivizes hallucinations (Nature, 2026-04-22) - 706 citations"
+              },
+              {
+                "title": "Towards reasoning era: a survey of long chain-of-thought for reasoning large language models",
+                "authors": [
+                  "Qiguang Chen",
+                  "Libo Qin",
+                  "Jinhao Liu",
+                  "Dengyun Peng",
+                  "Jiannan Guan"
+                ],
+                "venue": "Science China Information Sciences",
+                "venue_type": "journal",
+                "publication_date": "2026-05-12",
+                "cited_by_count": 543,
+                "doi": "https://doi.org/10.1007/s11432-025-4665-8",
+                "url": "https://doi.org/10.1007/s11432-025-4665-8",
+                "source": "openalex.org",
+                "summary": "Towards reasoning era: a survey of long chain-of-thought for reasoning large language models (Science China Information Sciences, 2026-05-12) - 543 citations"
+              },
+              {
+                "title": "Chatlaw: A Multi-Agent Legal Assistant based on a Role-Aligned Mixture-of-Experts Architecture",
+                "authors": [
+                  "Jiaxi Cui",
+                  "Munan Ning",
+                  "Zongjian Li",
+                  "Hao Li",
+                  "Yan Yang"
+                ],
+                "venue": "Fundamental Research",
+                "venue_type": "journal",
+                "publication_date": "2026-05-01",
+                "cited_by_count": 520,
+                "doi": "https://doi.org/10.1016/j.fmre.2026.03.026",
+                "url": "https://doi.org/10.1016/j.fmre.2026.03.026",
+                "source": "openalex.org",
+                "summary": "Chatlaw: A Multi-Agent Legal Assistant based on a Role-Aligned Mixture-of-Experts Architecture (Fundamental Research, 2026-05-01) - 520 citations"
+              },
+              {
+                "title": "Causal World Modeling for Robot Control",
+                "authors": [
+                  "Lin Li",
+                  "Qihang Zhang",
+                  "Yiming Luo",
+                  "Shuai Yang",
+                  "Ruilin Wang"
+                ],
+                "venue": "Robotics: Science and Systems",
+                "venue_type": "conference",
+                "publication_date": "2026-07-13",
+                "cited_by_count": 428,
+                "doi": "https://doi.org/10.15607/rss.2026.xxii.016",
+                "url": "https://doi.org/10.15607/rss.2026.xxii.016",
+                "source": "openalex.org",
+                "summary": "Causal World Modeling for Robot Control (Robotics: Science and Systems, 2026-07-13) - 428 citations"
+              },
+              {
+                "title": "A Survey on Vision--Language--Action Models for Embodied AI",
+                "authors": [
+                  "Yueen Ma",
+                  "Zixing Song",
+                  "Yuzheng Zhuang",
+                  "Jianye Hao",
+                  "Irwin King"
+                ],
+                "venue": "IEEE Transactions on Neural Networks and Learning Systems",
+                "venue_type": "journal",
+                "publication_date": "2026-04-28",
+                "cited_by_count": 376,
+                "doi": "https://doi.org/10.1109/tnnls.2025.3650584",
+                "url": "https://doi.org/10.1109/tnnls.2025.3650584",
+                "source": "openalex.org",
+                "summary": "A Survey on Vision--Language--Action Models for Embodied AI (IEEE Transactions on Neural Networks and Learning Systems, 2026-04-28) - 376 citations"
+              }
+            ],
+            "note": "Recent papers have few citations, so counts are indicative only."
+          }
+        }
+      ]
+    }
+  ]
+}
