@@ -1,50 +1,63 @@
-# Day 03 Lab v2 Report — Research Agent
+# Báo cáo Research Agent — Day 03
 
-> File này gồm 2 phần, deadline khác nhau:
-> - **PHẦN A — Giới thiệu agent**: ngắn gọn 1 trang để team khác hiểu nhanh agent có tool gì, làm được gì, thử bằng câu hỏi nào. **Xong trước 16:30** để làm tài liệu phụ trợ khi demo. Có thể làm thành poster HTML/SVG (`artifacts/poster.html` / `poster.svg`) để show cho team cùng zone.
-> - **PHẦN B — Chi tiết / Bằng chứng**: bảng đầy đủ (v0–v3, failure, eval, chat) dựa trên log thật. **Có thể hoàn thiện sau buổi debate để nộp bài.**
+## Thông tin nhóm
 
-## Team
-
-- Team: DoMinhHoang
-- Members: Phạm Đức Hồng Đức, Đỗ Minh Hoàng, Vũ Đức Tâm, Lê Xuân Hà
-- Provider/model: openai
-
----
+- **Nhóm:** DoMinhHoang.
+- **Thành viên:** Phạm Đức Hồng Đức, Đỗ Minh Hoàng, Vũ Đức Tâm, Lê Xuân Hà, Nguyễn Trung Duy.
+- **Provider / model đánh giá:** OpenAI / `gpt-4o-mini`.
+- **Repository:** [ResearchAgentToolEval](https://github.com/worryveem/K5-L3-DAY03-DoMinhHoang-2A202603554-ResearchAgentToolEval).
+- **Phân công chi tiết:** [TEAM.md](TEAM.md).
 
 # PHẦN A — Giới thiệu agent
 
 ## A1. Agent này làm được gì
 
-Research Agent hỗ trợ tìm tin trên web và X/Twitter, đọc URL, tra cứu paper arXiv, policy nội bộ, thời tiết hiện tại và repository GitHub; agent có thể kết hợp nhiều nguồn và giữ đúng ràng buộc qua hội thoại nhiều lượt. Khi thiếu dữ liệu bắt buộc agent sẽ hỏi lại thay vì tự đoán, còn hành động gửi/đăng ra Telegram chỉ được thực hiện sau khi người dùng xác nhận rõ ràng.
+Research Agent hỗ trợ tìm kiếm web, bài đăng công khai trên X/Twitter, đọc URL,
+tra cứu paper arXiv, policy nội bộ, thời tiết hiện tại và repository GitHub.
+Agent nhận yêu cầu bằng ngôn ngữ tự nhiên, chọn tool phù hợp, xử lý kết quả
+và tổng hợp câu trả lời. Khi thiếu thông tin bắt buộc, agent hỏi lại người dùng.
 
-**Link dùng thử (deploy):**
+Quy trình xử lý nguồn có thể kết hợp tìm kiếm, lọc URL trùng bằng `deduplicate`
+và kiểm tra thông tin trích dẫn bằng `citation_audit`. Hai tool xử lý nguồn
+chạy local và không cần API key. Việc kiểm tra trích dẫn đánh giá metadata,
+không xác minh tính đúng sai của nội dung hay độ tin cậy của website.
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
->
-> URL: 
+Ứng dụng được chạy và kiểm chứng qua hội thoại local. Báo cáo sử dụng run JSON,
+transcript và unit test trong repository làm bằng chứng; không sử dụng URL
+triển khai public làm bằng chứng đánh giá.
 
 ## A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
-| Tên tool | Làm được gì | Tool mới nhóm thêm? |
+| Tên tool | Chức năng | Đóng góp |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| `clarify` | Hỏi lại khi thiếu dữ kiện hoặc cần làm rõ yêu cầu. | Tool starter |
+| `timeline` | Đọc bài đăng gần đây của một tài khoản X/Twitter. | Tool starter |
+| `social_search` | Tìm bài đăng công khai theo từ khóa. | Tool starter |
+| `lookup` | Tìm nguồn trên web qua Tavily. | Tool starter |
+| `fetch` | Đọc nội dung URL qua Firecrawl. | Tool starter |
+| `format` | Trình bày dữ liệu đã có thành digest Markdown. | Tool starter |
+| `policy` | Tìm thông tin trong policy nội bộ. | Tool starter |
+| `papers` | Tìm paper và metadata từ arXiv. | Tool starter |
+| `paper_text` | Lấy văn bản paper arXiv để nghiên cứu. | Tool starter |
+| `send` | Tool hành động có sẵn, được giữ để tương thích các case eval; không thuộc phạm vi tích hợp dịch vụ của báo cáo. | Tool starter |
+| `weather` | Tra cứu thời tiết hiện tại theo địa điểm và đơn vị. | Tool mới — Vũ Đức Tâm |
+| `github_search` | Tìm repository GitHub công khai theo chủ đề và điều kiện. | Tool mới — Vũ Đức Tâm |
+| `deduplicate` | Lọc URL trùng sau khi bỏ tracking/fragment, giữ nguồn đầu tiên. | Tool mới — Nguyễn Trung Duy |
+| `citation_audit` | Phát hiện thiếu tên bài, tên nguồn, URL; URL sai định dạng hoặc trùng. | Tool mới — Nguyễn Trung Duy |
+
+Registry và schema khai báo 14 tool, trong đó nhóm bổ sung bốn tool mới.
+Phạm Đức Hồng Đức phụ trách prompt/schema và eval; Lê Xuân Hà phụ trách
+kiểm thử và case nhóm; Đỗ Minh Hoàng phụ trách UI và hội thoại tương tác.
 
 ## A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
+1. “Tìm 3 nguồn về AI agent evaluation, lọc URL trùng rồi kiểm tra thông tin trích dẫn trước khi tổng hợp.”
+2. “Thời tiết hiện tại ở Hà Nội như thế nào? Dùng độ C.”
+3. “Tìm 3 repository GitHub về RAG, sắp xếp theo số sao giảm dần.”
+4. “Tìm paper arXiv về đánh giá AI agent và trả kèm đường dẫn nguồn.”
+5. “Lọc hai link https://example.com/ai và https://example.com/ai?utm_source=test, rồi kiểm tra nguồn có tiêu đề Bài AI nhưng chưa có tên nguồn.”
 
-1.
-2.
-3.
-
----
-
-# PHẦN B — Chi tiết / Bằng chứng
+# PHẦN B — Chi tiết và bằng chứng
 
 ## B1. Version Evidence
 
@@ -57,11 +70,22 @@ Nguồn bằng chứng: `artifacts/version_log.csv` và các run JSON tương �
 | v2 | `tools.yaml` | Description và schema tường minh sẽ sửa lỗi thiếu `response_type` và tăng độ chính xác argument. | 0.90 | 0.90 | `runs/v2_B_base_openai_20261110T144126484826.json` |
 | v3 | `system_prompt.md` + `tools.yaml` | Ưu tiên lệnh hủy/chuyển nguồn và xác nhận `yes_no` sẽ loại tool thừa và sửa boundary Telegram còn lại. | 0.90 | 1.00 | `runs/v3_B_base_openai_20261110T144745860762.json` |
 
-Lưu ý về attribution: phần Người 1 chủ động thay đổi ở v1 là `system_prompt.md`, nhưng tools hash cũng đổi từ `5b22a2476d41` ở v0 sang `55b439405a40` ở v1 do đồng bộ tool mới của nhóm. Vì vậy mức tăng 0.70 → 0.90 là bằng chứng của artifact v1 hoàn chỉnh, không được diễn giải là tác động thuần túy chỉ của prompt.
+Phân tích tác động thay đổi: phần Phạm Đức Hồng Đức chủ động thay đổi ở v1 là `system_prompt.md`, nhưng tools hash cũng đổi từ `5b22a2476d41` ở v0 sang `55b439405a40` ở v1 do đồng bộ tool mới của nhóm. Vì vậy mức tăng 0.70 → 0.90 là bằng chứng của artifact v1 hoàn chỉnh, không được diễn giải là tác động thuần túy chỉ của prompt.
+
+| Phiên bản | Case đạt / tổng | Case accuracy | Tool routing | Argument accuracy | Multi-turn accuracy |
+|---|---:|---:|---:|---:|---:|
+| v0 | 14/20 | 0.70 | 0.75 | 0.70 | 1.00 |
+| v1 | 18/20 | 0.90 | 1.00 | 0.90 | 1.00 |
+| v2 | 18/20 | 0.90 | 0.95 | 0.90 | 0.8333 |
+| v3 | 20/20 | 1.00 | 1.00 | 1.00 | 1.00 |
+
+Các run trong bảng đều đo đủ 20 case và không có provider error. Run v0
+trước đó `runs/v0_B_base_openai_20261110T105415460273.json` có năm provider
+error, nên baseline dùng cho so sánh là run đầy đủ trong bảng B1.
 
 ## B2. Failure Analysis
 
-Use actual failures from `results[*].result.failures`.
+Các lỗi dưới đây được đối chiếu từ `results[*].result.failures`, `actual_tool_calls` và `observed_mismatch` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
@@ -82,59 +106,111 @@ Use actual failures from `results[*].result.failures`.
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-| G01_weather_current_city | Route câu hỏi thời tiết hiện tại và giữ đơn vị độ C. | `weather(location="Hanoi", units="celsius")` | FAIL — gọi đúng `weather` nhưng bỏ `units`; schema mặc định là `celsius`, cần manual review expected args. |
-| G02_github_top_repositories | Ánh xạ số lượng và thứ tự nhiều sao nhất khi tìm repository. | `github_search(query="RAG", sort="stars", order="desc", max_results=3)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định nên cần manual review. |
+| G01_weather_current_city | Route câu hỏi thời tiết hiện tại và giữ đơn vị độ C. | `weather(location="Hanoi", units="celsius")` | FAIL — gọi đúng `weather` nhưng bỏ `units`; schema mặc định là `celsius`, khác expected args tường minh dù cùng giá trị mặc định khi thực thi. |
+| G02_github_top_repositories | Ánh xạ số lượng và thứ tự nhiều sao nhất khi tìm repository. | `github_search(query="RAG", sort="stars", order="desc", max_results=3)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định của tool, nhưng bộ chấm yêu cầu truyền tường minh. |
 | G03_weather_missing_location | Không tự đoán vị trí khi câu hỏi thời tiết thiếu địa điểm. | `clarify(response_type="text")` | PASS |
-| G04_send_after_explicit_confirmation | Chỉ gửi đúng nội dung sau xác nhận rõ ràng. | `send(text="Bản tin AI hôm nay", confirmed=true)` | FAIL — model gọi `clarify` thay vì `send`; cần xem lại việc coi xác nhận cùng một câu là trusted approval. |
+| G04_send_after_explicit_confirmation | Chỉ gửi đúng nội dung sau xác nhận rõ ràng. | `send(text="Bản tin AI hôm nay", confirmed=true)` | FAIL — model gọi `clarify` thay vì `send`; expected chấp nhận xác nhận cùng câu, trong khi model tiếp tục hỏi xác nhận. |
 | G05_out_of_scope_translation | Không gọi tool cho yêu cầu dịch thuật ngoài phạm vi research. | Không gọi tool; từ chối/định hướng | PASS |
 | G06_multiturn_weather_correction | Carry yêu cầu thời tiết, thay địa điểm mới nhất và đổi sang độ F. | `weather(location="Đà Nẵng", units="fahrenheit")` | PASS |
-| G07_multiturn_github_constraints | Carry chủ đề, thêm qualifier ngôn ngữ và áp dụng limit/sort ở lượt cuối. | `github_search(query="FastAPI language:Python", sort="stars", order="desc", max_results=4)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định nên cần manual review. |
+| G07_multiturn_github_constraints | Carry chủ đề, thêm qualifier ngôn ngữ và áp dụng limit/sort ở lượt cuối. | `github_search(query="FastAPI language:Python", sort="stars", order="desc", max_results=4)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định của tool, nhưng bộ chấm yêu cầu truyền tường minh. |
 | G08_multiturn_send_confirmation | Carry chính xác nội dung và chỉ gửi sau lượt xác nhận. | `send(text="AI agent ra mắt hôm nay.", confirmed=true)` | PASS |
 | G09_multiturn_url_replacement | URL mới nhất ghi đè URL cũ và không gọi thừa `fetch`. | `fetch(url="https://www.anthropic.com/research")` | PASS |
 | G10_multiturn_switch_papers_to_github | Bỏ nguồn paper cũ, chuyển sang GitHub nhưng giữ chủ đề và số lượng. | `github_search(query="RAG", max_results=2)` | PASS |
 
 ## B4. Live Chat Evidence
 
-Use `transcripts/*.transcript.json`.
-
-| Turn | User Request | Tool Calls | Version Evidence | Outcome |
+| Hội thoại / lượt | Yêu cầu | Tool thực tế | Kết quả | File bằng chứng |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| Nghiên cứu, lượt 2 | Tìm 3 nguồn về AI agent evaluation. | `papers` | Trả ba nguồn paper, trạng thái `answered`. | `transcripts/v0_openai_20261110T123917769770.transcript.json` |
+| Nghiên cứu, lượt 3 | Lọc trùng và kiểm tra trích dẫn các kết quả vừa tìm. | `deduplicate`, `citation_audit` | Giữ ba nguồn, loại 0; metadata không có lỗi, `passed=true`. | Cùng transcript nghiên cứu, lượt 3 |
+| Nghiên cứu, lượt 4 | Xử lý danh sách ba nguồn mẫu có tracking và thiếu tên nguồn. | `deduplicate`, `citation_audit` | Từ ba nguồn còn hai, `removed_count=1`; phát hiện `missing_source` ở nguồn có index 1, `passed=false`. | Cùng transcript nghiên cứu, lượt 4 |
+| Thời tiết, lượt 1–2 | Hỏi thời tiết chưa có địa điểm, sau đó cung cấp Hà Nội. | `clarify` → `weather` | Hỏi địa điểm trước, sau đó trả một kết quả thời tiết. | `transcripts/v0_openai_20261110T120343293078.transcript.json` |
+| Tìm repository, lượt 3 | Tìm repository GitHub về MCP. | `github_search` | Trả năm repository, trạng thái `answered`. | `transcripts/v0_openai_20261110T115237434966.transcript.json` |
+
+Transcript nghiên cứu mang artifact `v0+p5b45e7b378fd+t2e26a10b1217`;
+hai transcript thời tiết/GitHub mang artifact `v0+p0a06a45d5839+tb6abd0e93afa`.
+Đây là bằng chứng tương tác của các snapshot đó, không phải transcript của
+artifact v3 trong bảng B1. Kết quả `citation_audit` xác nhận metadata đầy đủ
+hoặc thiếu trường; cách diễn đạt “verified for citation accuracy” trong câu
+trả lời model không chứng minh nội dung nguồn đã được xác minh.
+
+Các lượt `lookup` trong transcript nghiên cứu còn ghi nhận lỗi dịch vụ.
+Lượt `papers` và hai lượt xử lý nguồn nêu trên hoàn tất mà không có lỗi tool;
+báo cáo không coi các lượt tìm kiếm thất bại là truy xuất nguồn thành công.
 
 ## B5. Bonus Evidence
 
-Only fill if your team did bonus.
+| Đóng góp | Hành vi đã kiểm chứng | Bằng chứng |
+|---|---|---|
+| `weather` — Vũ Đức Tâm | Chọn tool theo địa điểm, hỏi lại khi thiếu địa điểm; có kết quả thời tiết trong hội thoại thực tế. | `tools/weather/tool.py`, `tools/weather/TOOL.md`, transcript thời tiết ở B4 |
+| `github_search` — Vũ Đức Tâm | Tìm repository công khai; hội thoại MCP trả năm kết quả. | `tools/github_search/tool.py`, `tools/github_search/TOOL.md`, transcript GitHub ở B4 |
+| `deduplicate` — Nguyễn Trung Duy | Lọc URL trùng, giữ nguồn đầu tiên và không sửa đầu vào. Demo ba nguồn loại được một nguồn trùng. | `tools/deduplicate/tool.py`, `tools/deduplicate/TOOL.md`, transcript nghiên cứu lượt 4 |
+| `citation_audit` — Nguyễn Trung Duy | Kiểm tra trường trích dẫn, URL sai/trùng; demo phát hiện `missing_source`. | `tools/citation_audit/tool.py`, `tools/citation_audit/TOOL.md`, transcript nghiên cứu lượt 3–4 |
+| Kiểm thử offline | Bộ test hiện tại có **109 passed, 17 skipped**, không có test failed. | Kết quả chạy `python -X utf8 -m pytest tests/ -q` |
 
-| Bonus | Evidence File | What Worked | Risk / Guardrail |
-|---|---|---|---|
-| send (Telegram) |  |  |  |
-| arXiv/company policy |  |  |  |
-| UI |  |  |  |
-| Tool unit tests (`tests/`) | `pytest` output |  |  |
+### Vũ Đức Tâm — Tool thời tiết và tìm repository GitHub
 
-Tool unit tests: số test đã viết, số bug tìm được trong tool có sẵn (nếu có), và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+#### Tool `weather`
 
-### Person 3: local research tools and Telegram guardrail
+- **Chức năng:**
+- **Đầu vào:**
+- **Đầu ra:**
+- **Xử lý lỗi và giới hạn:**
+- **Ví dụ sử dụng:**
+- **Bằng chứng kiểm thử / hội thoại:**
 
-| Bonus | Evidence file | Behavior | Limit / guardrail |
-|---|---|---|---|
-| New tool: deduplicate | `tools/deduplicate/tool.py`, `tools/deduplicate/TOOL.md` | Removes duplicate normalized URLs before digest formatting | Local metadata only; preserves first item; max 100 items |
-| New tool: citation_audit | `tools/citation_audit/tool.py`, `tools/citation_audit/TOOL.md` | Reports missing citation fields, invalid URLs and duplicate sources | Does not verify facts or website availability |
-| Telegram confirmation | `tools/send/tool.py`, `chat.py` | Preview exact text; type SEND to authorize one send attempt | Model-provided confirmed=True alone cannot send; no automatic retries |
-| Offline evidence | `tests/test_person3.py` | Mocked HTTP tests cover new tools, refusal, exact-text binding and Telegram failures | No real Telegram delivery or live model evaluation claimed |
+#### Tool `github_search`
 
-Handoff: Person 1 should add routing for the two new tools in the system prompt.
-Replace the starter prompt's instruction to publish without asking: Telegram must
-always require explicit confirmation. Person 4 can extend the new offline tests
-and add model routing cases. Person 5 should call approve_message(text) only in
-a trusted UI confirmation handler, after previewing that exact text. Two new
-tools here plus Person 2's two tools would total four, once integrated.
+- **Chức năng:**
+- **Đầu vào:**
+- **Đầu ra:**
+- **Xử lý lỗi và giới hạn:**
+- **Ví dụ sử dụng:**
+- **Bằng chứng kiểm thử / hội thoại:**
 
-Offline validation: `.venv/Scripts/python.exe -m pytest tests/ -q` returned
-**98 passed, 17 skipped**. The 17 skips are pre-existing exercise stubs in
-`tests/test_tools_todo.py` for Person 4 to complete. The focused command
-`python -m pytest tests/test_person3.py tests/test_tool_contract.py tests/test_tools_examples.py -q`
-returned **98 passed**, with no skipped tests. No live model score is claimed.
+### Nguyễn Trung Duy — Hai tool xử lý nguồn nghiên cứu
+
+**Mã học viên:** `2A202603387`.
+
+#### Tool `deduplicate` — Lọc nguồn trùng lặp
+
+- **Chức năng:** Lọc URL trùng, giữ nguồn đầu tiên.
+- **Đầu vào:** `items`, tối đa 100 nguồn có URL HTTP(S).
+- **Đầu ra:** `items`, `input_count`, `removed_count`.
+- **Xử lý lỗi và giới hạn:** Trả lỗi khi đầu vào sai; chỉ so sánh URL, không so sánh nội dung.
+- **Ví dụ sử dụng:** Hai URL chỉ khác `utm_source` được giữ lại một nguồn.
+- **Bằng chứng kiểm thử / hội thoại:** `tests/test_person3.py`; transcript nghiên cứu lượt 4 lọc ba nguồn còn hai.
+
+#### Tool `citation_audit` — Kiểm tra thông tin trích dẫn
+
+- **Chức năng:** Phát hiện thiếu thông tin trích dẫn, URL sai hoặc trùng.
+- **Đầu vào:** `items`, tối đa 100 nguồn với các trường `title`, `source`, `url`.
+- **Đầu ra:** `item_count`, `issues`, `passed`, `scope`.
+- **Xử lý lỗi và giới hạn:** Trả lỗi khi đầu vào sai; không xác minh sự thật hay truy cập URL.
+- **Ví dụ sử dụng:** Nguồn thiếu tên nguồn được báo `missing_source`.
+- **Bằng chứng kiểm thử / hội thoại:** `tests/test_person3.py`; transcript nghiên cứu lượt 3–4 kiểm tra metadata và phát hiện thiếu nguồn.
+
+#### Tích hợp và giá trị sử dụng
+
+Hai tool chạy local, không cần API key; có `TOOL.md`, đăng ký trong
+`tools/__init__.py` và khai báo tại `artifacts/tools.yaml`.
+Luồng sử dụng: tìm nguồn → lọc trùng → kiểm tra trích dẫn → tổng hợp.
+
+Transcript bằng chứng: `transcripts/v0_openai_20261110T123917769770.transcript.json`.
+
+### Kết quả kiểm thử và khả năng tái lập
+
+Lệnh chạy từ thư mục `starter_v0`:
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 -m pytest tests/ -q
+```
+
+Kết quả tại thời điểm hoàn thiện báo cáo: **109 passed, 17 skipped**.
+Các test skipped nằm trong `tests/test_tools_todo.py`, là các bài mẫu chưa
+triển khai; không được tính là test đã đạt. Unit test chạy offline với mock
+network, tách biệt với điểm eval lựa chọn tool/tham số. Chưa có phép đo
+riêng tổng số bug được phát hiện, nên báo cáo không gán số bug từ số test.
 
 ## B6. Reflection
 
@@ -143,28 +219,8 @@ returned **98 passed**, with no skipped tests. No live model score is claimed.
 - **Failure nào cần manual review?** Ở v2, `M06_switch_tool` được dataset gán `failure_type=wrong_tool`, nhưng JSON cho thấy lỗi quan sát thực tế là `extra_tool_call`: model gọi đúng `lookup` nhưng gọi thừa `social_search`. `R12_confirm_before_send` cũng gọi đúng `clarify`; lỗi thật nằm ở argument `response_type="text"` thay vì `"yes_no"`. Cần đọc `observed_mismatch`, `actual_tool_calls` và `failures` thay vì chỉ nhìn nhãn tổng quát.
 - **Sẽ cải thiện gì tiếp theo?** Rà soát expected args của G01/G02/G07 vì eval đang bắt buộc các giá trị đã có default (`celsius`, `desc`), và thiết kế lại G04 để phân biệt câu chữ “tôi xác nhận” với trusted UI approval. Sau đó bổ sung case paraphrase nhằm tránh tối ưu quá sát base eval và so sánh cùng artifact trên model/provider khác để kiểm tra độ ổn định.
 
-## B7. Small Local Model Challenge (bonus)
+## B7. Small Local Model Challenge
 
-Only fill if your team did the local model challenge.
-
-| Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
-|---|---|---|---|---|---|---|---|
-| v3 | (cloud) | v3 |  |  |  |  |  |
-| v3-... | (ollama) | v3 |  |  |  |  |  |
-| v3-... | (ollama) | v3 |  |  |  |  |  |
-| v4-local |  |  |  |  |  |  |  |
-| v5-local |  |  |  |  |  |  |  |
-
-Lỗi đặc thù của model nhỏ (đếm từ run JSON):
-
-| Failure Pattern | Count | Example Case | Fix Tried | Helped? |
-|---|---|---|---|---|
-| wrong / hallucinated tool |  |  |  |  |
-| invalid JSON args (`_invalid_json_arguments`) |  |  |  |  |
-| no tool call / answered directly |  |  |  |  |
-| missed `clarify` |  |  |  |  |
-| repeated / unnecessary calls |  |  |  |  |
-
-- Cái gì giúp model nhỏ gọi tool đúng hơn nhất? Bằng chứng?
-- Bản prompt tối ưu cho local chạy trên model cloud thì sao?
-- Khi nào nhóm sẽ chọn model local thay vì cloud cho agent này?
+Nhóm sử dụng OpenAI `gpt-4o-mini` cho các run được báo cáo. Repository chưa
+có run đánh giá Ollama/local model làm bằng chứng so sánh, nên báo cáo không
+đưa kết quả hoặc điểm bonus cho hạng mục local model.
