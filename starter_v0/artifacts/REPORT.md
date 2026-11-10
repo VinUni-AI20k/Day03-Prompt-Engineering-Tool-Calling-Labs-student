@@ -71,14 +71,37 @@ Fill from `artifacts/version_log.csv` and `runs/*.json`.
 
 Use actual failures from `results[*].result.failures`.
 
+Nguồn: `runs/v0_B_base_openrouter_20261110T102235938645.json` (`v0+peb1c8179815b+t5b22a2476d41`, `openai/gpt-4o-mini`): 14/20 PASS, `case_accuracy=0.70`, `tool_routing=0.75`, `argument=0.70`. Cột *Actual Tool Calls* và *failures* chép từ `results[*].result`; câu trích trong *What Failed* là nguyên văn starter prompt (`ff7427d:starter_v0/artifacts/system_prompt.md`).
+
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-| R08_out_of_scope | out_of_scope | `send(text=...)` | Yêu cầu giải tích phân ngoài phạm vi nhưng model tự gọi tool `send` để trả lời thay vì từ chối (no_tool) | Bỏ quy định ép luôn phải gọi tool trong prompt; thêm chỉ dẫn từ chối ngoài phạm vi |
-| R10_missing_handle | missing_info | `timeline(screenname='sama')` | Yêu cầu tóm tắt tweet nhưng thiếu handle/tên tài khoản, model tự đoán `sama` thay vì gọi `clarify` | Bỏ chỉ dẫn đoán mò, thêm rule nếu thiếu handle thì bắt buộc gọi `clarify(response_type='text')` |
-| R11_missing_url | missing_info | `fetch(url='https://example.com/article')` | Yêu cầu tóm tắt bài viết nhưng thiếu URL, model tự bịa URL thay vì gọi `clarify` | Thêm rule nếu thiếu URL thì bắt buộc gọi `clarify(response_type='text')` |
-| R12_confirm_before_send | wrong_boundary | `send(text='Bản tin này')` | Yêu cầu đăng bài Telegram nhưng chưa có xác nhận từ user, model gọi ngay `send` | Thêm rule bảo vệ: chỉ gọi `send` khi user xác nhận rõ ràng; nếu chưa thì gọi `clarify(response_type='yes_no')` |
-| R13_parallel_web_and_tweets | wrong_arg_value | `lookup(query='AI news', topic=None)`, `social_search(query='AI')` | Model nhét chữ "news" vào trường `query` thay vì đặt `topic="news"` cho tool `lookup` | Mô tả rõ trong `tools.yaml` và prompt: khi tìm tin tức thì đặt `topic="news"` và giữ `query` ngắn gọn |
-| R14_out_of_scope_coding | out_of_scope | `send(text=...)` | Yêu cầu viết code Python ngoài phạm vi, model lại gọi tool `send` để gửi code | Thêm quy định từ chối các tác vụ lập trình thuần túy ngoài research domain, không gọi tool |
+| R08_out_of_scope | out_of_scope | `send(text="Nguyên hàm của x^2 là \frac{x^3}{3} + C ...")` | `unexpected_tool_call` — "expected no tool call". Case `no_tool` nên eval **không** ép `tool_choice`, nhưng model vẫn gọi `send` để "giao" lời giải toán. Gốc: starter prompt ép *"Always finish the request in a single step. Pick one tool"* → model coi việc gọi tool là bắt buộc, và `send` là tool duy nhất "trả kết quả ra ngoài". | v1 prompt **§1 Scope & Meta Inquiries**: định nghĩa rõ toán/code là out-of-scope → từ chối bằng text, **DO NOT CALL ANY TOOLS**, *"NEVER call `send` … to deliver math or code"*; xoá câu *"Pick one tool"*. |
+| R10_missing_handle | missing_info | `timeline(screenname="sama")` | `missing_tool_call` — "missing tool call clarify", "extra tool call timeline". Model đoán đúng tài khoản mà starter prompt **gợi ý sẵn**: *"pick a well-known account like Sam Altman"* + *"do not ask them back — just make a sensible guess"*. Lời gọi đoán còn trả `HTTPError` → user nhận lỗi thay vì câu hỏi. | v1 prompt **§2 Clarification**: *"NEVER guess or invent missing essential information"*; thiếu account → `clarify(response_type="text")`, cấm chọn account mặc định (nêu đích danh Sam Altman). |
+| R11_missing_url | missing_info | `fetch(url="https://example.com/article")` | `missing_tool_call` — "missing tool call clarify", "extra tool call fetch". Starter prompt dặn *"If you only have a vague reference like 'this article', assume a likely URL and read it"* → model bịa URL. Nguy hiểm hơn R10: `fetch` **chạy thành công** trên trang bịa nên agent sẽ tóm tắt sai nội dung mà không có lỗi nào báo hiệu. | v1 prompt **§2**: thiếu URL → `clarify(response_type="text")` xin link, cấm bịa URL (nêu đích danh `example.com`). |
+| R12_confirm_before_send | wrong_boundary | `send(text="Bản tin này")` | `missing_tool_call` — "missing tool call clarify", "extra tool call send". Starter prompt: *"When the user wants to send, post, or publish something, just go ahead and do it"* → bỏ qua bước xác nhận của hành động ghi ra ngoài; nội dung gửi đi chỉ là chuỗi vô nghĩa `"Bản tin này"` (model không có bản tin nào để đăng). Chỉ nhờ guardrail **trong code** (`send` trả `needs_confirmation` khi `confirmed=false`) nên không có tin nào bị đăng thật. | v1 prompt **§3 Safety Guardrail & Actions**: chưa có xác nhận → `clarify(response_type="yes_no")`; chỉ gọi `send(confirmed=true)` sau khi user đồng ý rõ ràng. Guardrail code giữ nguyên làm lớp bảo vệ thứ hai. |
+| R13_parallel_web_and_tweets | wrong_arg_value | `lookup(query="AI news", timeframe="day", max_results=5)`, `social_search(query="AI", search_type="Latest", limit=5)` | Routing **đúng** (đủ 2 tool) nhưng sai arg: "query: expected 'AI', got 'AI news'", "topic: expected 'news', got None". `tools.yaml` v0 chỉ mô tả `topic` là *"Phân loại"* (default `general`) → model không biết `topic=news` dùng cho tin tức, nên nhét "news" vào `query`. | v1 prompt **§4 Tool Routing & Parameter Conventions** (`lookup`): tin tức → `topic="news"`, giữ `query` là chủ đề lõi, *"do not repeat 'news' inside query"*; map "hôm nay" → `timeframe="day"`. Sửa bằng **prompt**, `tools.yaml` chưa đổi ở v1 (cùng `tools_hash=5b22a2476d41`). |
+| R14_out_of_scope_coding | out_of_scope | `send(text="def fibonacci(n): ...")` | `unexpected_tool_call` — "expected no tool call". Cùng gốc với R08: model viết code rồi đẩy qua `send` thay vì từ chối. 2 case out-of-scope đều kết thúc ở `send` cho thấy đây là lỗi hệ thống của prompt, không phải ngẫu nhiên. | v1 prompt **§1**: coding implementation (ví dụ Fibonacci) là out-of-scope → từ chối, không gọi tool. |
+
+**Từ log đến giả thuyết (evidence-driven):**
+
+1. Gom 6 case FAIL theo `observed_mismatch`: 2 `unexpected_tool_call` (R08, R14), 3 `missing_tool_call` (R10, R11, R12), 1 `wrong_arg_value` (R13).
+2. Đặt `actual_tool_calls` cạnh starter prompt: 5/6 lỗi khớp **từng câu** chỉ dẫn xấu — *"just make a sensible guess"* + *"like Sam Altman"* → R10 (`sama`); *"assume a likely URL"* → R11 (`example.com`); *"just go ahead and do it"* → R12; *"Pick one tool"* → R08/R14 (`send`). Lỗi thứ 6 (R13) không đến từ câu nào trong prompt mà từ việc **thiếu** quy ước arg `topic`.
+3. Giả thuyết v1: *prompt starter chủ động xúi model đoán / tự gửi / luôn gọi tool, và thiếu quy ước arg cho `lookup`*. Kiểm chứng bằng cách **chỉ sửa `system_prompt.md`**, giữ nguyên `tools.yaml` để biết chắc mọi thay đổi metric là do prompt.
+
+**Kết quả sau fix** — `runs/v1_B_base_openrouter_20261110T105423883723.json` (`v1+p021dbcd166f1+t5b22a2476d41`):
+
+| Case | v0 | v1 | Hành vi v1 thực tế |
+|---|---|---|---|
+| R08 | FAIL | PASS | Không gọi tool, từ chối giải toán bằng text |
+| R10 | FAIL | PASS | `clarify(response_type="text")` — "Bạn muốn tóm tắt tweet của tài khoản nào?" |
+| R11 | FAIL | PASS | `clarify(response_type="text")` xin link bài viết |
+| R12 | FAIL | PASS | `clarify(response_type="yes_no")` — "Bạn có xác nhận muốn đăng bản tin này lên Telegram không?" |
+| R13 | FAIL | PASS | `lookup(query="AI", topic="news", timeframe="day")` + `social_search(query="AI")` |
+| R14 | FAIL | PASS | Không gọi tool, từ chối viết code bằng text |
+
+Metric: `case_accuracy` 0.70 → **0.95** (19/20), `tool_routing` 0.75 → 0.95, `argument` 0.70 → 0.95. Cả 6/6 case FAIL của v0 đều PASS, tức giả thuyết được xác nhận.
+
+Đổi lại, `multiturn_accuracy` giảm 1.00 → 0.83: **M06_switch_tool** mới FAIL (`extra_tool_call` — user đã nói *"Bỏ Twitter"* nhưng model vẫn gọi thêm `social_search(query="OpenAI")`). Nguyên nhân khả dĩ là rule *Parallel Tool Calls* mới ở §4 khiến model gọi thêm nguồn. Đây là bằng chứng cho giả thuyết tiếp theo: v2 thêm rule *Multi-turn Priority & Tool Switching* (ưu tiên lượt mới nhất, bỏ tool cũ khi user đổi hướng). Kết quả v2 trên bộ base sẽ ghi ở B1.
 
 ## B3. Team Eval Cases
 
