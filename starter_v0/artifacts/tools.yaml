@@ -16,26 +16,26 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: "Ask user a question. Use when required info is missing (response_type=text) or to confirm before send/post/publish (response_type=yes_no)."
     parameters:
       type: object
       properties:
         question: {type: string, default: "", description: "Câu hỏi"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "text for missing info; yes_no for confirmation"}
         options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
       required: [question]
 
   - name: timeline
-    description: "Lấy các bài đăng gần đây."
+    description: "Latest tweets of ONE specific account. Map well-known names to their handle (Sam Altman=sama, Elon Musk=elonmusk, Andrej Karpathy=karpathy)."
     parameters:
       type: object
       properties:
-        screenname: {type: string, default: "", description: "Tên tài khoản"}
+        screenname: {type: string, default: "", description: "Twitter handle without @"}
         limit: {type: integer, default: 5, description: "Số lượng"}
       required: [screenname]
 
   - name: social_search
-    description: "Tìm trên mạng xã hội."
+    description: "Search tweets by topic/keyword. NOT for one person's timeline (use timeline). Can be called together with lookup."
     parameters:
       type: object
       properties:
@@ -45,13 +45,13 @@ tools:
       required: [query]
 
   - name: lookup
-    description: "Tra cứu thông tin trên internet."
+    description: "Web search (news/articles). Use for news or web info. NOT for tweets (use social_search). Can be called together with social_search when the user wants both."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
+        query: {type: string, default: "", description: "Core keyword only, no filler words like news/today (e.g. AI, robotics, OpenAI)"}
+        topic: {type: string, enum: [general, news], default: "general", description: "news for current events; general otherwise"}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "day=today, week=this week, month, year"}
         max_results: {type: integer, default: 5, description: "Số kết quả"}
       required: [query]
 
@@ -86,7 +86,7 @@ tools:
 
   # ---------------- Bonus tools ----------------
   - name: send
-    description: "Gửi một đoạn văn bản đi."
+    description: "Send text to Telegram. Irreversible: only call with confirmed=true after the user explicitly confirmed via clarify yes_no."
     parameters:
       type: object
       properties:
@@ -123,3 +123,49 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tools ----------------
+  - name: hackernews
+    description: "Search Hacker News stories: developer/tech community discussion and links. Use when the user asks what the HN/developer community says. NOT for tweets (social_search) or general news (lookup)."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Core keyword, copied from the user (e.g. rust, LLM agents)"}
+        sort_by: {type: string, enum: [relevance, date], default: "relevance", description: "relevance by default; date for newest stories"}
+        max_results: {type: integer, default: 5, description: "Number of stories (1-20)"}
+      required: [query]
+
+  - name: wikipedia
+    description: "Get the Wikipedia lead summary of ONE topic: background/definition of a person, company, or concept. NOT for recent news (lookup) or for reading a given URL (fetch)."
+    parameters:
+      type: object
+      properties:
+        title: {type: string, default: "", description: "Article title, e.g. Transformer (deep learning)"}
+        lang: {type: string, enum: [en, vi], default: "en", description: "vi only if the user wants Vietnamese Wikipedia"}
+      required: [title]
+
+  - name: github_repo
+    description: "Get stats of ONE public GitHub repo (description, stars, language, last push). Use when the user names a repo like owner/name or a github.com link and asks about its popularity/activity. NOT for reading repo files (fetch)."
+    parameters:
+      type: object
+      properties:
+        repo: {type: string, default: "", description: "owner/name, e.g. openai/openai-python"}
+      required: [repo]
+
+  - name: dedupe
+    description: "Remove duplicate items (same url or title) from results already collected by other tools, before format. Only call when items are already in hand; it fetches nothing."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Collected items to deduplicate"
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+      required: [items]
