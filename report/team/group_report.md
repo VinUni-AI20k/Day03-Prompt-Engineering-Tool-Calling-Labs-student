@@ -10,7 +10,7 @@
 
 - Tên nhóm:
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: `ollama` (`qwen2.5:3b`)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -62,18 +62,29 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo hành vi starter chưa tối ưu trước khi sửa (`ollama` / `qwen2.5:3b`) | — | 0.40 (8/20) | `starter_v0/runs/v0_B_base_ollama_20261110T184359142341.json` |
+| v1 | `system_prompt.md` | Gỡ chỉ dẫn bẫy của starter + thêm rule routing, map handle và ranh giới out-of-scope/clarify | 0.40 (8/20) | 0.45 (9/20) | `starter_v0/runs/v1_B_base_ollama_20261110T185037706863.json` |
+| v2 | `tools.yaml` | Viết lại description ngắn gọn (DÙNG KHI / KHÔNG DÙNG KHI) và quy ước tham số trong `tools.yaml` | 0.45 (9/20) | 0.70 (14/20) | `starter_v0/runs/v2_B_base_ollama_20261110T191308230206.json` |
+| v3 | `system_prompt.md` | Siết rule `http(s)://` → `fetch`, cấm gọi `clarify` với coding/toán, thêm ví dụ gọi `clarify` và truyền `limit` | 0.70 (14/20) | 0.80 (16/20) | `starter_v0/runs/v3_B_base_ollama_20261110T192354388698.json` |
 
 ### B2. Failure Analysis
 
-Lấy từ `results[*].result.failures` trong run JSON.
+Lấy từ `results[*].result.failures` trong run JSON (`v0_B_base_ollama_20261110T184359142341.json`).
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| `R01_user_tweets_routing` | `wrong_tool` | `timeline(screenname="samaltman")` | `screenname: expected 'sama', got 'samaltman'` | Thêm bảng map tên người nổi tiếng sang handle Twitter (`Sam Altman` → `sama`, `Andrej Karpathy` → `karpathy`, `Elon Musk` → `elonmusk`) |
+| `R03_web_news_routing` | `wrong_tool` | `papers(query="AI", sort_by="lastUpdatedDate", max_results=5)` | `missing tool call lookup; extra tool call papers` | Phân biệt rõ rule routing: tin tức web → `lookup(topic="news")`, chỉ dùng `papers` cho bài báo khoa học arXiv |
+| `R06_timeframe_arg` | `wrong_arg_value` | `lookup(topic="tech", query="tin công nghệ trong tuần này", timeframe="week")` | `topic: expected 'news', got 'tech'` (API 400 Bad Request) | Ghi rõ enum `topic` chỉ nhận `general` hoặc `news`; `query` chỉ chứa từ khóa ngắn |
+| `R08_out_of_scope` | `out_of_scope` | `clarify(question="giải giúp mình bài toán tích phân: nguyên hàm của x^2 là gì?")` | `expected no tool call` | Bổ sung rule từ chối thẳng không gọi tool với câu hỏi ngoài phạm vi research (toán, lập trình...) |
+| `R10_missing_handle` | `missing_info` | `timeline(screenname="twitter")` | `missing tool call clarify; extra tool call timeline` | Gỡ chỉ dẫn ép đoán bừa trong `system_prompt.md`; bắt buộc gọi `clarify(response_type="text")` khi thiếu handle |
+| `R11_missing_url` | `missing_info` | `lookup(query="bài viết", timeframe="day", topic="general")` | `missing tool call clarify; extra tool call lookup` | Gỡ chỉ dẫn ép đoán URL trong `system_prompt.md`; bắt buộc gọi `clarify(response_type="text")` khi nói "bài này" mà thiếu link |
+| `R12_confirm_before_send` | `wrong_boundary` | `send(text="Đây là bản tin mới nhất từ nguồn tin cậy.", confirmed=true)` | `missing tool call clarify; extra tool call send` | Gỡ chỉ dẫn tự gửi trong `system_prompt.md`; yêu cầu gọi `clarify(response_type="yes_no")` xác nhận trước khi `send` |
+| `R13_parallel_web_and_tweets` | `wrong_tool` | `social_search(Latest, 3)` + `social_search(Top, 3)` | `missing tool call lookup; extra tool call social_search` | Gỡ chỉ dẫn ép chọn 1 tool trong `system_prompt.md`; hướng dẫn gọi song song `lookup` + `social_search` khi cần cả web và Twitter |
+| `R14_out_of_scope_coding` | `out_of_scope` | `clarify(question="Viết giúp mình một hàm Python tính Fibonacci bằng recursion.")` | `expected no tool call` | Bổ sung rule từ chối thẳng không gọi tool với yêu cầu viết code ngoài phạm vi research |
+| `M02_carryover_timeframe` | `wrong_arg_value` | `lookup(query="robotics today", timeframe="day")` | `query: expected 'robotics', got 'robotics today'; topic: expected 'news', got None` | Quy ước `lookup.query` chỉ giữ từ khóa chủ đề (`"robotics"`), giữ `topic="news"` khi user nói "vẫn là tin hôm nay" |
+| `M03_correction_handle` | `wrong_arg_value` | `social_search(query="Andrej Karpathy", search_type="Latest", limit=3)` | `missing tool call timeline; extra tool call social_search` | Nhấn mạnh tweet *của một người cụ thể* → luôn dùng `timeline` + map handle (`Andrej Karpathy` → `karpathy`), không dùng `social_search` |
+| `M06_switch_tool` | `wrong_tool` | `social_search(query="OpenAI", search_type="Latest", limit=5)` | `missing tool call lookup; extra tool call social_search` | Nhấn mạnh tuân theo chỉ dẫn đổi nguồn ở lượt mới nhất ("Bỏ Twitter, chuyển sang tìm trên web tin tức" → chuyển sang `lookup`) |
 
 ### B3. Team Eval Cases
 
@@ -95,8 +106,8 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/hackernews/`) | `starter_v0/tools/hackernews/tool.py`, `TOOL.md`, `tools/__init__.py`, `artifacts/tools.yaml` | Tìm kiếm thảo luận công nghệ trên Hacker News qua Algolia API (không cần API key), hỗ trợ `sort_by=relevance|date` và `limit` | Clamp `limit` (1–20), fallback `sort_by` ngoài enum, bắt `ValueError`/`HTTPError` trả về error dict thay vì raise |
+| Unit test tool mới (3 test) | `starter_v0/tests/test_tools_todo.py` (`pytest -v`: 70 passed, 14 skipped, 0 failed) | Pass cả 3 test: happy path (`search_by_date` + fallback `hn_url`), input xấu (query rỗng, enum sai, `limit` dạng chuỗi), và HTTP 503 trả error dict | Eval chỉ kiểm tra model có gọi đúng `hackernews(query=...)` hay không, không bắt được bug bên trong code tool (ví dụ quên truyền `hitsPerPage` hoặc crash khi `hit["url"]` là `None`); unit test bắt được ngay offline |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.

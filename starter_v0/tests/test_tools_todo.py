@@ -104,19 +104,59 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
     pytest.skip(TODO)
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# ---------------- YOUR NEW TOOL(S): hackernews ----------------
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_hackernews_happy_path_maps_hits_and_sort_by_date(fake_http) -> None:
+    calls = fake_http(FakeResponse({
+        "hits": [
+            {
+                "objectID": "42001",
+                "title": "Local Agents with Qwen 2.5",
+                "url": "https://www.example.com/qwen-agents",
+                "author": "alice",
+                "points": 145,
+                "num_comments": 32,
+            },
+            {
+                "objectID": "42002",
+                "title": "Ask HN: Tool Eval Tips",
+                "url": None,
+                "author": "bob",
+                "points": 40,
+                "num_comments": 12,
+            },
+        ]
+    }))
+    hackernews_tool = TOOL_FUNCTIONS["hackernews"]
+    result = hackernews_tool(query="agents", sort_by="date", limit=2)
+
+    assert calls[0]["url"] == "https://hn.algolia.com/api/v1/search_by_date"
+    assert calls[0]["params"] == {"query": "agents", "tags": "story", "hitsPerPage": 2}
+    assert result["sort_by"] == "date"
+    assert len(result["items"]) == 2
+    assert result["items"][0]["source"] == "example.com"
+    assert result["items"][0]["hn_url"] == "https://news.ycombinator.com/item?id=42001"
+    assert result["items"][1]["url"] == "https://news.ycombinator.com/item?id=42002"
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_hackernews_bad_input_handles_empty_query_and_invalid_args(fake_http) -> None:
+    calls = fake_http(FakeResponse({"hits": [{"objectID": "1", "title": "Story", "url": "https://a.dev"}]}))
+    hackernews_tool = TOOL_FUNCTIONS["hackernews"]
+
+    empty_result = hackernews_tool(query="   ")
+    assert empty_result["error"] == "ValueError"
+    assert calls == []
+
+    coerced_result = hackernews_tool(query="ai", sort_by="invalid_enum", limit="3")  # type: ignore[arg-type]
+    assert calls[0]["url"] == "https://hn.algolia.com/api/v1/search"
+    assert calls[0]["params"]["hitsPerPage"] == 3
+    assert coerced_result["sort_by"] == "relevance"
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_hackernews_http_error_returns_error_dict(fake_http) -> None:
+    fake_http(FakeResponse(status_code=503))
+    hackernews_tool = TOOL_FUNCTIONS["hackernews"]
+    result = hackernews_tool(query="llm")
+
+    assert result["tool"] == "hackernews"
+    assert result["error"] == "HTTPError"
