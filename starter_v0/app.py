@@ -12,7 +12,15 @@ from chat import now_iso, run_model_tool_loop, safe_slug, trim_history, write_tr
 from env_loader import load_lab_env
 from providers import make_provider
 from providers.base import ModelResponse, ToolCall
-from tools import TOOL_FUNCTIONS, load_tool_declarations, to_openai_tools
+
+# Import every provider module so the dropdown below can use them even when
+# only some vendor SDKs are installed (SDK imports happen inside complete()).
+import providers.ollama_provider
+import providers.openai_provider
+import providers.anthropic_provider
+import providers.gemini_provider
+import providers.openrouter_provider
+from tools import load_tool_declarations, to_openai_tools
 from versioning import build_artifact_version
 
 ROOT = Path(__file__).parent
@@ -28,7 +36,28 @@ st.set_page_config(page_title="Research Agent", page_icon="🔎", layout="wide")
 class DemoProvider:
     default_model = "demo-scripted"
 
+    def __init__(self, live_provider=None, *, live_name: str | None = None) -> None:
+        self.live_provider = live_provider
+        self.live_name = live_name
+        self.fallback_reason: str | None = None
+        if live_provider is not None:
+            self.default_model = getattr(live_provider, "default_model", self.default_model)
+
     def complete(self, messages, tools=None, *, model=None, temperature=0.0, tool_choice=None) -> ModelResponse:
+        if self.live_provider is not None:
+            try:
+                return self.live_provider.complete(
+                    messages,
+                    tools,
+                    model=model,
+                    temperature=temperature,
+                    tool_choice=tool_choice,
+                )
+            except Exception as exc:  # graceful degradation for demos
+                self.fallback_reason = f"{type(exc).__name__}: {exc}"
+        return self._scripted(messages)
+
+    def _scripted(self, messages) -> ModelResponse:
         latest = messages[-1]["content"]
         folded = latest.casefold()
 
@@ -67,11 +96,14 @@ class DemoProvider:
         return ModelResponse(text="Mình là research agent: hãy hỏi về tin tức, tweet, paper, policy hoặc gửi lên Telegram.")
 
 
-def build_provider(name: str):
+def build_provider(name: str, *, allow_fallback: bool = True):
     if name.startswith("demo"):
         return DemoProvider(), "demo-scripted"
     provider = make_provider(name)
-    return provider, getattr(provider, "default_model", None)
+    default_model = getattr(provider, "default_model", None)
+    if allow_fallback:
+        return DemoProvider(provider, live_name=name), default_model
+    return provider, default_model
 
 
 # Session state
@@ -90,6 +122,14 @@ def new_conversation() -> None:
 with st.sidebar:
     st.header("⚙️ Cấu hình")
     provider_name = st.selectbox("Provider", PROVIDERS, index=PROVIDERS.index("demo (offline)"))
+    demo_fallback = st.checkbox(
+        "Fallback sang demo scripted khi provider lỗi",
+        value=True,
+        help=(
+            "Nếu provider live không gọi được (thiếu API key, chưa pull model, "
+            "mất mạng…), agent trả lời bằng kịch bản offline thay vì báo lỗi."
+        ),
+    )
     model_override = st.text_input(
         "Model (để trống = mặc định provider)",
         value="",
@@ -146,6 +186,11 @@ except Exception as exc:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message.get("content") or "")
+        if message.get("fallback_to_demo"):
+            st.warning(
+                "Câu trả lời này do demo scripted tạo ra vì provider live lỗi: "
+                f"`{message['fallback_to_demo']}`"
+            )
         events = message.get("tool_events") or []
         if events:
             with st.expander(f"🔧 {len(events)} tool call(s)"):
@@ -168,7 +213,7 @@ if prompt:
     with st.chat_message("assistant"):
         with st.spinner("Agent đang chạy…"):
             try:
-                provider, default_model = build_provider(provider_name)
+                provider, default_model = build_provider(provider_name, allow_fallback=demo_fallback)
                 history = [
                     {"role": item["role"], "content": item.get("content") or ""}
                     for item in st.session_state.messages
@@ -200,6 +245,16 @@ if prompt:
                         })
 
                 assistant_text = result["assistant_text"] or "(không có nội dung trả về)"
+                fallback_reason = (
+                    provider.fallback_reason
+                    if isinstance(provider, DemoProvider) and provider.fallback_reason
+                    else None
+                )
+                if fallback_reason:
+                    st.warning(
+                        f"Provider `{provider_name}` không gọi được nên câu trả lời này "
+                        f"do demo scripted tạo ra.\n\n`{fallback_reason}`"
+                    )
                 st.markdown(assistant_text)
                 if events:
                     with st.expander(f"🔧 {len(events)} tool call(s)"):
@@ -213,6 +268,7 @@ if prompt:
                     "role": "assistant",
                     "content": assistant_text,
                     "tool_events": events,
+                    "fallback_to_demo": fallback_reason,
                 })
 
                 # Persist the same transcript format as chat.py.
@@ -234,7 +290,7 @@ if prompt:
                         "turns": [],
                     }
                 transcript = st.session_state.transcript
-                transcript["turns"].append({
+                turn_record = {
                     "turn_index": len(transcript["turns"]) + 1,
                     "started_at": now_iso(),
                     "ended_at": now_iso(),
@@ -242,7 +298,10 @@ if prompt:
                     "status": result["status"],
                     "assistant_text": assistant_text,
                     "rounds": result["rounds"],
-                })
+                }
+                if fallback_reason:
+                    turn_record["fallback_to_demo"] = fallback_reason
+                transcript["turns"].append(turn_record)
                 transcript_path = TRANSCRIPTS / f"{transcript['transcript_id']}.transcript.json"
                 write_transcript(transcript_path, transcript)
                 st.caption(f"Transcript: `{transcript_path.relative_to(ROOT)}`")
@@ -253,7 +312,8 @@ if prompt:
                 st.info(
                     "Kiểm tra `.env` (copy từ `.env.example`) và chạy "
                     "`python scripts/preflight_provider.py --provider openrouter`. "
-                    "Hoặc chọn provider **demo (offline)** để thử UI không cần key."
+                    "Hoặc chọn provider **demo (offline)** hay bật "
+                    "**Fallback sang demo scripted** để thử UI không cần key."
                 )
                 st.session_state.messages.append({"role": "assistant", "content": error_text})
 
