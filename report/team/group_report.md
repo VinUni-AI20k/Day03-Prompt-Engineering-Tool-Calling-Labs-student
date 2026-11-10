@@ -8,45 +8,65 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: NhomSNN
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: Gemini — `gemini-3.8-flash` (model mặc định của `providers/gemini_provider.py`; xem `provider`/`model` trong `starter_v0/runs/v0_B_base_gemini_*.json`, `v1_B_base_gemini_*.json`)
+- Provider/model của UI và live chat: cũng Gemini — `gemini-3.8-flash` (mặc định trong `starter_v0/app.py`; đổi bằng `AGENT_PROVIDER`/`AGENT_MODEL`)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research agent cho tin tức AI/công nghệ: tìm tin trên web và trên X (theo từ khóa hoặc theo tài khoản), đọc nội dung một URL, tra arXiv và policy nội bộ, rồi tổng hợp thành digest markdown. Agent **hỏi lại** khi yêu cầu thiếu thông tin (không rõ tài khoản, URL…) và **chỉ gửi lên Telegram sau khi người dùng xác nhận**.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+```bash
+cd starter_v0
+pip install -r requirements.txt      # đã thêm streamlit
+streamlit run app.py                 # http://localhost:8501
+```
+
+UI mặc định dùng Gemini `gemini-3.8-flash` — cùng model với base eval v0–v3 (cần `GEMINI_API_KEY` trong `starter_v0/.env`); đổi ở sidebar hoặc qua biến môi trường `AGENT_PROVIDER`/`AGENT_MODEL`. Nhãn version được UI tự nhận bằng cách so `prompt_hash`/`tools_hash` với `artifacts/version_log.csv` (không khớp → `unversioned`). Chat terminal tương đương: `python chat.py --provider gemini --version v3`.
+
+UI hiển thị từng tool call (tên, args, kết quả, lỗi nếu có) và lưu transcript vào `starter_v0/transcripts/ui_*.transcript.json`. Sidebar cho chọn provider/model/version và hiện `prompt_hash`/`tools_hash` đang chạy.
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
->
-> URL:
+```bash
+# Instance public: env riêng không có token Telegram (xem mục 5)
+DAY03_ENV_FILE=<env_không_telegram> streamlit run app.py --server.port 8502
+cloudflared tunnel --url http://localhost:8502
+```
+
+URL: https://streams-stars-bucks-details.trycloudflare.com
+
+> Link `trycloudflare.com` là tạm thời, chỉ sống khi máy chạy UI còn bật streamlit + cloudflared.
 
 ### A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | Hỏi lại người dùng khi thiếu thông tin, rồi chờ lượt trả lời | không |
+| timeline | Lấy bài đăng gần đây của một tài khoản X (handle không có `@`) | không |
+| social_search | Tìm bài đăng trên X theo từ khóa (`Latest` / `Top`) | không |
+| lookup | Tìm trên web qua Tavily (`topic` general/news, `timeframe`) | không |
+| fetch | Đọc nội dung một URL cụ thể qua Firecrawl | không |
+| format | Trình bày các item đã thu thập thành digest markdown | không |
+| send | Gửi text lên Telegram channel của nhóm — chỉ khi đã xác nhận (`confirmed=true`) | không |
+| policy | Tra cứu policy nội bộ công ty (markdown) | không |
+| papers | Tìm paper trên arXiv | không |
+| paper_text | Tải PDF arXiv và trích text | không |
+| github_repo | Đọc metadata repo GitHub công khai theo `owner/repo`: mô tả, số sao, fork, ngôn ngữ, thời điểm cập nhật | **có** |
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. "Tin tức mới nhất về AI agent trong tuần này là gì?" → `lookup` (topic=news, timeframe=week)
+2. "Sam Altman gần đây đăng gì trên X?" → `timeline` (screenname=sama)
+3. "Mọi người trên X đang nói gì nổi bật về GPT-5?" → `social_search` (search_type=Top)
+4. "Tóm tắt giúp tôi bài viết này" → agent hỏi lại URL (`clarify`), sau đó `fetch`
+5. "Tổng hợp tin AI hôm nay rồi gửi lên Telegram" → tổng hợp xong, agent hỏi xác nhận trước khi `send`
+6. "Repo psf/requests có bao nhiêu sao, viết bằng ngôn ngữ gì?" → `github_repo` (repo=psf/requests)
 
 ## 3. Giải pháp
 
@@ -144,7 +164,12 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 > Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
 
--
+- **Model mặc định không dùng được (HTTP 402).** Provider OpenRouter trong starter mặc định gọi `openai/gpt-4o-mini` (`starter_v0/providers/openrouter_provider.py`). Preflight trả `Error code: 402 - Insufficient credits. This account never purchased credits` vì tài khoản OpenRouter của nhóm chưa nạp credit. Nếu chạy eval với model này, mọi case sẽ là `provider_error`, run không hợp lệ (`provider_error_cases > 0`).
+  - **Xử lý:** thử các model `:free` có tool calling trên OpenRouter; một số bị 429 (server free quá tải) và tài khoản chưa nạp credit chỉ có quota request/ngày rất thấp — không đủ cho 4 lần base eval + eval nhóm + live chat. Nhóm chuyển sang provider **Gemini, model `gemini-3.8-flash`** (model mặc định của `providers/gemini_provider.py`) cho toàn bộ base eval v0–v3, eval nhóm, UI và live chat, để mọi metric và transcript dùng cùng một model.
+  - **Bằng chứng:** [evidence/preflight_openrouter.txt](evidence/preflight_openrouter.txt) (output preflight của cả hai model).
+  - **Rủi ro còn lại:** Gemini cũng có giới hạn request; run nào có `provider_error_cases > 0` phải chạy lại, không dùng làm bằng chứng. Mọi thành viên chạy eval/chat phải có `GEMINI_API_KEY` và dùng đúng `gemini-3.8-flash`.
+- **Link public + tool `send`.** Khi mở UI ra internet bằng Cloudflare Tunnel, bất kỳ ai có link đều có thể yêu cầu agent gửi tin lên Telegram; với prompt starter ("cứ gửi luôn"), agent sẽ gửi mà không hỏi lại.
+  - **Xử lý:** instance UI public chạy với file env riêng (`DAY03_ENV_FILE`) không chứa `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`, nên `send` trả lỗi thay vì gửi thật; UI hiển thị lỗi đó (không che). Transcript gửi Telegram thật chỉ quay trên máy nhóm, sau khi prompt v3 có boundary xác nhận.
 
 ## 6. Tổng hợp đóng góp
 
