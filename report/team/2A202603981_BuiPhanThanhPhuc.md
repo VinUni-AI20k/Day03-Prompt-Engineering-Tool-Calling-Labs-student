@@ -4,7 +4,7 @@
 
 - Họ tên: BÙI PHAN THANH PHÚC
 - MSSV: 2A202603981
-- Email: [ĐIỀN SAU]
+- Email: thanhphuccrkh@gmail.com
 
 ## 2. Phần việc phụ trách
 
