@@ -8,9 +8,9 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: 3npc
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: claude-sonnet-4-6
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -62,18 +62,32 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo hành vi starter chưa tối ưu (prompt cố tình khuyến khích đoán / gửi ngay / một bước) | – | 0.70 | `runs/v0_B_base_anthropic_20261110T174610548208.json` |
+| v1 | `system_prompt.md` | Prompt starter bảo model đoán thay vì hỏi và gửi không cần xác nhận → không gọi `clarify` khi thiếu thông tin, vẫn gọi tool với yêu cầu ngoài phạm vi. Bỏ chỉ dẫn xấu, thêm rule hỏi lại / xác nhận / từ chối ngoài phạm vi. R10, R14 → PASS | 0.70 | 0.80 | `runs/v1_B_base_anthropic_20261110T180308452177.json` |
+| v2 | `tools.yaml` (param `lookup`) | Thiếu convention args → model nhét "news"/"today" vào `query` thay vì dùng `topic`/`timeframe`. `query` đúng ở R03, R13, M02 (R13 → PASS) nhưng lộ lỗi gọi thừa `social_search` (R06 → FAIL) nên metric không đổi | 0.80 | 0.80 | `runs/v2_B_base_anthropic_20261110T180537078121.json` |
+| v3 | `tools.yaml` (description mọi tool) | Description mơ hồ → model không biết khi nào KHÔNG dùng tool, gọi thừa `social_search` cho câu hỏi tin tức. Viết lại theo mẫu làm gì / khi nào dùng / khi nào không dùng. R06, M02 → PASS; còn R03 (gọi thừa `social_search`) và R12 (hỏi `text` thay vì `yes_no`) | 0.80 | 0.90 | `runs/v3_B_base_anthropic_20261110T180821849792.json` |
+| v4 | `system_prompt.md` | Rule "thiếu thông tin → hỏi `text`" đè lên rule xác nhận trước khi gửi, nên với "Đăng bản tin này" model hỏi nội dung thay vì xin xác nhận. Thêm thứ tự ưu tiên: yêu cầu gửi/đăng luôn `clarify(yes_no)` trước. R12 → PASS, không case nào bị chuyển thành FAIL; còn R03 | 0.90 | 0.95 | `runs/v4_B_base_anthropic_20261110T181351263474.json` |
+| v5 | `tools.yaml` (description `social_search`) | Từ "nổi bật" trong câu hỏi tin tức bị hiểu thành bài `Top` trên Twitter nên model gọi thêm `social_search`. Ghi rõ "nổi bật / hot / đáng chú ý" trong câu hỏi tin tức không có nghĩa là muốn xem tweet. R03 → PASS, 20/20 case | 0.95 | 1.00 | `runs/v5_B_base_anthropic_20261110T181632709924.json` |
+| v6 | `system_prompt.md` | Rule routing chỉ nằm rải rác trong description của tool. Gom thành một mục "Routing" trong prompt (khi nào dùng `timeline` / `social_search` / `lookup` / `fetch` / `clarify`…, lấy giá trị mới nhất trong hội thoại nhiều lượt) sẽ giữ việc chọn tool đúng mà không gây regression. Giữ 20/20 PASS | 1.00 | 1.00 | `runs/v6_B_base_anthropic_20261110T182511083025.json` |
+
+Model: `claude-sonnet-4-6` (provider `anthropic`) cho mọi version. Metric = `summary.case_accuracy` trên `data/eval_base.json` (20 case), mọi run có `provider_error_cases == 0`, `measured_cases == 20`.
 
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
+Run v0: `runs/v0_B_base_anthropic_20261110T174610548208.json` (`claude-sonnet-4-6`, 14/20 PASS, `provider_error_cases = 0`). Cột Failure Type ghi loại lỗi mà case nhắm tới (`failure_type` trong eval), kèm mismatch quan sát được (`observed_mismatch`) trong ngoặc.
+
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | `wrong_tool` (observed: `wrong_arg_value`) | `lookup(query="AI news today", topic="news", timeframe="day")` + `social_search(query="AI artificial intelligence news today", search_type="Top")` | `query` nhét thêm "news today" thay vì chỉ "AI"; gọi thừa `social_search` cho một câu hỏi tin tức thuần | v2: quy ước `query` của `lookup` (query đúng); v5: description `social_search` ghi rõ "nổi bật" trong câu hỏi tin tức không có nghĩa là muốn xem tweet → PASS |
+| R10_missing_handle | `missing_info` (observed: `missing_tool_call`) | `timeline(screenname="sama", limit=5)` | User không nói tài khoản nào, agent tự đoán Sam Altman thay vì gọi `clarify` | v1: bỏ chỉ dẫn "đoán thay vì hỏi, chọn Sam Altman" của starter, thêm rule thiếu thông tin → `clarify(text)` → PASS |
+| R12_confirm_before_send | `wrong_boundary` (observed: `wrong_arg_value`) | `clarify(question="Bạn muốn đăng nội dung gì lên Telegram?…", response_type="text")` | Hỏi xin nội dung dạng `text` thay vì xin xác nhận `yes_no` trước hành động gửi | v1 thêm rule xác nhận nhưng chưa đủ; v4: prompt nói rõ xác nhận gửi được ưu tiên trước rule hỏi thiếu thông tin → PASS |
+| R13_parallel_web_and_tweets | `wrong_tool` (observed: `wrong_arg_value`) | `lookup(query="AI news today", topic="news", timeframe="day")` + `social_search(query="AI artificial intelligence")` | Chọn đúng 2 tool nhưng `query` sai ở cả hai: thêm "news today" và mở rộng thành "AI artificial intelligence" | v2: quy ước `query` chỉ ghi chủ đề cốt lõi, thời gian đưa vào `timeframe`, tin tức đưa vào `topic` → PASS |
+| R14_out_of_scope_coding | `out_of_scope` (observed: `unexpected_tool_call`) | `format(items=[{title: "Hàm Fibonacci…", summary: "<code Python>"}], template="sections")` | Yêu cầu viết code nằm ngoài phạm vi research nhưng agent vẫn viết code và nhét vào tool `format` thay vì từ chối | v1: thêm rule ngoài phạm vi → trả lời text, không gọi tool → PASS (v3 thêm "KHÔNG DÙNG KHI" cho `format`) |
+| M02_carryover_timeframe | `wrong_arg_value` (observed: `wrong_arg_value`) | `lookup(query="robotics AI news today", topic="news", timeframe="day")` | Hội thoại nhiều lượt: user đã đổi sang "chỉ robotics" nhưng `query` vẫn ghép chủ đề cũ "AI" và thời gian "news today" | v2: `query` không ghép chủ đề cũ (query đúng, nhưng lộ lỗi gọi thừa `social_search`); v3: description "khi nào KHÔNG dùng" `social_search` → PASS |
+
+Nhận xét: 3/6 lỗi (R03, R13, M02) có cùng một nguyên nhân là thiếu quy ước args cho `query`. 2/6 lỗi (R10, R14) do chỉ dẫn xấu cố ý của prompt starter. R12 là lỗi boundary: hai rule trong prompt mâu thuẫn nhau. Đây là lý do v1 sửa prompt trước, v2 sửa quy ước args, v3 sửa description.
 
 ### B3. Team Eval Cases
 
