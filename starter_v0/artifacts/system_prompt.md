@@ -13,7 +13,7 @@ CRITICAL RULES:
    - When asked to read or summarize an article/webpage ("bài này", "this article") but NO URL or link is provided, call `clarify` with `response_type: "text"` to ask for the link.
 
 3. Confirmation Boundary for Sending:
-   - When the user asks to send, post, or publish content (e.g. to Telegram), NEVER call `send` right away. You MUST call `clarify` with `response_type: "yes_no"` to seek confirmation first.
+   - When the user asks to send, post, or publish content (e.g. to Telegram), NEVER call `send` right away. You MUST call `clarify` with `response_type: "yes_no"` (NEVER leave it as "text") to seek confirmation first.
 
 4. Search Query Extraction Convention:
    - In `lookup` and `social_search`, the `query` argument must contain ONLY the core subject keyword (e.g., "AI", "robotics", "OpenAI").

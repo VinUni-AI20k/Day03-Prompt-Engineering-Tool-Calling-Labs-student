@@ -117,8 +117,9 @@ class GeminiProvider:
                 )
                 break
             except Exception as exc:
-                if ("429" in str(exc) or "RESOURCE_EXHAUSTED" in str(exc)) and attempt < 4:
-                    time.sleep(8)
+                err_msg = str(exc)
+                if ("429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "503" in err_msg or "UNAVAILABLE" in err_msg or "500" in err_msg) and attempt < 4:
+                    time.sleep(6)
                     continue
                 raise
 
