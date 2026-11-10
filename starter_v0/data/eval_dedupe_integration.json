@@ -1,0 +1,129 @@
+{
+  "dataset_id": "dedupe_integration_v1",
+  "dataset_role": "group",
+  "description": "Supplemental integration checks for dedupe; does not replace the team's required 10-case dataset.",
+  "cases": [
+    {
+      "id": "D01_dedupe_urls",
+      "phase": "B",
+      "failure_type": "wrong_tool",
+      "query": "Loại các link trùng trong danh sách kết quả này theo URL, giữ nguyên dữ liệu của bản đầu tiên: [{\"title\":\"A\",\"url\":\"https://www.example.com/post/\"},{\"title\":\"A copy\",\"url\":\"https://example.com/post?utm_source=x\"},{\"title\":\"B\",\"url\":\"https://example.com/other\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "dedupe",
+            "args": {
+              "by": "url"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Route an existing list to dedupe by URL and preserve item data.",
+        "expected_items": [
+          {
+            "title": "A",
+            "url": "https://www.example.com/post/"
+          },
+          {
+            "title": "A copy",
+            "url": "https://example.com/post?utm_source=x"
+          },
+          {
+            "title": "B",
+            "url": "https://example.com/other"
+          }
+        ]
+      }
+    },
+    {
+      "id": "D02_dedupe_titles",
+      "phase": "B",
+      "failure_type": "wrong_arg_value",
+      "query": "Loại trùng theo tiêu đề, không so URL, giữ nguyên bản đầu tiên trong danh sách: [{\"title\":\"Tin AI hôm nay\"},{\"title\":\"tin ai hom nay\"},{\"title\":\"Khác\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "dedupe",
+            "args": {
+              "by": "title"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Respect explicit title-based deduplication.",
+        "expected_items": [
+          {
+            "title": "Tin AI hôm nay"
+          },
+          {
+            "title": "tin ai hom nay"
+          },
+          {
+            "title": "Khác"
+          }
+        ]
+      }
+    },
+    {
+      "id": "D03_dedupe_carryover",
+      "phase": "B",
+      "failure_type": "wrong_tool",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Danh sách đã thu thập: [{\"url\":\"https://example.com/a\"},{\"url\":\"https://example.com/a\"}]"
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn muốn xử lý danh sách này như thế nào?"
+        },
+        {
+          "role": "user",
+          "content": "Loại link trùng theo URL, giữ bản đầu tiên."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "dedupe",
+            "args": {
+              "by": "url"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Reuse supplied items from conversation history.",
+        "expected_items": [
+          {
+            "url": "https://example.com/a"
+          },
+          {
+            "url": "https://example.com/a"
+          }
+        ]
+      }
+    },
+    {
+      "id": "D04_fetch_boundary",
+      "phase": "B",
+      "failure_type": "wrong_boundary",
+      "query": "Đọc nội dung trang https://example.com giúp mình.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://example.com"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "A URL-reading request must use fetch rather than dedupe."
+      }
+    }
+  ]
+}

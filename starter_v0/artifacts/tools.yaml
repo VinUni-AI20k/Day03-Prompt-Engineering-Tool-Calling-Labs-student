@@ -123,3 +123,21 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: dedupe
+    description: "Remove duplicate items from an existing list of research results, keeping the first occurrence. Use when the user asks to remove duplicates from supplied or already-collected items. This tool does not search, fetch, summarize, or publish; do not use it to collect missing data."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "The existing list to deduplicate. Preserve all supplied item fields. Items missing the compared field are kept."
+          items:
+            type: object
+            additionalProperties: true
+        by:
+          type: string
+          enum: [url, title]
+          default: "url"
+          description: "Use url for duplicate links (default), ignoring www, trailing slashes, fragments and utm_* parameters. Use title only when the user requests title-based deduplication; title matching ignores case, accents and repeated whitespace."
+      required: [items, by]
