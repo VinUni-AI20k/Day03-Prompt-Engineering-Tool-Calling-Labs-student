@@ -37,8 +37,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| weather | tra cứu dự báo thời tiết, nhiệt độ theo địa điểm qua Tavily API | có |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -95,8 +94,8 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/weather/`) | `starter_v0/tools/weather/tool.py`, `TOOL.md` | Tìm kiếm và tổng hợp dự báo thời tiết qua Tavily Search API | Bắt ngoại lệ và trả về `err("weather", exc)` thay vì raise |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`, `pytest` output (0 failed) | 3 unit tests: Happy path, bad input (location rỗng), failure (thiếu key) đều pass | Kiểm tra không gọi mạng khi location rỗng; bắt lỗi thiếu key an toàn |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.

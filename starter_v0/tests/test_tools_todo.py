@@ -110,13 +110,55 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_happy_path(monkeypatch, fake_http) -> None:
+    monkeypatch.setenv("TAVILY_API_KEY", "tvly-test-secret")
+    fake_payload = {
+        "answer": "Hà Nội hôm nay trời nắng nhẹ, nhiệt độ từ 22 đến 28 độ C.",
+        "results": [
+            {
+                "title": "Dự báo thời tiết Hà Nội",
+                "url": "https://nchmf.gov.vn/hanoi-weather",
+                "content": "Thời tiết Hà Nội hôm nay nhiều mây, không mưa.",
+                "score": 0.95,
+            }
+        ]
+    }
+    calls = fake_http(FakeResponse(fake_payload))
+    weather_tool = TOOL_FUNCTIONS["weather"]
+
+    result = weather_tool(location="Hà Nội", timeframe="today")
+
+    assert len(calls) == 1
+    assert calls[0]["url"] == "https://api.tavily.com/search"
+    assert calls[0]["headers"]["Authorization"] == "Bearer tvly-test-secret"
+    assert "Hà Nội" in calls[0]["json"]["query"]
+    assert calls[0]["json"]["include_answer"] is True
+    assert result["tool"] == "weather"
+    assert result["location"] == "Hà Nội"
+    assert result["timeframe"] == "today"
+    assert "Hà Nội hôm nay trời nắng nhẹ" in result["summary"]
+    assert len(result["items"]) == 1
+    assert result["items"][0]["source"] == "nchmf.gov.vn"
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_bad_input_from_model(monkeypatch, fake_http) -> None:
+    monkeypatch.setenv("TAVILY_API_KEY", "tvly-test-secret")
+    calls = fake_http(FakeResponse({"results": []}))
+    weather_tool = TOOL_FUNCTIONS["weather"]
+
+    result_empty = weather_tool(location="   ")
+    assert result_empty["tool"] == "weather"
+    assert result_empty["error"] == "ValueError"
+    assert "Location cannot be empty" in result_empty["message"]
+    assert len(calls) == 0
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_failure_returns_error_dict(monkeypatch) -> None:
+    monkeypatch.delenv("TAVILY_API_KEY", raising=False)
+    weather_tool = TOOL_FUNCTIONS["weather"]
+
+    result = weather_tool(location="Đà Nẵng")
+    assert isinstance(result, dict)
+    assert result["tool"] == "weather"
+    assert result["error"] == "RuntimeError"
+    assert "Missing TAVILY_API_KEY" in result["message"]
