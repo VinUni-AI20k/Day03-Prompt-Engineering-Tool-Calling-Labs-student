@@ -104,19 +104,104 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
     pytest.skip(TODO)
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# ---------------- NEW TOOL 1: date_calc ----------------
+def test_date_calc_happy_path() -> None:
+    tool = TOOL_FUNCTIONS["date_calc"]
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+    result = tool(
+        op="diff_days",
+        date1="2026-11-10",
+        date2="2027-01-01",
+    )
+
+    assert result == {"result": 52}
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_date_calc_bad_input_from_model() -> None:
+    tool = TOOL_FUNCTIONS["date_calc"]
+
+    result = tool(
+        op="diff_days",
+        date1="abc",
+        date2="2027-01-01",
+    )
+
+    assert isinstance(result, dict)
+    assert "error" in result
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_date_calc_failure_returns_error_dict() -> None:
+    tool = TOOL_FUNCTIONS["date_calc"]
+
+    result = tool(
+        op="add_days",
+        date1="9999-12-31",
+        days=1,
+    )
+
+    assert isinstance(result, dict)
+    assert "error" in result
+    
+# ---------------- NEW TOOL 2: cite format ----------------
+def test_cite_format_single_author_with_url():
+    tool = TOOL_FUNCTIONS["cite_format"]
+
+    result = tool(
+        title="Deep Learning Basics",
+        authors=["Nguyen, An"],
+        year=2024,
+        url="https://example.com/dl"
+    )
+
+    assert result == {
+        "citation": "Nguyen, A. (2024). Deep Learning Basics. https://example.com/dl"
+    }
+
+
+def test_cite_format_two_authors_without_url():
+    tool = TOOL_FUNCTIONS["cite_format"]
+
+    result = tool(
+        title="Intro to NLP",
+        authors=["Smith, John", "Lee, Kim"],
+        year=2020
+    )
+
+    assert result == {
+        "citation": "Smith, J., & Lee, K. (2020). Intro to NLP."
+    }
+
+
+def test_cite_format_missing_year():
+    tool = TOOL_FUNCTIONS["cite_format"]
+
+    result = tool(
+        title="Draft Notes",
+        authors=["Tran, Binh"],
+        year=None
+    )
+
+    assert "(n.d.)" in result["citation"]
+
+
+def test_cite_format_missing_required_fields():
+    tool = TOOL_FUNCTIONS["cite_format"]
+
+    empty_title = tool(title="", authors=["Nguyen, An"])
+    empty_authors = tool(title="Draft Notes", authors=[])
+
+    assert "error" in empty_title
+    assert "error" in empty_authors
+
+
+def test_cite_format_unsupported_style():
+    tool = TOOL_FUNCTIONS["cite_format"]
+
+    result = tool(
+        title="Draft Notes",
+        authors=["Tran, Binh"],
+        style="mla"
+    )
+
+    assert "error" in result
+    assert "style" in result["error"].lower()

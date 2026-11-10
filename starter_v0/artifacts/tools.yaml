@@ -134,3 +134,71 @@ tools:
         max_pages: { type: integer, default: 5, description: "Số trang" }
         max_chars: { type: integer, default: 8000, description: "Số ký tự" }
       required: [arxiv_url]
+
+  - name: date_calc
+    description: >
+      Calculate dates accurately using date arithmetic.
+      Use when the user asks for the number of days between dates,
+      a date after or before a given number of days, today's date,
+      or the weekday of a specific date.
+      Do not use for general questions about holidays, calendars,
+      or cultural events.
+      Supported operations: today, diff_days, add_days, weekday.
+      Dates must use YYYY-MM-DD format.
+      For diff_days, return date2 minus date1.
+      For add_days, provide date1 and integer days.
+    parameters:
+      type: object
+      properties:
+        op:
+          type: string
+          enum: [today, diff_days, add_days, weekday]
+          description: Operation to perform
+        date1:
+          type: string
+          description: >
+            First date in YYYY-MM-DD format, or "today" to represent
+            the current date.
+        date2:
+          type: string
+          description: >
+            Second date in YYYY-MM-DD format, or "today" to represent
+            the current date. Used for diff_days.
+        days:
+          type: integer
+          description: Number of days to add, for add_days
+      required: [op]
+
+  - name: cite_format
+    description: >
+      Format publication metadata into an APA 7 citation.
+      Use when the user explicitly asks to create, format, or convert
+      a reference or citation into APA style.
+      Do not use for general questions about citation styles,
+      such as asking what APA means.
+      Only APA style is supported.
+      Authors must be provided as a list in "Last, First" format.
+      Missing year is represented as (n.d.).
+      Missing URL is omitted.
+    parameters:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Publication title
+        authors:
+          type: array
+          items:
+            type: string
+          description: Authors in "Last, First" format
+        year:
+          type: integer
+          description: Publication year, optional
+        url:
+          type: string
+          description: Publication URL, optional
+        style:
+          type: string
+          enum: [apa]
+          description: Citation style. Only APA is supported.
+      required: [title, authors]

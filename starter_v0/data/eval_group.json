@@ -3,5 +3,60 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_date_calc_diff_days",
+      "phase": "B",
+      "query": "Còn bao nhiêu ngày nữa đến 1/1/2027?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "diff_days",
+              "date1": "today",
+              "date2": "2027-01-01"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes date difference questions to date_calc and uses the current date."
+      }
+    },
+    {
+      "id": "G02_date_calc_add_days",
+      "phase": "B",
+      "query": "100 ngày sau ngày 15/3/2026 là ngày nào?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "add_days",
+              "date1": "2026-03-15",
+              "days": 100
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes date addition questions to date_calc with correct arguments."
+      }
+    },
+    {
+      "id": "G03_date_calc_negative",
+      "phase": "B",
+      "query": "Tết Nguyên Đán có ý nghĩa gì?",
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "what_it_tests": "Does not call date_calc for general cultural questions."
+      }
+    }
+  ]
 }
