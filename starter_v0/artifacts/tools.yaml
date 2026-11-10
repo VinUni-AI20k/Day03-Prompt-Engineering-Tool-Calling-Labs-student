@@ -1,116 +1,111 @@
 # Khai báo tool mà MODEL nhìn thấy (model KHÔNG đọc được code Python trong tools/).
 # Model chọn tool và điền args chỉ dựa vào `description` của tool và của từng tham số.
 #
-# Thay đổi so với starter_v0 (Người 2 - BuiDangNhatNguyen):
-#   - Mỗi description viết theo khuôn: LÀM GÌ / DÙNG KHI / KHÔNG DÙNG KHI.
-#   - Đưa `response_type` của `clarify` vào `required: [question, response_type]` để sửa dứt điểm
-#     lỗi `response_type: got None` ở R10 và R12 trong run v1.
-#   - Mô tả tham số ghi rõ quy ước args: handle không có @, query của lookup chỉ giữ từ khóa cốt lõi
-#     (không ghép chữ 'news'/'tin tức'), topic=news cho tin tức, timeframe (hôm nay->day, tuần này->week,
-#     tháng này->month, năm nay->year), search_type Top/Latest.
-#   - `send` ghi rõ chỉ gửi ra Telegram khi người dùng đã xác nhận (confirmed=true), không dùng để trả lời chat.
+# Thay đổi so với v2 (Người 2 - BuiDangNhatNguyen):
+#   - Tinh chỉnh `clarify` và `send` để khi người dùng ở lượt mới nhất ĐÃ xác nhận đồng ý gửi
+#     thì gọi ngay `send(confirmed=true)`, không gọi `clarify` hỏi lại lần nữa (sửa regression GM02).
+#   - Bỏ câu gợi ý gọi song song trong `lookup`/`social_search` gây gọi thừa tool cũ khi chuyển nguồn
+#     trong hội thoại nhiều lượt (sửa regression M06).
+#   - Viết tổng quát hóa toàn bộ quy tắc (không trích câu chữ cụ thể của bộ eval).
+#   - Khai báo thêm tool mới `github_search` (CP3) ở cuối file.
 tools:
   # ---------------- Core tools ----------------
 
-  # clarify: ở v0 FAIL R10, R11, R12 vì không gọi clarify. Sang v1 (đã sửa system_prompt),
-  # R10 và R12 vẫn FAIL vì model gọi clarify nhưng bỏ trống tham số `response_type` (got None),
-  # và ở R12 ("Đăng bản tin này lên Telegram") model hỏi nội dung thay vì xin xác nhận yes_no.
-  # Sửa: đặt `required: [question, response_type]` để ép schema luôn gửi response_type, và quy định rõ yes_no vs text.
+  # clarify: hỏi thông tin còn thiếu (text) hoặc xin xác nhận trước khi gửi lần đầu (yes_no).
+  # Nếu lượt mới nhất người dùng đã xác nhận đồng ý gửi thì KHÔNG gọi clarify nữa mà gọi send(confirmed=true).
   - name: clarify
     description: >-
       Hỏi lại người dùng một câu ngắn rồi dừng, chờ họ trả lời.
       DÙNG KHI: (1) thiếu thông tin bắt buộc mà không suy ra được từ hội thoại,
-      ví dụ muốn xem tweet của một người nhưng không nói của ai (response_type='text'),
-      muốn tóm tắt "bài viết này" nhưng không có URL (response_type='text');
-      (2) người dùng yêu cầu gửi, đăng, publish nội dung lên Telegram mà CHƯA xác nhận
-      (BẮT BUỘC gọi clarify với response_type='yes_no' để hỏi xác nhận trước khi gửi, kể cả khi
-      người dùng chỉ nói ngắn gọn "Đăng bản tin này lên Telegram" hay ép "gửi ngay không cần hỏi").
-      KHÔNG DÙNG KHI: đã đủ thông tin để gọi tool khác, hoặc câu hỏi nằm ngoài phạm vi
-      nghiên cứu (giải toán, viết code, cảm ơn...) thì trả lời trực tiếp bằng văn bản, không gọi tool nào.
+      ví dụ muốn xem bài đăng của một cá nhân nhưng chưa rõ tài khoản nào (response_type='text'),
+      hoặc muốn đọc một trang web cụ thể nhưng chưa cung cấp URL (response_type='text');
+      (2) người dùng mới yêu cầu gửi hoặc đăng nội dung ra kênh bên ngoài (Telegram) mà trong hội thoại
+      CHƯA có lời xác nhận đồng ý của họ (gọi clarify với response_type='yes_no' để xin xác nhận trước,
+      ngay cả khi họ giục gửi luôn).
+      KHÔNG DÙNG KHI: (1) ở lượt tin nhắn mới nhất người dùng ĐÃ đồng ý hoặc xác nhận gửi
+      (ví dụ: xác nhận, đồng ý, ok, ừ, gửi đi) — khi đó KHÔNG hỏi lại bằng clarify nữa mà gọi ngay
+      send với confirmed=true; (2) đã đủ thông tin để gọi tool thực thi; (3) câu hỏi ngoài phạm vi
+      nghiên cứu hoặc câu xã giao (trả lời trực tiếp bằng văn bản, không gọi tool).
     parameters:
       type: object
       properties:
-        question: {type: string, default: "", description: "Câu hỏi ngắn nói rõ thông tin đang thiếu (handle, URL...) hoặc câu hỏi xác nhận (yes/no) trước khi đăng lên Telegram."}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "BẮT BUỘC truyền rõ tham số này: chọn 'yes_no' cho MỌI yêu cầu gửi/đăng/publish lên Telegram (kể cả khi người dùng nói 'đăng bản tin này lên Telegram' hay ép 'gửi ngay không cần hỏi'). Chọn 'text' khi người dùng chưa nêu handle X/Twitter hoặc chưa đưa URL bài viết cần đọc. Chọn 'choice' khi đưa ra các lựa chọn cụ thể."}
+        question: {type: string, default: "", description: "Câu hỏi ngắn nói rõ thông tin đang thiếu (handle, URL...) hoặc câu hỏi xác nhận (yes/no) trước khi gửi lên Telegram."}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Bắt buộc truyền rõ: chọn 'yes_no' khi xin xác nhận cho một yêu cầu gửi/đăng Telegram chưa được người dùng xác nhận; chọn 'text' khi cần người dùng bổ sung thông tin còn thiếu như handle hoặc URL; chọn 'choice' khi đưa ra các lựa chọn cụ thể."}
         options: {type: array, default: [], items: {type: string}, description: "Danh sách lựa chọn, chỉ dùng khi response_type='choice'; các trường hợp khác để []."}
       required: [question, response_type]
 
-  # timeline: ở v0 FAIL R13 vì khi user hỏi "tìm thêm tweet về AI" (theo chủ đề),
-  # model gọi nhầm timeline(screenname='sama') thay vì social_search(query='AI').
+  # timeline: chỉ dùng cho MỘT tài khoản X/Twitter cụ thể; tìm theo chủ đề phải dùng social_search.
   - name: timeline
     description: >-
       Lấy các tweet gần đây của MỘT tài khoản X/Twitter cụ thể.
-      DÙNG KHI: người dùng hỏi đích danh một người hoặc một tài khoản cụ thể vừa đăng gì.
+      DÙNG KHI: người dùng hỏi đích danh một cá nhân hoặc một tài khoản cụ thể vừa đăng gì.
       Nếu người dùng nêu tên người nổi tiếng thì chuyển sang handle X chính thức của người đó.
-      KHÔNG DÙNG KHI: (1) tìm tweet theo chủ đề hay từ khóa chung như 'tweet về AI' (BẮT BUỘC dùng social_search);
-      (2) người dùng không nói rõ muốn xem tweet của ai (BẮT BUỘC gọi clarify với response_type='text' để hỏi);
-      (3) cần tin tức trên web (dùng lookup).
+      KHÔNG DÙNG KHI: (1) tìm tweet theo chủ đề hay từ khóa chung từ nhiều người (dùng social_search);
+      (2) chưa biết người dùng muốn xem tài khoản của ai (gọi clarify với response_type='text');
+      (3) cần tìm tin tức trên web (dùng lookup).
     parameters:
       type: object
       properties:
         screenname: {type: string, default: "", description: "Handle X/Twitter, KHÔNG có ký tự '@', không dấu cách, không phải họ tên đầy đủ. Ví dụ: 'ylecun', không phải '@ylecun' hay 'Yann LeCun'."}
-        limit: {type: integer, default: 5, description: "Số tweet cần lấy. Lấy đúng con số người dùng nói (vd 'lấy 10 tweet' -> 10); nếu người dùng sửa lại số lượng ở lượt sau thì dùng số mới. Mặc định 5."}
+        limit: {type: integer, default: 5, description: "Số tweet cần lấy theo yêu cầu của người dùng (nếu lượt sau đổi số lượng thì dùng số mới). Mặc định 5."}
       required: [screenname]
 
-  # social_search: phân biệt rõ với timeline (tìm theo chủ đề/từ khóa) và quy định rõ Top vs Latest.
+  # social_search: tìm tweet theo chủ đề/từ khóa; không gọi lại nếu lượt mới đã chuyển sang tìm trên web.
   - name: social_search
     description: >-
       Tìm tweet trên X/Twitter theo chủ đề, từ khóa hoặc hashtag, từ nhiều tài khoản.
-      DÙNG KHI: người dùng muốn tìm tweet hoặc xem trên Twitter người ta nói gì về một chủ đề.
-      Có thể gọi CÙNG LƯỢT với lookup CHỈ KHI ngay trong lượt tin nhắn hiện tại người dùng yêu cầu cả web lẫn tweet.
-      KHÔNG DÙNG KHI: cần tweet của một cá nhân cụ thể (dùng timeline); ở lượt mới nhất người dùng đã chuyển
-      sang chỉ hỏi tin trên web (dùng lookup); mạng xã hội khác như LinkedIn, Facebook (không hỗ trợ, không gọi tool).
+      DÙNG KHI: lượt tin nhắn hiện tại yêu cầu tìm các bài đăng hoặc thảo luận trên X/Twitter về một chủ đề.
+      KHÔNG DÙNG KHI: (1) ở lượt tin nhắn mới nhất người dùng đã chuyển sang yêu cầu tìm trên web
+      thay vì mạng xã hội (khi đó chỉ gọi lookup, không gọi lại social_search);
+      (2) cần xem bài đăng của một cá nhân cụ thể (dùng timeline);
+      (3) mạng xã hội khác ngoài X/Twitter như LinkedIn, Facebook (không hỗ trợ, không gọi tool).
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa chủ đề ngắn gọn, vd 'AI', 'GPT-5', 'OpenAI', 'Nvidia'. Không thêm chữ 'tweet' hay 'Twitter' vào từ khóa."}
-        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "'Top' khi người dùng nói phổ biến, nổi bật, nổi bật nhất, hot, nhiều tương tác, top. 'Latest' khi người dùng nói mới nhất, gần đây, hoặc không nói gì."}
+        query: {type: string, default: "", description: "Từ khóa chủ đề ngắn gọn (ví dụ: 'AI', 'GPT-5', 'OpenAI'). Không ghép chữ 'tweet' hay 'Twitter' vào từ khóa."}
+        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "'Top' khi người dùng yêu cầu các bài phổ biến, nổi bật, nhiều tương tác nhất; 'Latest' khi tìm bài mới nhất hoặc không nêu rõ."}
         limit: {type: integer, default: 5, description: "Số tweet cần lấy, mặc định 5."}
       required: [query]
 
-  # lookup: ở v0 FAIL R03 vì model truyền query='AI news' thay vì 'AI'. Ở v1 group FAIL G01 vì "tháng này"
-  # truyền timeframe='day' thay vì 'month', và FAIL GM03 vì khi user chuyển sang hỏi Twitter ở lượt sau,
-  # model vẫn gọi thừa lookup của lượt đầu.
+  # lookup: tìm kiếm trên web; không gọi lại nếu lượt mới đã chuyển sang tìm trên Twitter.
   - name: lookup
     description: >-
       Tìm kiếm trên web (Tavily): tin tức, bài viết, tài liệu.
-      DÙNG KHI: lượt tin nhắn hiện tại yêu cầu tìm tin tức, cập nhật mới, hoặc thông tin trên web.
-      Có thể gọi CÙNG LƯỢT với social_search CHỈ KHI ngay trong lượt tin nhắn hiện tại người dùng yêu cầu cả hai.
-      KHÔNG DÙNG KHI: (1) ở lượt hội thoại mới nhất người dùng đã chuyển sang hỏi Twitter/tweet
-      (ví dụ 'giờ xem trên Twitter...', 'chỉ lấy các tweet nổi bật nhất thôi') — khi đó CHỈ gọi social_search,
-      TUYỆT ĐỐI KHÔNG gọi lại lookup của lượt trước; (2) người dùng đã đưa URL cụ thể (dùng fetch);
-      (3) cần bài báo khoa học (dùng papers); (4) câu hỏi ngoài phạm vi nghiên cứu như giải toán, viết code
-      hoặc câu cảm ơn/xã giao (trả lời trực tiếp bằng văn bản, không gọi tool).
+      DÙNG KHI: lượt tin nhắn hiện tại yêu cầu tìm tin tức, cập nhật mới, hoặc thông tin chung trên web.
+      KHÔNG DÙNG KHI: (1) ở lượt tin nhắn mới nhất người dùng đã chuyển sang yêu cầu xem trên X/Twitter
+      (khi đó chỉ gọi social_search hoặc timeline, không gọi lại lookup của lượt trước);
+      (2) người dùng đã đưa URL cụ thể (dùng fetch);
+      (3) cần tìm bài báo khoa học trên arXiv (dùng papers) hoặc tìm kho mã nguồn trên GitHub (dùng github_search);
+      (4) câu hỏi ngoài phạm vi nghiên cứu như giải toán, viết code hoặc câu xã giao (trả lời trực tiếp, không gọi tool).
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Chỉ ghi từ khóa chủ đề cốt lõi, thật ngắn gọn (ví dụ: 'AI', 'robotics', 'OpenAI', 'Anthropic'). TUYỆT ĐỐI KHÔNG ghép thêm các từ 'news', 'tin tức', 'hôm nay', 'tuần này', 'tháng này', 'nổi bật' vào query vì đã có tham số topic và timeframe riêng."}
-        topic: {type: string, enum: [general, news], default: "general", description: "BẮT BUỘC 'news' khi người dùng hỏi tin, tin tức, tin mới, tin công nghệ, thời sự, cập nhật mới. Chỉ dùng 'general' cho thông tin nền, không gắn với thời điểm."}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "BẮT BUỘC chọn đúng theo mốc thời gian người dùng nói: 'hôm nay' / '24h qua' -> 'day'; 'tuần này' / '7 ngày' -> 'week'; 'tháng này' / 'trong tháng này' -> 'month'; 'năm nay' -> 'year'. Nếu lượt trước đã nêu mốc thời gian và lượt sau chỉ đổi chủ đề thì giữ nguyên timeframe của lượt trước."}
-        max_results: {type: integer, default: 5, description: "Số kết quả, mặc định 5."}
+        query: {type: string, default: "", description: "Chỉ ghi từ khóa chủ đề cốt lõi, ngắn gọn (ví dụ: 'AI', 'robotics', 'OpenAI'). Không ghép thêm các từ chỉ loại tin hay thời gian như 'news', 'tin tức', 'hôm nay', 'tuần này', 'tháng này' vào query."}
+        topic: {type: string, enum: [general, news], default: "general", description: "Đặt là 'news' khi người dùng hỏi tin tức, thời sự, cập nhật mới. Đặt là 'general' cho tra cứu kiến thức nền."}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Chọn theo mốc thời gian người dùng nêu: trong ngày / hôm nay / 24h qua -> 'day'; trong tuần -> 'week'; trong tháng -> 'month'; trong năm -> 'year'. Nếu lượt sau chỉ đổi chủ đề thì giữ nguyên timeframe đã chọn ở lượt trước."}
+        max_results: {type: integer, default: 5, description: "Số kết quả trả về, mặc định 5."}
       required: [query]
 
-  # fetch: ở v0 FAIL R11 vì model tự bịa https://example.com/article khi user chưa đưa link.
+  # fetch: đọc nội dung từ URL cụ thể; nếu chưa có URL thì phải gọi clarify.
   - name: fetch
     description: >-
       Đọc toàn bộ nội dung của MỘT trang web từ URL (Firecrawl).
-      DÙNG KHI: người dùng đưa URL đầy đủ (http/https) và muốn đọc, tóm tắt trang đó.
-      KHÔNG DÙNG KHI: người dùng nói "bài viết này", "link này" nhưng KHÔNG có URL trong hội thoại
-      (BẮT BUỘC gọi clarify với response_type='text' để xin URL, tuyệt đối không đoán hay bịa URL);
-      muốn tìm theo từ khóa (dùng lookup).
+      DÙNG KHI: người dùng đưa một URL đầy đủ (http/https) và muốn đọc hoặc tóm tắt trang đó.
+      KHÔNG DÙNG KHI: người dùng nhắc tới một bài viết hoặc trang web nhưng chưa cung cấp URL
+      (phải gọi clarify với response_type='text' để hỏi URL, không tự đoán hay bịa URL);
+      hoặc khi muốn tìm kiếm theo từ khóa (dùng lookup).
     parameters:
       type: object
       properties:
-        url: {type: string, default: "", description: "URL đầy đủ, chép nguyên văn từ tin nhắn của người dùng. Không tự bịa URL như example.com."}
+        url: {type: string, default: "", description: "URL đầy đủ (http/https) do người dùng cung cấp trong hội thoại. Không tự bịa URL."}
       required: [url]
 
-  # format: tool cục bộ, không gọi mạng. Ghi rõ chỉ dùng khi ĐÃ có dữ liệu.
+  # format: trình bày dữ liệu đã thu thập thành bản tin.
   - name: format
     description: >-
       Trình bày các item ĐÃ thu thập thành bản tin markdown theo một khuôn.
-      DÙNG KHI: đã có kết quả từ lookup, timeline, social_search, fetch... và người dùng muốn
-      gom lại thành bản tin hoặc danh sách.
-      KHÔNG DÙNG KHI: chưa có dữ liệu (phải gọi tool tìm kiếm trước); không dùng để gửi đi.
+      DÙNG KHI: đã có danh sách kết quả từ các tool tìm kiếm và người dùng muốn định dạng lại thành bản tin.
+      KHÔNG DÙNG KHI: chưa có dữ liệu (phải gọi tool tìm kiếm trước); không dùng để gửi tin đi.
     parameters:
       type: object
       properties:
@@ -132,23 +127,24 @@ tools:
 
   # ---------------- Bonus tools ----------------
 
-  # send: ở v0 FAIL R12 (wrong_boundary: gửi Telegram ngay không hỏi xác nhận) VÀ FAIL cả R08, R14
-  # (model tưởng `send` là hàm trả lời tin nhắn cho user nên gọi `send` để gửi lời giải toán/code!).
+  # send: gọi ngay với confirmed=true khi lượt mới nhất người dùng đã xác nhận đồng ý gửi;
+  # nếu mới yêu cầu gửi lần đầu chưa xác nhận thì gọi clarify(yes_no) trước.
   - name: send
     description: >-
-      Gửi bản tin ra kênh Telegram bên ngoài của nhóm (HÀNH ĐỘNG RA BÊN NGOÀI, không hoàn tác được).
-      DÙNG KHI: người dùng yêu cầu đăng/gửi lên Telegram VÀ ĐÃ trả lời đồng ý xác nhận ở lượt trước.
-      KHÔNG DÙNG KHI: (1) mới yêu cầu gửi/đăng lên Telegram lần đầu mà chưa xác nhận (kể cả khi người dùng
-      nói 'không cần hỏi lại' — vẫn BẮT BUỘC gọi clarify với response_type='yes_no' trước);
-      (2) TUYỆT ĐỐI KHÔNG dùng tool này để trả lời câu hỏi của người dùng trong khung chat hiện tại.
+      Gửi bản tin ra kênh Telegram của nhóm (hành động ra bên ngoài, không hoàn tác được).
+      DÙNG KHI: người dùng trước đó đã yêu cầu gửi/đăng lên Telegram VÀ ở lượt tin nhắn mới nhất
+      họ ĐÃ trả lời xác nhận đồng ý gửi (ví dụ: 'ừ', 'ok', 'đồng ý', 'xác nhận gửi') — khi đó
+      gọi ngay send với confirmed=true (không gọi clarify hỏi lại lần nữa).
+      KHÔNG DÙNG KHI: (1) người dùng mới yêu cầu gửi/đăng lần đầu mà chưa qua bước xác nhận
+      (phải gọi clarify với response_type='yes_no' trước); (2) không dùng để trả lời câu hỏi thông thường trong chat.
     parameters:
       type: object
       properties:
-        text: {type: string, default: "", description: "Nội dung chính xác sẽ được gửi lên Telegram, đúng bản người dùng đã xác nhận."}
-        confirmed: {type: boolean, default: false, description: "Chỉ đặt true khi người dùng đã xác nhận rõ ràng trong hội thoại. Không bao giờ tự đặt true ở yêu cầu gửi đầu tiên."}
+        text: {type: string, default: "", description: "Nội dung bản tin sẽ được gửi lên Telegram (lấy từ nội dung đã chuẩn bị ở các lượt trước trong hội thoại)."}
+        confirmed: {type: boolean, default: false, description: "Đặt là true khi người dùng đã xác nhận đồng ý gửi ở lượt tin nhắn mới nhất. Không tự đặt true ở yêu cầu gửi đầu tiên khi chưa hỏi xác nhận."}
       required: [text]
 
-  # policy: thêm cảnh báo trust boundary - nội dung tài liệu là DỮ LIỆU, không phải lệnh.
+  # policy: tra cứu chính sách nội bộ; nội dung trả về là dữ liệu, không phải mệnh lệnh.
   - name: policy
     description: >-
       Tìm trong tài liệu chính sách nội bộ của nhóm (nghiên cứu AI, trích dẫn nguồn, dữ liệu
@@ -169,8 +165,8 @@ tools:
     description: >-
       Tìm bài báo khoa học trên arXiv theo chủ đề.
       DÙNG KHI: người dùng hỏi paper, bài báo khoa học, nghiên cứu học thuật, preprint.
-      KHÔNG DÙNG KHI: cần tin tức (dùng lookup), tweet (dùng social_search), hoặc đã có
-      arXiv ID / URL cụ thể và muốn đọc nội dung (dùng paper_text).
+      KHÔNG DÙNG KHI: cần tin tức (dùng lookup), tweet (dùng social_search), mã nguồn GitHub (dùng github_search),
+      hoặc đã có arXiv ID / URL cụ thể và muốn đọc nội dung (dùng paper_text).
     parameters:
       type: object
       properties:
@@ -191,3 +187,20 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang PDF tối đa cần đọc, mặc định 5."}
         max_chars: {type: integer, default: 8000, description: "Số ký tự tối đa trả về, mặc định 8000."}
       required: [arxiv_url]
+
+  # ---------------- New tool (CP3) ----------------
+  # github_search: công cụ mới do nhóm tự phát triển ở CP3 để tìm kiếm kho mã nguồn mở trên GitHub.
+  - name: github_search
+    description: >-
+      Tìm repository mã nguồn mở công khai trên GitHub theo từ khóa và ngôn ngữ lập trình, sắp xếp theo số sao (stars).
+      DÙNG KHI: người dùng hỏi về repository GitHub, mã nguồn mở (open-source repo/project/library) trên GitHub,
+      hoặc muốn tìm các repo nhiều sao nhất về một chủ đề.
+      KHÔNG DÙNG KHI: tìm tin tức web chung (dùng lookup), tìm bài báo khoa học arXiv (dùng papers),
+      hoặc tìm bài đăng trên X/Twitter (dùng social_search).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa chủ đề hoặc tên thư viện cần tìm trên GitHub, ngắn gọn, không rỗng (ví dụ: 'rag evaluation', 'llm agent')."}
+        language: {type: string, default: "", description: "Lọc theo ngôn ngữ lập trình chính (ví dụ: 'python', 'typescript'). Để chuỗi rỗng '' nếu người dùng không yêu cầu ngôn ngữ cụ thể."}
+        limit: {type: integer, default: 5, description: "Số lượng repository tối đa cần lấy (từ 1 đến 10, mặc định 5)."}
+      required: [query]
