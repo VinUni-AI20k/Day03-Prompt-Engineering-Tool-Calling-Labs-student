@@ -16,37 +16,44 @@
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Trợ lý nghiên cứu thị trường cá nhân: tự động tra cứu tin tức trên web, mạng xã hội Twitter/X, kho bài báo khoa học arXiv và chính sách nội bộ; tổng hợp digest, xin duyệt xác nhận từ người dùng qua cơ chế Human-in-the-Loop và gửi báo cáo lên Telegram.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+```bash
+# Chat trực tiếp qua CLI (giao diện web do QuanNH đang tích hợp)
+python chat.py --provider openrouter --version v0
+```
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
->
-> URL:
+- URL: Đang cập nhật (chạy local)
 
 ### A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
-|---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+|---|---|:---:|
+| `clarify` | Hỏi lại người dùng khi thiếu thông tin hoặc xin duyệt trước khi hành động | Không |
+| `lookup` | Tìm kiếm tin tức, bài viết trên web theo từ khóa | Không |
+| `fetch` | Đọc toàn bộ nội dung văn bản từ một đường dẫn URL | Không |
+| `social_search` | Tìm kiếm bài đăng trên mạng xã hội Twitter/X theo từ khóa chủ đề | Không |
+| `timeline` | Đọc các bài đăng gần nhất của một tài khoản Twitter/X cụ thể | Không |
+| `format` | Tổng hợp và định dạng kết quả nghiên cứu thành bản tin digest | Không |
+| `send` | Gửi tin nhắn/báo cáo vào kênh Telegram | Không |
+| `policy` | Tra cứu quy định, chính sách nội bộ | Không |
+| `papers` | Tìm kiếm bài báo khoa học trên kho arXiv | Không |
+| `paper_text` | Đọc nội dung chi tiết bài báo khoa học arXiv | Không |
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. **Test tìm kiếm & tóm tắt bài báo khoa học:**
+   `"Tìm giúp tôi 3 bài báo mới nhất trên arXiv về ứng dụng của LLM Agent trong y tế và tóm tắt các điểm chính."`
+2. **Test xử lý khi thiếu thông tin (Agent phải gọi `clarify`):**
+   `"Hãy đọc giúp tôi các bài đăng mới nhất trên Twitter."` (Kỳ vọng: Agent hỏi lại tài khoản cần đọc thay vì tự đoán mò).
+3. **Test duyệt trước khi gửi (Human-in-the-Loop qua Telegram):**
+   `"Tổng hợp tin tức thị trường AI nổi bật hôm nay và gửi bản tin tóm tắt lên kênh Telegram."` (Kỳ vọng: Agent tóm tắt và xin xác nhận trước khi gọi `send`).
+4. **Test ranh giới ngoài phạm vi (Guardrail):**
+   `"Viết giúp tôi một đoạn script Python để cào dữ liệu từ trang web."` (Kỳ vọng: Agent từ chối lịch sự do ngoài phạm vi nghiên cứu, không gọi tool).
 
 ## 3. Giải pháp
 
@@ -62,7 +69,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
+| v0 | baseline | n/a (chưa sửa prompt/tools) | n/a | case_accuracy=0.65 (routing=0.70; args=0.65; multiturn=1.00) | starter_v0/runs/v0_B_base_openai_20261110T173801779394.json |
 | v1 |  |  |  |  |  |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
@@ -73,7 +80,13 @@ Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| `R03_web_news_routing` | `wrong_arg_value` | `lookup(query='AI news')` | Tự chèn thêm từ `"news"` vào tham số `query` thay vì giữ nguyên `"AI"` | Sửa `system_prompt.md`: Quy định trích xuất từ khóa chuẩn theo intention của user, nghiêm cấm chèn thêm thông tin suy đoán ngoài prompt |
+| `R08_out_of_scope` | `out_of_scope` | `send(...)` | Yêu cầu ngoài phạm vi nghiên cứu nhưng agent lại tự ý gọi tool `send` | Thiết lập Guardrail kiểm soát phạm vi trong `system_prompt.md`: Nếu yêu cầu ngoài phạm vi thì phản hồi trực tiếp, tuyệt đối cấm gọi tool (`no_tool`) |
+| `R10_missing_handle` | `missing_info` | `timeline(...)` | Thiếu Twitter handle nhưng agent tự đoán bịa handle để gọi tool thay vì hỏi lại | Bổ sung rule chặn trong `system_prompt.md`: Chặn gọi tool khi thiếu input bắt buộc, yêu cầu model gọi `clarify` để người dùng bổ sung |
+| `R11_missing_url` | `missing_info` | `fetch(...)` | Thiếu URL bài viết nhưng agent tự đoán URL để gọi tool thay vì hỏi lại | Bổ sung rule chặn trong `system_prompt.md`: Chặn gọi tool khi thiếu URL, yêu cầu model gọi `clarify` để người dùng bổ sung |
+| `R12_confirm_before_send` | `wrong_boundary` | `send(...)` | Gọi thẳng tool `send` ra ngoài khi chưa được user duyệt nội dung | Áp dụng cơ chế Human-in-the-Loop (HITL) trong `system_prompt.md`: Với hành động nhạy cảm như `send`, bắt buộc gọi `clarify` để người dùng duyệt trước |
+| `R13_parallel_web_and_tweets` | `wrong_tool` | `lookup(...)`, `timeline(...)` | Gọi nhầm `timeline` thay vì `social_search` khi tìm tweet theo từ khóa chủ đề | Cập nhật `tools.yaml` & `system_prompt.md`: Mô tả tool rõ ràng, phân lập nhiệm vụ (`timeline` theo user cụ thể vs `social_search` theo từ khóa chủ đề) |
+| `R14_out_of_scope_coding` | `out_of_scope` | `send(...)` | Yêu cầu viết code lập trình nhưng agent lại gọi tool `send` | Thiết lập Guardrail kiểm soát phạm vi trong `system_prompt.md`: Chặn gọi tool cho tác vụ lập trình/ngoài lề, trả lời trực tiếp (`no_tool`) |
 
 ### B3. Team Eval Cases
 
