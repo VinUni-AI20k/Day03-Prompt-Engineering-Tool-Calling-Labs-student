@@ -5,6 +5,12 @@ from typing import Any
 
 import yaml
 
+from env_loader import load_lab_env
+
+# Load starter_v0/.env so tools work when imported directly
+# (e.g. the quick tests in TOOL-SETUP.md), not only via chat.py / run_eval.py.
+load_lab_env(Path(__file__).resolve().parents[1])
+
 # Folder names are intentionally vague to match the tool names students see.
 # The imported function names are the underlying implementations (unchanged).
 from .clarify.tool import ask_user
