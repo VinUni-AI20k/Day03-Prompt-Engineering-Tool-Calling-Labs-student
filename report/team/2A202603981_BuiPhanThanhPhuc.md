@@ -10,7 +10,7 @@
 
 ## 2. Phần việc phụ trách
 
-Người 3 của nhóm anbatocom: bộ eval nhóm (C5), UI và live chat (C6), báo cáo nhóm Part A và Part B (C7). Đây là phân công của nhóm; phần thực tế đã làm ghi ở mục 3, phần do người khác hoàn thành ghi rõ tên.
+Người 3 của nhóm anbatocom: bộ eval nhóm (C5), UI Streamlit (C6), báo cáo nhóm Part A (C7).
 
 ## 3. Đóng góp cụ thể
 
