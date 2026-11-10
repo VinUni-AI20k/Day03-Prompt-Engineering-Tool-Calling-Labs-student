@@ -16,45 +16,43 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: "Hỏi lại user khi thiếu thông tin bắt buộc (handle, URL) hoặc cần xác nhận trước khi gửi/đăng. Không dùng cho câu ngoài phạm vi."
     parameters:
       type: object
       properties:
-        question: {type: string, default: "", description: "Câu hỏi"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
-        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
-      required: [question]
-
+        question: {type: string, default: "", description: "Câu hỏi ngắn cho user"}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "LUÔN điền. text = hỏi thông tin còn thiếu (handle, URL). yes_no = xin xác nhận trước khi gửi/đăng Telegram. choice = khi đưa options."}
+        options: {type: array, default: [], items: {type: string}, description: "Chỉ dùng khi response_type=choice"}
+      required: [question, response_type]
   - name: timeline
-    description: "Lấy các bài đăng gần đây."
+    description: "Lấy N bài mới nhất của MỘT tài khoản X/Twitter cụ thể. Dùng khi user nêu tên người/handle. KHÔNG dùng để tìm theo chủ đề (dùng social_search). Thiếu tên tài khoản thì gọi clarify."
     parameters:
       type: object
       properties:
-        screenname: {type: string, default: "", description: "Tên tài khoản"}
-        limit: {type: integer, default: 5, description: "Số lượng"}
+        screenname: {type: string, default: "", description: "Handle không có @. Sam Altman=sama, Elon Musk=elonmusk, Andrej Karpathy=karpathy"}
+        limit: {type: integer, default: 5, description: "Số bài user yêu cầu; user đính chính thì dùng số mới nhất"}
       required: [screenname]
 
   - name: social_search
-    description: "Tìm trên mạng xã hội."
+    description: "Tìm bài đăng trên X/Twitter theo chủ đề/từ khóa. CHỈ dùng khi user nhắc Twitter/X/tweet/mọi người bàn tán. KHÔNG dùng cho tin tức web; nếu user nói bỏ Twitter thì dùng lookup."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa"}
-        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp"}
+        query: {type: string, default: "", description: "Chỉ từ khóa chủ đề, ví dụ 'OpenAI'"}
+        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Top khi user nói phổ biến/nổi bật/top; còn lại Latest"}
         limit: {type: integer, default: 5, description: "Số lượng"}
       required: [query]
 
   - name: lookup
-    description: "Tra cứu thông tin trên internet."
+    description: "Tìm trên web. Dùng cho tin tức, sự kiện, thông tin chung. Đây là tool MẶC ĐỊNH khi user hỏi 'tin...' mà không nhắc Twitter/X."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
+        query: {type: string, default: "", description: "Chỉ chủ đề, KHÔNG thêm chữ 'news'/'tin tức'. Ví dụ 'AI', 'robotics'"}
+        topic: {type: string, enum: [general, news], default: "general", description: "news khi user hỏi tin/tin tức; còn lại general"}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "hôm nay=day, tuần này=week, tháng này=month. Giữ timeframe từ lượt trước nếu user không đổi"}
         max_results: {type: integer, default: 5, description: "Số kết quả"}
       required: [query]
-
   - name: fetch
     description: "Lấy nội dung từ một địa chỉ."
     parameters:
@@ -86,14 +84,13 @@ tools:
 
   # ---------------- Bonus tools ----------------
   - name: send
-    description: "Gửi một đoạn văn bản đi."
+    description: "Đăng text lên kênh Telegram của nhóm. Kênh ĐÃ cấu hình sẵn trong hệ thống: KHÔNG hỏi tên kênh. 'Bản tin này/đó' là nội dung vừa tạo trong hội thoại: KHÔNG hỏi nội dung. Khi user yêu cầu đăng/gửi, gọi clarify(response_type='yes_no') để xin xác nhận, KHÔNG dùng response_type='text'. Chỉ gọi send(confirmed=true) sau khi user trả lời đồng ý."
     parameters:
       type: object
       properties:
-        text: {type: string, default: "", description: "Nội dung"}
-        confirmed: {type: boolean, default: false, description: "Cờ xác nhận"}
+        text: {type: string, default: "", description: "Nội dung cần đăng"}
+        confirmed: {type: boolean, default: false, description: "true CHỈ khi user đã xác nhận đồng ý gửi"}
       required: [text]
-
   - name: policy
     description: "Tìm trong tài liệu nội bộ."
     parameters:
@@ -123,3 +120,12 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+  - name: hn_search
+    description: "Tìm bài trên Hacker News (cộng đồng dev/tech). CHỈ dùng khi user nhắc Hacker News/HN. Tin tức chung dùng lookup, Twitter dùng social_search."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Chỉ từ khóa chủ đề, ví dụ 'LLM'"}
+        sort: {type: string, enum: [relevance, latest], default: "relevance", description: "latest khi user hỏi mới nhất; còn lại relevance"}
+        limit: {type: integer, default: 5, description: "Số bài, tối đa 20"}
+      required: [query]

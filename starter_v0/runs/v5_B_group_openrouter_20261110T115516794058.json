@@ -1,0 +1,887 @@
+{
+  "run_id": "v5_B_group_openrouter_20261110T115516794058",
+  "version": "v5",
+  "artifact_version": "v5+pf446d24d3a2e+t105a2aa0c2ac",
+  "prompt_hash": "f446d24d3a2e60236710049b1e553e3e7c8c1d934d48a5865a27488daa2eaa0b",
+  "tools_hash": "105a2aa0c2ac554e2fe54893cc9b0fdefdc5e7087d770c8ee83c1750157b03d8",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "C:\\Users\\HP\\K5-L3A-DAY03-NhomABC-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "C:\\Users\\HP\\K5-L3A-DAY03-NhomABC-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day04_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T11:55:16",
+  "summary": {
+    "total_cases": 11,
+    "measured_cases": 11,
+    "provider_error_cases": 0,
+    "passed_cases": 9,
+    "case_accuracy": 0.8182,
+    "tool_routing_accuracy": 0.9091,
+    "argument_accuracy": 0.8182,
+    "multiturn_accuracy": 0.6667,
+    "failure_counts": {
+      "wrong_boundary": 1,
+      "missing_info": 1
+    },
+    "observed_mismatch_counts": {
+      "wrong_arg_value": 1,
+      "missing_tool_call": 1
+    }
+  },
+  "results": [
+    {
+      "id": "G01_hn_routing",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "User nhắc Hacker News -> route sang tool mới hn_search, không dùng lookup/social_search."
+      },
+      "input": "Trên Hacker News đang bàn gì về Rust?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust",
+              "sort": "latest",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "Rust",
+            "sort": "latest",
+            "limit": 5
+          },
+          "result": {
+            "tool": "hn_search",
+            "error": "ConnectionError",
+            "message": "('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_hn_latest_sort",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Hiểu viết tắt HN và map 'mới nhất' -> sort=latest."
+      },
+      "input": "Cho mình các bài mới nhất trên HN về LLM",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM",
+              "sort": "latest"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM",
+              "sort": "latest",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "LLM",
+            "sort": "latest",
+            "limit": 5
+          },
+          "result": {
+            "tool": "hn_search",
+            "error": "ConnectionError",
+            "message": "('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_handle_mapping_limit",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Map tên người -> handle không có @, giữ đúng limit."
+      },
+      "input": "Lấy 3 tweet mới nhất của Andrej Karpathy",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 3
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "karpathy",
+            "limit": 3
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "karpathy",
+            "items": [
+              {
+                "title": "Earlier this week Tristan published his top YouTube channels:",
+                "summary": "Earlier this week Tristan published his top YouTube channels:\nhttps://t.co/NZ3UCNo6cT\nWhich looked excellent so clearly I had to turn it into TristanTube:\nhttps://t.co/l0KyW1WdNH\n47K super nerdy videos +TV mode for laid back watching. (One-shotted with Claude Code in 3 minutes)",
+                "url": "https://x.com/karpathy/status/2119114537442189652",
+                "source": "@karpathy",
+                "date": "Sat Nov 07 17:07:31 +0000 2026",
+                "metrics": {
+                  "favorites": 9164,
+                  "retweets": 771,
+                  "views": "938755"
+                }
+              },
+              {
+                "title": "Weekend hack: HackerTube. I was annoyed with YouTube's recommendations so I had Claude filter down 43M comments over 20 ",
+                "summary": "Weekend hack: HackerTube. I was annoyed with YouTube's recommendations so I had Claude filter down 43M comments over 20 years of HN to 6,454 videos that keep being recommended. *Significantly* better viewing experience, ~2 hours with Opus 5.5:\nhttps://t.co/JIhXN7OSh1\n\n- Excellent recs without any logins (state is kept in local browser session)\n- Thumbnail is a representative frame from middle of the video instead of the super duper A/B test hyper-optimized user uploads\n- Underlying data from the comment analysis as one zip file, point your Claude at it and ask for your own version\n- HackerTube Longs ✊\n\nA bit more on the process:\nI use Claude Code (desktop app for Mac), Opus 5.5 on Medium effort as my default. I only talk to Claude and have it do everything, the only \"manual work\" I helped with in tandem was in the browser (reminiscent of MenuGen): 1) I had to create some kind of API key from Google Cloud UI to query YouTube for video metadata, 2) I booted up a VPS box for serving and 3) I bought the domain name. Once the box was up I gave Claude the IP and told it update, secure, harden, deploy and optimize the code, and it did the whole thing.\n\nMany awesome projects that would have normally taken weeks/months even can now be few-shotted for breakfast. What else are we not thinking of.",
+                "url": "https://x.com/karpathy/status/2116957135661945283",
+                "source": "@karpathy",
+                "date": "Sun Nov 01 18:14:46 +0000 2026",
+                "metrics": {
+                  "favorites": 52339,
+                  "retweets": 4834,
+                  "views": "5716775"
+                }
+              },
+              {
+                "title": "RT @Tristan0x: If you've ever wondered why smart TVs are so cheap, this is why.",
+                "summary": "RT @Tristan0x: If you've ever wondered why smart TVs are so cheap, this is why.\n\n@log4j rooted his Samsung and found an always-on hot mic,…",
+                "url": "https://x.com/karpathy/status/2114384346815820050",
+                "source": "@karpathy",
+                "date": "Sun Oct 25 15:51:26 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 3287,
+                  "views": "40226"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_month_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "'tháng này' -> timeframe=month, topic=news, query không thêm chữ 'news'."
+      },
+      "input": "Tin tức về Nvidia trong tháng này",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Nvidia",
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Nvidia",
+              "topic": "news",
+              "timeframe": "month",
+              "max_results": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "Nvidia",
+            "topic": "news",
+            "timeframe": "month",
+            "max_results": 5
+          },
+          "result": {
+            "tool": "web_search",
+            "error": "ConnectionError",
+            "message": "('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G05_out_of_scope_email",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Việc viết lách ngoài phạm vi research -> từ chối, không gọi tool (nhất là không gọi send)."
+      },
+      "input": "Viết giúp mình một email xin nghỉ phép gửi sếp",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Mình không thể viết email cho bạn, nhưng mình có thể hướng dẫn bạn cách viết một email xin nghỉ phép. Dưới đây là một mẫu bạn có thể tham khảo:\n\n---\n\nChủ đề: Đơn xin nghỉ phép\n\nKính gửi [Tên sếp],\n\nTôi xin phép được nghỉ phép từ ngày [ngày bắt đầu] đến ngày [ngày kết thúc] vì [lý do nghỉ phép, ví dụ: lý do cá nhân, sức khỏe, gia đình, v.v.]. Tôi sẽ đảm bảo hoàn thành công việc trước khi nghỉ và sẽ sắp xếp để bàn giao công việc cho [tên người thay thế, nếu có].\n\nTôi rất mong nhận được sự đồng ý từ anh/chị.\n\nXin cảm ơn!\n\nTrân trọng,\n[Tên bạn]\n\n---\n\nBạn có thể điều chỉnh nội dung cho phù hợp với tình huống của mình. Nếu cần thêm trợ giúp, hãy cho mình biết!",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G06_clarify_then_handle_limit",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "Ghép handle từ lượt 2 và limit từ lượt 3."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Lấy tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Của Sam Altman"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 2 cái thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 2
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 2
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "sama",
+            "limit": 2
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "sama",
+            "items": [
+              {
+                "title": "RT @fouadmatin: Today’s GPT-6 Cyber release is a meaningful step for defenders: stronger vulnerability research and bett",
+                "summary": "RT @fouadmatin: Today’s GPT-6 Cyber release is a meaningful step for defenders: stronger vulnerability research and better alignment. We’ve…",
+                "url": "https://x.com/sama/status/2118471941002842341",
+                "source": "@sama",
+                "date": "Thu Nov 05 22:34:04 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 53,
+                  "views": "47388"
+                }
+              },
+              {
+                "title": "RT @thsottiaux: Day 25/",
+                "summary": "RT @thsottiaux: Day 25/\n\nWe are doubling all usage limits for all Pro 100/200/500 tiers and Business Premium, effective today.\n\nWe heard yo…",
+                "url": "https://x.com/sama/status/2117797818756952416",
+                "source": "@sama",
+                "date": "Wed Nov 04 01:55:21 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 2703,
+                  "views": "41961"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G07_switch_to_hn",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "Đổi nguồn từ social_search sang tool mới hn_search, giữ chủ đề."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mọi người trên Twitter nói gì về Rust?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi bỏ Twitter, tìm trên Hacker News đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn chủ đề Rust nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust",
+              "sort": "latest",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "Rust",
+            "sort": "latest",
+            "limit": 5
+          },
+          "result": {
+            "tool": "hn_search",
+            "error": "ConnectionError",
+            "message": "('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G08_confirm_send_after_digest",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "Nội dung đã rõ từ lượt trước -> vẫn phải xin xác nhận yes_no trước khi send."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Đăng bản tin đó lên Telegram giúp mình"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có thể cung cấp tên kênh Telegram mà bạn muốn đăng bản tin không?",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_boundary",
+        "failures": [
+          "response_type: expected 'yes_no', got 'text'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có thể cung cấp tên kênh Telegram mà bạn muốn đăng bản tin không?",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có thể cung cấp tên kênh Telegram mà bạn muốn đăng bản tin không?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G09_change_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "User đổi timeframe day -> week, giữ topic=news."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin công nghệ hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang cả tuần này đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn là tin tức thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "công nghệ",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "công nghệ",
+            "topic": "news",
+            "timeframe": "week"
+          },
+          "result": {
+            "tool": "web_search",
+            "error": "ConnectionError",
+            "message": "('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None))"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G10_correction_to_top",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "User đính chính Latest -> Top, giữ query."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm tweet mới nhất về Claude"
+        },
+        {
+          "role": "user",
+          "content": "À không, mình muốn các tweet phổ biến nhất cơ"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Claude",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Claude",
+              "search_type": "Top",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Claude",
+            "search_type": "Top",
+            "limit": 5
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Claude",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "Introducing Claude Fable 5.2 and Claude Mythos 5.2, designed to tackle the most daunting technical challenges.",
+                "summary": "Introducing Claude Fable 5.2 and Claude Mythos 5.2, designed to tackle the most daunting technical challenges.\n\nThey’re capable collaborators on ambitious projects in many fields, and show improvements in areas like coding, reasoning, and vision. https://t.co/jP0AutLxXb",
+                "url": "https://x.com/claudeai/status/2119867114450268322",
+                "source": "@claudeai",
+                "date": "Mon Nov 09 18:57:59 +0000 2026",
+                "metrics": {
+                  "favorites": 82150,
+                  "retweets": 7847,
+                  "views": "10078839"
+                }
+              },
+              {
+                "title": "A 21-year-old guy from Los Angeles made $67,492 in a single month without writing one line of code",
+                "summary": "A 21-year-old guy from Los Angeles made $67,492 in a single month without writing one line of code\n\nHe opens Google Maps, types \"real estate agency\" in any city and scrolls the list\n\nHe picks the ones with no website, or a site that looks like 2012\n\nCopies the business name, phone and address into Claude\n\nClaude builds a full landing page in 2 minutes: hero image, headline, listings block, contact form\n\nHe buys a $10 domain, hits publish, the site is live before lunch\n\nThen he calls the owner: \"I made a website for your agency, want to see it?\"\n\n9 out of 10 say yes out of pure curiosity\n\nHe sells each site for $500 to $2,000, some with a $99/month support fee on top\n\nIn 30 days, 54 clients closed\n\nJust Maps + Claude + a phone\n\nFull step-by-step setup is in the article below, read it before someone in your city does",
+                "url": "https://x.com/shmidtqq/status/2119429099617669482",
+                "source": "@shmidtqq",
+                "date": "Sun Nov 08 13:57:29 +0000 2026",
+                "metrics": {
+                  "favorites": 2471,
+                  "retweets": 268,
+                  "views": "235135"
+                }
+              },
+              {
+                "title": "Holy sh*t. Claude Code just found a hidden chip inside my Chinese power bank from Guangzhou. Every time I charged my iPh",
+                "summary": "Holy sh*t. Claude Code just found a hidden chip inside my Chinese power bank from Guangzhou. Every time I charged my iPhone, it quietly copied the whole phone…\n\nIt also read our saved Wi-Fi password off my iPhone, got onto our home network and sent everything to a server.\n\nI bought it for $19 at an airport kiosk there 3 weeks ago. No brand, 30,000 mAh on the label, and it felt heavy.\n\nThe first time I plugged in, the screen asked \"Trust This Computer?\". I tapped Trust without thinking and went on with my day. That one tap gave it access to everything.\n\nThis morning I finally set up Claude Code to warn me when any device starts reading my files. An hour later, 10 seconds into charging, the screen filled with yellow warnings, then red ones: data was moving when it should only be charging.\n\nI asked Claude Code what was going on. My phone saw the power bank as a small computer with 64 GB of storage and its own internet connection.\n\nA USB cable has wires for power and wires for data, and a normal charger only uses the power ones. This one used both, and it had already copied all of this:\n\n→ /device → IMEI and serial number\n→ /contacts → 1,206 numbers\n→ /apps → every app I have, including my 2 bank apps\n→ /photos → 3,912 pictures, my passport among them\n→ /wifi → our network name and its key\n→ /wife's iPhone → her photos too, she charged from it twice and tapped Trust too\n\nEach time we plugged in, it used that key to get online and send out the new files:\n\nsends to → 47.***.***.12\nuploads → 19 in 3 weeks\nlast one → last night at 2:14, while we slept\n\nI pulled the cable right away. Then Claude Code blocked that address on our router and walked me through changing the Wi-Fi password and the logins for my bank apps.\n\nI had it opened at a repair shop, and what was inside is in the first comment. A 30-second check for your own is in the second one. Save this and test every power bank in your house today.",
+                "url": "https://x.com/0xGoldTooth/status/2118028166707007853",
+                "source": "@0xGoldTooth",
+                "date": "Wed Nov 04 17:10:40 +0000 2026",
+                "metrics": {
+                  "favorites": 12461,
+                  "retweets": 3109,
+                  "views": "2346050"
+                }
+              },
+              {
+                "title": "This is f*cking insane. Former Google CEO Eric Schmidt just told everyone the easiest way to get rich in the next two ye",
+                "summary": "This is f*cking insane. Former Google CEO Eric Schmidt just told everyone the easiest way to get rich in the next two years, and it's not stocks or crypto:\n\n\"If you really want to make money, it's actually easy, found an agentic AI company, I mean build an agent to do something\n\nIf you build a better agent than anyone else, you can probably build one incredible company and own it yourself\"\n\nThe man who ran Google for 10 years explains in under 30 seconds why the next year or two is the agentic period, and why the window won't stay open\n\nPrompts → Claude Code → Loops → Graphs → Gates → A Company You Own Yourself\n\nSave this before it disappears from your feed\n\nEverything below is free:\n\nBuilding effective agents (Anthropic)\nhttps://t.co/mbMyiLIrqx\n\nHow Anthropic built its multi-agent research system\nhttps://t.co/gcKwsDFx5N\n\nHarnesses for long-running agents\nhttps://t.co/p0KbeE6pBF\n\nWriting tools for agents\nhttps://t.co/Rif9SuExCh\n\nClaude Code 101\nhttps://t.co/rma5cTfV6M\n\nClaude Code in action\nhttps://t.co/y7ldRiCZRC\n\nPrompt engineering\nhttps://t.co/wGkkT9tlAO\n\nSubagents (parallel work)\nhttps://t.co/Govs5sjHB0\n\nHooks (checks that can say no)\nhttps://t.co/YigRzFmXr3\n\nCLAUDE.md + memory\nhttps://t.co/EzV1u4QdQd\n\nSkills\nhttps://t.co/c8RGkxgGCt\n\nMCP\nhttps://t.co/tR6oTaM1QK\n\nLangGraph (graphs of agents)\nhttps://t.co/iKq99402hN\n\nKarpathy's autoresearch (an agent in a loop)\nhttps://t.co/gEMaSZMoYc\n\nAll of this costs $0\n\n95% will spend the agentic period scrolling AI threads. The 5% who ship agents will own the companies that come out of it\n\nBookmark it and start with the first link tonight\n\nThen read how to make an agent that works for hours without you in the Loops & Graphs guide below ↓",
+                "url": "https://x.com/HoodieFade_/status/2119824593753956844",
+                "source": "@HoodieFade_",
+                "date": "Mon Nov 09 16:09:02 +0000 2026",
+                "metrics": {
+                  "favorites": 3189,
+                  "retweets": 622,
+                  "views": "656159"
+                }
+              },
+              {
+                "title": "Introducing Personal Finance in Claude, in beta in the US.",
+                "summary": "Introducing Personal Finance in Claude, in beta in the US.\n\nConnect the accounts you choose, and Claude answers your money questions in everyday language, from your own balances and transactions. Access is read-only, and Claude can't move, manage, or invest your money. https://t.co/V1JLYuWwrS",
+                "url": "https://x.com/claudeai/status/2118403114890137895",
+                "source": "@claudeai",
+                "date": "Thu Nov 05 18:00:35 +0000 2026",
+                "metrics": {
+                  "favorites": 46434,
+                  "retweets": 2725,
+                  "views": "11633600"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G11_no_handle_from_context",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "Lỗi thấy khi test live (transcript v3_ui_20261110T114113142495): chủ đề lượt trước là Claude nhưng không được tự đoán handle claudeai; phải clarify hỏi tài khoản."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tweet phổ biến nhất về Claude"
+        },
+        {
+          "role": "user",
+          "content": "Tóm tắt 5 tweet mới nhất"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Claude",
+              "search_type": "Top",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "missing_info",
+        "failures": [
+          "missing tool call clarify",
+          "extra tool call social_search"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Claude",
+            "search_type": "Top",
+            "limit": 5
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Claude",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "I can't f*cking believe Anthropic open-sourced the cheat codes for Claude Code and people are still doing it by hand",
+                "summary": "I can't f*cking believe Anthropic open-sourced the cheat codes for Claude Code and people are still doing it by hand\n\nhere are the cheat codes:\n\n-> skills (by anthropics) https://t.co/CqYECgNZ1z the official skills repo from Anthropic, with clean examples of how a real skill is built\n\n-> claude code action (by anthropics) https://t.co/x0W1gc8En0 mention @claude in any PR or issue and it answers, writes the fix on a new branch and signs its commits\n\n-> claude code security review (by anthropics) https://t.co/OvWeVDQ5rB scans every pull request diff for vulnerabilities and filters out the noisy findings\n\n-> claude agent sdk python (by anthropics) https://t.co/Wa6RgHWlQn run Claude Code from your own Python app, with custom tools and hooks\n\n-> claude cookbooks (by anthropics) https://t.co/V8PgDWZ4EK\nrunnable notebooks for RAG, tool use, classification and structured output\n\npick one, add it to your repo tonight\n\nbookmark it before it gets buried",
+                "url": "https://x.com/rvaniaaaa/status/2118780233021002050",
+                "source": "@rvaniaaaa",
+                "date": "Fri Nov 06 18:59:07 +0000 2026",
+                "metrics": {
+                  "favorites": 511,
+                  "retweets": 58,
+                  "views": "57776"
+                }
+              },
+              {
+                "title": "Elon musk, on lex fridman last month: \"anyone not running a swarm of agents by the end of 2026 will look like someone wh",
+                "summary": "Elon musk, on lex fridman last month: \"anyone not running a swarm of agents by the end of 2026 will look like someone who refused to use email in 1998\"\n\nthis is what he meant, in one screen recording:\n\none guy. 50 claude agents. a full working system shipped in 30 minutes. he did not write a single line of code. he gave the orders and watched them execute in parallel, each one handling a different piece of the build\n\nmeanwhile 90% of people reading this are still using claude the same fucking way they used chatgpt in 2023. one chat window. one task at a time. asking the same question in the same thread until it finally gets it right\n\nthe setup costs you one evening to learn and pays back forever. whoever learns it this month will be running 10x what their coworkers ship by january. the ones who do not will still be slow-typing into a blank chat like it is still 2023\n\ni wrote the full breakdown of how the 50-agent setup works, what each agent is told to do, and the exact claude code config behind it. the article is below\n\nthe gap between the person who runs agents and the person who runs chats is about to become the only gap that matters. do not land on the wrong side of it",
+                "url": "https://x.com/yurshevv/status/2119190722783981671",
+                "source": "@yurshevv",
+                "date": "Sat Nov 07 22:10:15 +0000 2026",
+                "metrics": {
+                  "favorites": 3925,
+                  "retweets": 259,
+                  "views": "569898"
+                }
+              },
+              {
+                "title": "This is f*cking insane. Anthropic engineers dropped a 90-minute course on building AI agents from zero. Easily the best ",
+                "summary": "This is f*cking insane. Anthropic engineers dropped a 90-minute course on building AI agents from zero. Easily the best I've watched:\n\n• 00:01 - splitting the brain from the hands\n• 07:46 - what's inside Claude Managed Agents\n• 23:41 - a research agent, built step by step\n• 54:02 - scheduled agents that \"dream\" between tasks\n• 1:10:22 - evals, CI/CD, and running agents for lots of customers at once\n\nOne video, and you won't need any $500 agent tutorial again.\n\nWatch it today.",
+                "url": "https://x.com/Sownjuinho/status/2118365846426849560",
+                "source": "@Sownjuinho",
+                "date": "Thu Nov 05 15:32:29 +0000 2026",
+                "metrics": {
+                  "favorites": 437,
+                  "retweets": 71,
+                  "views": "48758"
+                }
+              },
+              {
+                "title": "The engineer who built Claude Code from scratch just released a 28-minute video that's pure gold: how to write prompts t",
+                "summary": "The engineer who built Claude Code from scratch just released a 28-minute video that's pure gold: how to write prompts that deliver ridiculously good results.        \n\nI've seen $300 courses that don't even come close to what he explains in the first 10 minutes.        \n\nCLAUDE.md files, memory shortcuts, parallel sessions, and prompting patterns that almost no one uses...        \n\nAll in one single video. Completely free. No fluff.        Whether you're a developer, just starting, or have already been using Claude for months, this changes the game for you starting today.",
+                "url": "https://x.com/Ishh_021/status/2118894960036696208",
+                "source": "@Ishh_021",
+                "date": "Sat Nov 07 02:35:00 +0000 2026",
+                "metrics": {
+                  "favorites": 638,
+                  "retweets": 97,
+                  "views": "111143"
+                }
+              },
+              {
+                "title": "My roommate hasn't slept since this shit... Claude Code just found a one-person website that made $4,800 in a single day",
+                "summary": "My roommate hasn't slept since this shit... Claude Code just found a one-person website that made $4,800 in a single day. The guy who runs it has 27 followers on X, and he's selling the whole business for $360.\n\nIt finds local businesses with no website, builds each one a site with AI in minutes and writes the pitch for you. A web agency you run alone from a laptop.\n\nThis wasn't a screenshot from some guru. Every dollar was read straight from Stripe on TrustMRR, with the day it landed: $0 for 22 days, then $4,800 on one day. 48 people visited the site that whole month.\n\nHe opened Claude Code on his MacBook, made a folder called steal and told it to pull the 25 fastest-growing businesses on TrustMRR with $1,000 to $20,000 of checked revenue last month. 10 names came back, and 8 never said where their customers come from.\n\nHe started scrolling. A library of AI agent skills went from $27 in August to $12,216 in October, paid every single day. An email app for Mac went from $238 to $23,099 in one month. Then he opened the listing for the $4,800 site: \"375 interested buyers saw this recently.\" People were lining up to buy it while he was still reading.\n\nTiny businesses that make money don't need an audience, so nobody posts about them. Their numbers sit on a public page that almost nobody reads.\n\nClaude Code only runs this while his laptop is awake, so he gave the same job to viktor, an AI employee in his Slack that works from its own computer in the cloud. Every Monday it sends him the new winners and a steal sheet for the best one.\n\nHe copied the website-for-local-shops one that weekend. By Friday four shops had paid him $400 each for sites he never designed. How many people are already copying the same 10 businesses, I don't know.\n\nTo find yours, open Claude Code, make a folder called steal and ask it for the fastest-growing businesses with revenue checked by Stripe. The exact prompt he used is in the first comment, and the full setup for Claude and viktor is in the article below.",
+                "url": "https://x.com/Argona0x/status/2118359815021797831",
+                "source": "@Argona0x",
+                "date": "Thu Nov 05 15:08:31 +0000 2026",
+                "metrics": {
+                  "favorites": 615,
+                  "retweets": 40,
+                  "views": "58220"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
