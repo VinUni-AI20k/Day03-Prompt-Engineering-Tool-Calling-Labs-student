@@ -67,8 +67,8 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 | ------- | ---------------- | ---------- | ------------: | -----------: | -------- |
-| v0      | baseline         |            |               |              |          |
-| v1      |                  |            |               |              |          |
+| v0 | baseline | Đo hành vi starter trước khi tối ưu | – | 0.70 | `runs/v0_B_base_openai_20261110T172625895265.json` |
+| v1 | system_prompt.md | Bỏ chỉ dẫn xấu (đoán / gửi ngay / một bước) + thêm rule clarify, xác nhận, ngoài phạm vi, routing → sửa R08 R10 R11 R12 R14 | 0.70 | 0.85 | `runs/v1_B_base_openai_20261110T173219539876.json` |
 | v2      |                  |            |               |              |          |
 | v3      |                  |            |               |              |          |
 
