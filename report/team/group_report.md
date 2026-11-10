@@ -8,9 +8,10 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: Hehehe (theo tên repo; cần nhóm xác nhận).
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model: v0 dùng `openai` / `gpt-4o-mini`; v1–v3 chưa chạy.
+- Trạng thái: hoàn thiện bằng chứng CP1; các mục tool mới, eval nhóm, UI, live chat và bonus chưa hoàn thành.
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -62,10 +63,18 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
+| v0 | baseline | Chưa áp dụng thay đổi; đo điểm xuất phát | N/A | case_accuracy=0.70 | [Run v0](../../starter_v0/runs/v0_B_base_openai_20261110T180441850646.json) |
 | v1 |  |  |  |  |  |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
+
+**Chi tiết v0:** 20/20 case được đo, 0 lỗi provider, 14/20 pass; `tool_routing_accuracy=0.75`, `argument_accuracy=0.70`, `multiturn_accuracy=1.00`. Multi-turn 100% chỉ phản ánh các case multi-turn trong suite này.
+
+- `artifact_version`: `v0+peb1c8179815b+te69bc53ed884`
+- `prompt_hash`: `eb1c8179815bd79d34de7d326420bb99b3072e6e8ae96464c02d4411f905fc68`
+- `tools_hash`: `e69bc53ed8846a5c2192e950c539806a61a6902b718f06d6773db6a42e9b996c`
+- [Version log](../../starter_v0/artifacts/version_log.csv).
+- Kiểm thử offline được Codex chạy lại: **62 passed, 17 skipped, 0 failed**; [output](../../starter_v0/analysis/cp1_pytest.txt). Các skip là TODO, không phải test đã triển khai.
 
 ### B2. Failure Analysis
 
@@ -73,7 +82,21 @@ Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R08_out_of_scope | out_of_scope | `send(text=trả lời tích phân)` | Kỳ vọng không gọi tool; model dùng send cho bài toán ngoài phạm vi. Giả thuyết: mô tả vai trò/tool chưa giới hạn rõ mục đích. | Đề xuất: quy định phạm vi research và không gọi tool cho yêu cầu ngoài phạm vi. |
+| R10_missing_handle | missing_info | `timeline(screenname="sama")` | User chưa cho tài khoản nhưng model tự chọn sama thay vì clarify; phù hợp với chỉ dẫn đoán trong prompt baseline. | Đề xuất: thiếu tài khoản thì hỏi bằng clarify, không tự chọn người. |
+| R11_missing_url | missing_info | `fetch(url="https://example.com/article")` | User chưa đưa URL nhưng model tự tạo URL thay vì hỏi lại; phù hợp với chỉ dẫn đoán trong prompt baseline. | Đề xuất: thiếu URL thì clarify, không tự tạo liên kết. |
+| R12_confirm_before_send | wrong_boundary | `send(text="Bản tin này")` | Thiếu clarify với response_type=yes_no trước gửi; prompt baseline khuyến khích gửi ngay. | Đề xuất: chuẩn bị nội dung và xin xác nhận rõ trước khi gọi send với confirmed=true. |
+| R13_parallel_web_and_tweets | wrong_tool (nhãn case); thực tế wrong_arg_value | `lookup(query="AI news", timeframe="day", max_results=5)` và `social_search(query="AI", search_type="Latest", limit=5)` | Chọn đúng hai tool nhưng lookup thiếu topic=news và query không khớp giá trị AI mà eval yêu cầu. Giả thuyết: convention arguments chưa rõ. | Đề xuất: làm rõ topic=news, timeframe=day và quy ước query trong declaration; review mức chặt của kỳ vọng query. |
+| R14_out_of_scope_coding | out_of_scope | `send(text=code Fibonacci)` | Kỳ vọng không gọi tool; model dùng send cho yêu cầu coding ngoài phạm vi. | Đề xuất: làm rõ phạm vi và send chỉ dành cho gửi Telegram sau xác nhận. |
+
+Nguồn cho toàn bộ bảng: [run v0](../../starter_v0/runs/v0_B_base_openai_20261110T180441850646.json), `results[*].result`. Mọi mục Fix ở trên là **đề xuất, chưa áp dụng và chưa đo hiệu quả**.
+
+Lưu ý khi đọc kết quả:
+
+- R13 có `routing_correct=true`, `args_correct=false`, `observed_mismatch=wrong_arg_value`. Bộ chấm giữ nhãn failure_type của case là wrong_tool; cần phân biệt nhãn thiết kế với lỗi quan sát thực tế, không sửa case để tăng điểm.
+- Các lời gọi send sai ở R08, R12, R14 đều bị code chặn với `status=needs_confirmation`; log không chứng minh có gửi Telegram thành công.
+- Run hợp lệ về provider không đồng nghĩa mọi nội dung nguồn hoặc mọi kết quả tool đều đúng; vẫn cần review thủ công.
+
 
 ### B3. Team Eval Cases
 
@@ -146,6 +169,12 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 -
 
+### Ghi nhận xử lý môi trường tại CP1
+
+- Bình ban đầu gặp lỗi PowerShell vì biến `$labPython` chưa có giá trị trong phiên Terminal; đã gán đường dẫn Python của venv và chạy được script.
+- Sau đó gặp `Missing API key env var: OPENAI_API_KEY`; đã được hướng dẫn cấu hình đúng `starter_v0/.env`. Bình báo preflight thành công; không lưu API key vào báo cáo. Chưa có file log riêng cho hai lỗi này; bằng chứng trao đổi nằm trong chat, không coi là log đã nộp trong repo.
+- Run v0 trong repo xác nhận provider OpenAI hoạt động: 20 case được đo, 0 lỗi provider.
+
 ## 6. Tổng hợp đóng góp
 
 Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEAM.md) và các báo cáo cá nhân `report/team/MSSV_HoTen.md`.
@@ -157,6 +186,14 @@ Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEA
 - Failure nào cần review thủ công thay vì chấm tự động?
 - Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?
 
+### Nhận xét sau baseline v0
+
+- Thay đổi thuộc system prompt: bỏ hành vi đoán account/URL; hỏi lại khi thiếu dữ liệu; đặt phạm vi research và quy tắc xác nhận.
+- Thay đổi thuộc tools.yaml: mô tả khi dùng/không dùng tool, convention arguments, ý nghĩa send và confirmed.
+- Cần review thủ công: chênh lệch nhãn lỗi R13; tính hợp lý của query tương đương; chất lượng dữ liệu tool; việc code chặn send dù model đã chọn sai hành động.
+- Giả thuyết dự kiến v1: thay riêng quy tắc thiếu thông tin trong prompt bằng yêu cầu clarify sẽ giảm lỗi missing_info của R10/R11. Chưa sửa prompt, chưa chạy v1; sẽ đo lại toàn suite để kiểm tra tác động và regression.
+
 ## 8. Tài liệu tham khảo
 
--
+- [Quy định bài lab](../../RULES.md), [checkpoints](../../CHECKPOINTS.md), [rubric](../../RUBRIC.md).
+- [System prompt baseline](../../starter_v0/artifacts/system_prompt.md), [tool declaration](../../starter_v0/artifacts/tools.yaml).
