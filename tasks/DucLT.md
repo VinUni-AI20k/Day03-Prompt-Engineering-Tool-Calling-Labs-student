@@ -16,10 +16,10 @@
   pytest                   # contract + example xanh, TODO đang skipped là bình thường
   ```
 - Làm việc: `git checkout -b feat/<tên>-<việc>` → commit → push → mở PR → QuanNH review. Không push thẳng `main`.
-- Key/token không dán vào chat, báo cáo hay commit. Nếu cần key, xin QuanNH qua tin nhắn riêng.
+- Key/token không dán vào chat, báo cáo hay commit.
 
 ### Riêng cho DucLT
-- Cần `.env` đầy đủ như QuanNH để tự chạy preflight và eval; xin key từ QuanNH qua tin nhắn riêng. Unit test thì chạy offline: mock HTTP bằng `fake_http`, gán key giả bằng `monkeypatch.setenv`. Mẫu để copy: `tests/test_tools_examples.py`, fixture trong `tests/conftest.py`
+- Cần `.env` đầy đủ để tự chạy preflight và eval. Unit test thì chạy offline: mock HTTP bằng `fake_http`, gán key giả bằng `monkeypatch.setenv`. Mẫu để copy: `tests/test_tools_examples.py`, fixture trong `tests/conftest.py`
 - Đọc trước: `tools/README.md` (cách viết tool), `tools/<tên>/tool.py` + `TOOL.md` của tool có sẵn, [CHECKPOINTS.md](../CHECKPOINTS.md) (CP3)
 - Mỗi test: một hành vi, đặt tên theo hành vi; ≥ 3 test cho tool mới (happy path, input xấu từ model, nhánh lỗi). Tool nên trả error dict, không raise
 - Làm xong tool thì chạy `pytest tests/test_tool_contract.py` (phải xanh) và báo tên tool, args cho TrungNB và QuanNH

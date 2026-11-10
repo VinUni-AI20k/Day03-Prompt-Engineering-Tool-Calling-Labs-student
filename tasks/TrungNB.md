@@ -16,10 +16,10 @@
   pytest                   # contract + example xanh, TODO đang skipped là bình thường
   ```
 - Làm việc: `git checkout -b feat/<tên>-<việc>` → commit → push → mở PR → QuanNH review. Không push thẳng `main`.
-- Key/token không dán vào chat, báo cáo hay commit. Nếu cần key, xin QuanNH qua tin nhắn riêng.
+- Key/token không dán vào chat, báo cáo hay commit.
 
 ### Riêng cho TrungNB
-- Cần `.env` đầy đủ như QuanNH (provider + Tavily + Firecrawl + RapidAPI) để tự chạy eval, preflight và `--suite group`; xin key từ QuanNH qua tin nhắn riêng. Đọc trước: [CHECKPOINTS.md](../CHECKPOINTS.md) (CP4), mẫu trong `starter_v0/data/eval_base.json` (không sửa file đó), [RUBRIC.md](../RUBRIC.md)
+- Cần `.env` đầy đủ (provider + Tavily + Firecrawl + RapidAPI) để tự chạy eval, preflight và `--suite group`. Đọc trước: [CHECKPOINTS.md](../CHECKPOINTS.md) (CP4), mẫu trong `starter_v0/data/eval_base.json` (không sửa file đó), [RUBRIC.md](../RUBRIC.md)
 - Mỗi case cần: `failure_type`, `expect`, `metadata.what_it_tests`. 5 case `query` (single turn) + 5 case `turns` (multi turn). Phải có ≥ 1 case route tới tool mới của DucLT, nên chờ DucLT chốt tên và args tool
 - Tự chạy `--suite group` để kiểm tra schema và đủ 10 case trước khi mở PR
 - Đọc log: `runs/*.json` (kiểm `provider_error_cases == 0` và `measured_cases == total_cases`), `scripts/parse_runs.py`
