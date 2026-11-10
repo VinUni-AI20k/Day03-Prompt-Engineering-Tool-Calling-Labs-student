@@ -60,12 +60,12 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. Chỉ dùng run có `provider_error_cases == 0` và `measured_cases == total_cases`.
 
-| Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
-|---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| Version | Changed artifact | Hypothesis | case_acc | routing | args | multiturn | Fixed | Regressed | Run file |
+|---|---|---|---:|---:|---:|---:|---|---|---|
+| v0 | baseline | — | 0.65 | 0.75 | 0.65 | 1.00 | — | — | runs/v0_B_base_openrouter_20261110T175213197182.json |
+| v1 | system_prompt.md | Bỏ chỉ dẫn xấu (đoán/gửi luôn/một tool), thêm scope/clarify/confirm | 0.80 | 0.85 | 0.80 | 1.00 | R03, R08, R10, R11, R13, R14 | R01, R04, R05 (hỏi lại quá mức) | runs/v1_B_base_openrouter_20261110T181644444661.json |
+| v2 | system_prompt.md | Thu hẹp clarify/confirm: có tên/URL thì gọi tool ngay; chỉ send cần yes_no | 0.95 | 1.00 | 0.95 | 1.00 | R01, R04, R05, R12 | R13 (thiếu topic=news) | runs/v2_B_base_openrouter_20261110T182837689317.json |
+| v3 | tools.yaml | Description khi nào dùng/không dùng + quy ước args + boundary send | 0.95 | — | 0.95 | 0.83 | R13 | M06 (gọi thừa social_search sau khi user "bỏ Twitter") | runs/v3_B_base_openrouter_20261110T184559398755.json |
 
 ### B2. Failure Analysis
 
@@ -73,8 +73,17 @@ Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | wrong_tool (observed: wrong_arg_value) | `lookup(query="AI news", topic=news, timeframe=day)` | Routing đúng nhưng `query` thêm chữ "news" thay vì chỉ "AI" | v2: tools.yaml quy ước `query` chỉ chứa chủ đề cốt lõi |
+| R08_out_of_scope | out_of_scope | `send(text="Nguyên hàm của x^2 là x^3/3 + C…")` | Câu toán ngoài phạm vi nhưng vẫn gọi tool `send` | v1: bỏ "Pick one tool", thêm phạm vi, ngoài phạm vi thì không gọi tool |
+| R10_missing_handle | missing_info | `timeline(screenname="sama")` | Không có account, model đoán Sam Altman theo prompt gốc | v1: bỏ chỉ dẫn đoán account; thiếu handle → `clarify` |
+| R11_missing_url | missing_info | `fetch(url="https://example.com/article")` | Bịa URL theo prompt gốc "assume a likely URL" | v1: bỏ chỉ dẫn đó; thiếu URL → `clarify` |
+| R12_confirm_before_send | wrong_boundary | `send(text="Bản tin này đã được đăng lên Telegram.")` | Gửi ngay khi chưa xác nhận | v1: trước `send` phải `clarify(response_type=yes_no)` |
+| R13_parallel_web_and_tweets | wrong_tool (observed: wrong_arg_value) | `lookup(query="AI", timeframe=day)` + `social_search(query="AI")` | Gọi đủ 2 tool nhưng thiếu `topic=news` | v2: quy ước "tin tức" → `topic=news` |
+| R14_out_of_scope_coding | out_of_scope | `send(text="def fibonacci(n): …")` | Yêu cầu code ngoài phạm vi nhưng vẫn gọi `send` | v1: giống R08 |
 
+Run v0: `starter_v0/runs/v0_B_base_openrouter_20261110T175213197182.json` — case_accuracy 0.65 (13/20), routing 0.75, args 0.65, multiturn 1.0, provider_error_cases 0.
+
+Nhận xét: 5/7 lỗi (R08, R10, R11, R12, R14) đến từ chỉ dẫn xấu cố ý trong `system_prompt.md` gốc (đoán thay vì hỏi, gửi không xác nhận, ép gọi một tool). 2/7 lỗi (R03, R13) là sai giá trị args do `tools.yaml` thiếu quy ước `query`/`topic`.
 ### B3. Team Eval Cases
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).

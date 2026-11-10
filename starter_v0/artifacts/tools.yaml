@@ -1,77 +1,115 @@
-# starter_v0 — tool declarations (intentionally vague).
-# Names and descriptions here are a rough first draft. Routing rules, name->handle
-# mapping, arg conventions (news/timeframe/Top), and the send-confirmation boundary
-# are NOT spelled out anywhere yet. Your job is to make these declarations + the
-# system prompt good enough that the agent routes correctly on the eval.
+# Tool declarations — v3 (Nhom100).
+# v3 hypothesis: descriptions now say WHAT each tool does, WHEN to use / NOT use it,
+# and spell out argument conventions (short query, topic=news, timeframe mapping,
+# handle without "@", search_type) plus the send confirmation boundary.
 #
 # If you rename a tool, keep the name in sync across:
 #   this file  ->  tools/__init__.py (TOOL_FUNCTIONS)  ->  data/eval_base.json + data/eval_research_extension.json
 # `pytest tests/test_tool_contract.py` checks this sync for you.
-#
-# TODO CP2 (student):
-#   - Rewrite every description: what it does, WHEN to use it, WHEN NOT to use it.
-#   - Spell out arg conventions in parameter descriptions (handle format, topic/timeframe, search_type).
-#   - Make the `send` confirmation boundary explicit.
-#   - Declare your new tool(s) at the end of this file.
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: >-
+      Ask the user ONE question and wait for their reply in the next turn.
+      USE when: (1) the request needs an account but no person/account is named at all;
+      (2) the request refers to "this article/link/post" but no URL appears anywhere in the conversation;
+      (3) the user asks to send/post/publish something — ask for confirmation with response_type="yes_no" before calling `send`.
+      DO NOT USE when the user already named a person (convert the name to a handle yourself) or already gave a URL,
+      and never to confirm read-only tools (timeline, social_search, lookup, fetch, papers, policy, format).
     parameters:
       type: object
       properties:
-        question: {type: string, default: "", description: "Câu hỏi"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
-        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
+        question: {type: string, default: "", description: "The question to show the user, written in the user's language."}
+        response_type:
+          type: string
+          enum: [text, yes_no, choice]
+          default: "text"
+          description: "\"text\" when asking for missing info (account, URL). \"yes_no\" when asking to confirm a send/post. \"choice\" only together with `options`."
+        options: {type: array, default: [], items: {type: string}, description: "Answer options; only used when response_type=\"choice\"."}
       required: [question]
 
   - name: timeline
-    description: "Lấy các bài đăng gần đây."
+    description: >-
+      Read the most recent posts FROM ONE specific X/Twitter account.
+      USE when the user wants what a specific person/organisation posted (e.g. "tweet mới nhất của <tên người>").
+      DO NOT USE for posts ABOUT a topic from many people (use `social_search`) or for news articles on the web (use `lookup`).
+      If no person/account is named at all, call `clarify` instead of guessing.
     parameters:
       type: object
       properties:
-        screenname: {type: string, default: "", description: "Tên tài khoản"}
-        limit: {type: integer, default: 5, description: "Số lượng"}
+        screenname:
+          type: string
+          default: ""
+          description: "The account handle WITHOUT \"@\" (\"@karpathy\" -> \"karpathy\"). If the user gives a person's name, convert it to their known handle yourself."
+        limit: {type: integer, default: 5, description: "Number of posts. Use the exact number the user asks for (\"10 tweet\" -> 10); otherwise keep the default 5."}
       required: [screenname]
 
   - name: social_search
-    description: "Tìm trên mạng xã hội."
+    description: >-
+      Search X/Twitter posts ABOUT a keyword or topic, from any account.
+      USE when the user wants tweets/posts/discussion about a subject (e.g. "tìm tweet về AI").
+      DO NOT USE for one specific person's own posts (use `timeline`) or for news articles on the web (use `lookup`).
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa"}
-        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp"}
-        limit: {type: integer, default: 5, description: "Số lượng"}
+        query: {type: string, default: "", description: "Only the core topic keyword(s), e.g. \"AI\". Do not add filler words like \"tweet\", \"posts\", \"mới nhất\"."}
+        search_type:
+          type: string
+          enum: [Latest, Top]
+          default: "Latest"
+          description: "\"Top\" when the user asks for popular/hot/most-engaged posts (\"nổi bật\", \"hot\", \"nhiều tương tác\"); \"Latest\" for newest posts or when not specified."
+        limit: {type: integer, default: 5, description: "Number of posts. Use the exact number the user asks for; otherwise keep the default 5."}
       required: [query]
 
   - name: lookup
-    description: "Tra cứu thông tin trên internet."
+    description: >-
+      Search the web (news sites, blogs, articles).
+      USE for news, events, or general web information (e.g. "tin tức AI hôm nay").
+      DO NOT USE for tweets/X posts (use `timeline` or `social_search`) or to read a URL the user already gave (use `fetch`).
+      If the user wants both web news AND tweets, call `lookup` AND `social_search` in the same turn.
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
-        max_results: {type: integer, default: 5, description: "Số kết quả"}
+        query:
+          type: string
+          default: ""
+          description: "Only the core topic keyword(s), e.g. \"AI\" for \"tin tức AI hôm nay\". Do NOT put words like \"news\", \"tin tức\", \"hôm nay\", \"latest\" in the query — express them with `topic` and `timeframe` instead."
+        topic:
+          type: string
+          enum: [general, news]
+          default: "general"
+          description: "ALWAYS set \"news\" when the user asks for news/tin tức/tin mới/thời sự/events. Use \"general\" only for non-news background information."
+        timeframe:
+          type: string
+          enum: [day, week, month, year]
+          default: "week"
+          description: "Map the user's wording: \"hôm nay/today/24h\" -> day; \"tuần này/this week\" -> week; \"tháng này/this month\" -> month; \"năm nay/this year\" -> year. Keep \"week\" if no time is mentioned."
+        max_results: {type: integer, default: 5, description: "Number of results. Use the exact number the user asks for; otherwise keep the default 5."}
       required: [query]
 
   - name: fetch
-    description: "Lấy nội dung từ một địa chỉ."
+    description: >-
+      Read the full content of ONE web page from a URL.
+      USE when the user gives a URL (or one appears earlier in the conversation) and wants it read or summarised — call it directly, no confirmation needed.
+      DO NOT USE without a real URL: never invent one; if the user says "this article" with no URL, call `clarify`.
     parameters:
       type: object
       properties:
-        url: {type: string, default: "", description: "Địa chỉ"}
+        url: {type: string, default: "", description: "The exact URL from the conversation, copied as-is (must start with http:// or https://)."}
       required: [url]
 
   - name: format
-    description: "Trình bày dữ liệu đã có thành văn bản."
+    description: >-
+      Turn items ALREADY returned by other tools into a markdown digest.
+      USE only after you have items from lookup/social_search/timeline/fetch and the user wants a digest/summary layout.
+      DO NOT USE to fetch new data and DO NOT invent items.
     parameters:
       type: object
       properties:
         items:
           type: array
           default: []
-          description: "Danh sách item"
+          description: "Items copied from earlier tool results (title, url, source, summary, optional section)."
           items:
             type: object
             properties:
@@ -80,46 +118,59 @@ tools:
               source: {type: string}
               summary: {type: string}
               section: {type: string}
-        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Khuôn"}
-        headline: {type: string, default: "", description: "Tiêu đề"}
+        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Layout of the digest. \"daily_ai_vn\" for a Vietnamese daily AI newsletter; \"bullets\" for a short list."}
+        headline: {type: string, default: "", description: "Optional title for the digest."}
       required: [items, template]
 
   # ---------------- Bonus tools ----------------
   - name: send
-    description: "Gửi một đoạn văn bản đi."
+    description: >-
+      Post text to the team's private Telegram channel. This is an ACTION with side effects.
+      NEVER call it before the user has explicitly confirmed: first call `clarify` with response_type="yes_no",
+      and only after the user answers yes in a later turn call `send` with confirmed=true.
+      DO NOT USE to answer the user's question — answers go in your normal text reply.
     parameters:
       type: object
       properties:
-        text: {type: string, default: "", description: "Nội dung"}
-        confirmed: {type: boolean, default: false, description: "Cờ xác nhận"}
+        text: {type: string, default: "", description: "The exact content the user approved to post."}
+        confirmed: {type: boolean, default: false, description: "true ONLY if the user explicitly said yes to posting this exact text in a previous turn; otherwise false."}
       required: [text]
 
   - name: policy
-    description: "Tìm trong tài liệu nội bộ."
+    description: >-
+      Search the company's internal policy documents (AI research, source citation, data privacy, external publishing, tool usage).
+      USE when the user asks what the company/team rules or policies say.
+      DO NOT USE for public web information (use `lookup`).
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Nhóm"}
-        top_k: {type: integer, default: 3, description: "Số mục"}
+        query: {type: string, default: "", description: "Core keywords of the policy question."}
+        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Narrow to one policy area if the question clearly belongs to it; otherwise \"all\"."}
+        top_k: {type: integer, default: 3, description: "Number of policy sections to return."}
       required: [query]
 
   - name: papers
-    description: "Tìm bài báo khoa học."
+    description: >-
+      Search scientific papers on arXiv.
+      USE when the user asks for research papers / academic studies on a topic.
+      DO NOT USE for news (use `lookup`) or to read a paper's full text (use `paper_text`).
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa"}
-        max_results: {type: integer, default: 5, description: "Số lượng"}
-        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "Sắp xếp"}
+        query: {type: string, default: "", description: "Core research keywords, in English if possible."}
+        max_results: {type: integer, default: 5, description: "Number of papers. Use the exact number the user asks for; otherwise 5."}
+        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "\"submittedDate\" when the user wants the newest papers; otherwise \"relevance\"."}
       required: [query]
 
   - name: paper_text
-    description: "Lấy nội dung text của một bài báo."
+    description: >-
+      Download one arXiv paper's PDF and extract its text.
+      USE when the user gives an arXiv ID/URL (or one came from `papers`) and wants the paper read or summarised.
+      DO NOT USE for normal web pages (use `fetch`).
     parameters:
       type: object
       properties:
-        arxiv_url: {type: string, default: "", description: "ID hoặc địa chỉ"}
-        max_pages: {type: integer, default: 5, description: "Số trang"}
-        max_chars: {type: integer, default: 8000, description: "Số ký tự"}
+        arxiv_url: {type: string, default: "", description: "arXiv ID (e.g. \"1706.03762\") or arXiv URL."}
+        max_pages: {type: integer, default: 5, description: "Max pages to extract."}
+        max_chars: {type: integer, default: 8000, description: "Max characters to return."}
       required: [arxiv_url]
