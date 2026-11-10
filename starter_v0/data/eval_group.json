@@ -93,16 +93,16 @@
       "metadata": {"skill": "multiturn_carry_topic_top", "difficulty": "hard", "what_it_tests": "3 turns: giữ query Llama xuyên các lượt và đổi sang search_type=Top vì 'nổi bật nhất'."}
     },
     {
-      "id": "G10_policy_area_followup",
+      "id": "G10_github_repo_after_clarify",
       "phase": "B", "suite": "group",
       "turns": [
-        {"role": "user", "content": "Mình cần tra quy định nội bộ của công ty"},
-        {"role": "user", "content": "Về việc xử lý dữ liệu cá nhân"},
-        {"role": "user", "content": "Chỉ tra trong nhóm data privacy thôi"}
+        {"role": "user", "content": "Repo đó hiện có bao nhiêu sao trên GitHub?"},
+        {"role": "user", "content": "À mình nói repo thư viện requests của Python"},
+        {"role": "user", "content": "Đúng rồi, psf/requests"}
       ],
       "failure_type": "missing_info",
-      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "data_privacy"}}]},
-      "metadata": {"skill": "multiturn_policy_area", "difficulty": "medium", "what_it_tests": "3 turns: thu hẹp dần phạm vi → policy với policy_area=data_privacy. TODO: thay/bổ sung case route tới tool MỚI của Nhân khi có."}
+      "expect": {"tool_calls": [{"name": "github_repo", "args": {"repo": "psf/requests"}}]},
+      "metadata": {"skill": "multiturn_new_tool_github_repo", "difficulty": "medium", "what_it_tests": "3 turns: lượt 1 thiếu owner/repo (không được đoán), lượt 3 mới có owner/repo → route tới tool MỚI github_repo với repo=psf/requests (không lookup web, không fetch URL)."}
     }
   ]
 }

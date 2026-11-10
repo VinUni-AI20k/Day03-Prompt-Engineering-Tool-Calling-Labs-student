@@ -22,8 +22,8 @@ def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
             "status": "needs_confirmation",
             "message": "Only send after the user explicitly confirms.",
         }
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
     try:
-        token = os.getenv("TELEGRAM_BOT_TOKEN")
         chat_id = os.getenv("TELEGRAM_CHAT_ID")
         if not token or not chat_id:
             raise RuntimeError("Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var")
@@ -35,5 +35,9 @@ def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
         response.raise_for_status()
         return {"tool": "send_telegram", "status": "sent"}
     except Exception as exc:
-        return err("send_telegram", exc)
+        result = err("send_telegram", exc)
+        # requests puts the full URL (which contains the bot token) in its error messages.
+        if token:
+            result["message"] = result["message"].replace(token, "***")
+        return result
 

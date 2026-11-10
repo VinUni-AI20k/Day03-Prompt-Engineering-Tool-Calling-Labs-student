@@ -8,10 +8,8 @@ from __future__ import annotations
 import pytest
 import requests
 
-from conftest import FakeResponse  # noqa: F401  (you will need it)
-from tools import TOOL_FUNCTIONS  # noqa: F401
-
-TODO = "TODO CP3 (student): implement this test"
+from conftest import FakeResponse
+from tools import TOOL_FUNCTIONS
 
 clarify_tool = TOOL_FUNCTIONS["clarify"]
 format_tool = TOOL_FUNCTIONS["format"]
@@ -21,6 +19,8 @@ fetch_tool = TOOL_FUNCTIONS["fetch"]
 timeline_tool = TOOL_FUNCTIONS["timeline"]
 social_search_tool = TOOL_FUNCTIONS["social_search"]
 policy_tool = TOOL_FUNCTIONS["policy"]
+papers_tool = TOOL_FUNCTIONS["papers"]
+paper_text_tool = TOOL_FUNCTIONS["paper_text"]
 
 
 def _tweets(count: int, handle: str = "sama") -> list[dict]:
@@ -129,6 +129,30 @@ def test_send_string_false_is_not_treated_as_confirmation(monkeypatch, fake_http
     assert calls == []
 
 
+def test_send_default_is_not_confirmed_and_makes_no_request(monkeypatch, fake_http) -> None:
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "tok123")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-10042")
+    calls = fake_http(FakeResponse({"ok": True}))
+
+    result = send_tool(text="Bản tin")  # model quên truyền confirmed
+
+    assert result["status"] == "needs_confirmation"
+    assert calls == []
+
+
+def test_send_error_message_does_not_leak_bot_token(monkeypatch, fake_http) -> None:
+    # Regression: lỗi của requests chứa nguyên URL (có token bot) -> token lọt vào kết quả tool,
+    # tức là vào transcript và UI.
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "SECRET123:abc")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-10042")
+    fake_http(requests.ConnectionError("Max retries exceeded with url: /botSECRET123:abc/sendMessage"))
+
+    result = send_tool(text="x", confirmed=True)
+
+    assert result["error"] == "ConnectionError"
+    assert "SECRET123" not in str(result)
+
+
 # ---------------- lookup ----------------
 
 def test_lookup_without_timeframe_omits_time_range(monkeypatch, fake_http) -> None:
@@ -157,6 +181,16 @@ def test_lookup_non_numeric_max_results_returns_error_dict(monkeypatch, fake_htt
     result = lookup_tool(query="AI", max_results="nhiều")
 
     assert result["error"] == "ValueError"
+    assert calls == []
+
+
+def test_lookup_without_key_returns_error_and_no_request(fake_http) -> None:
+    calls = fake_http(FakeResponse({"results": []}))
+
+    result = lookup_tool(query="AI")
+
+    assert result["error"] == "RuntimeError"
+    assert "TAVILY_API_KEY" in result["message"]
     assert calls == []
 
 
@@ -303,22 +337,8 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
     assert "untrusted" in result["trust_boundary"].lower()
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
-
-# def test_my_new_tool_happy_path() -> None:
-#     pytest.skip(TODO)
-
-
-# def test_my_new_tool_bad_input_from_model() -> None:
-#     pytest.skip(TODO)
-
-
-# def test_my_new_tool_failure_returns_error_dict() -> None:
-#     pytest.skip(TODO)
+# ---------------- github_repo (tool mới của nhóm) ----------------
+# Mỗi tool mới có đủ 3 loại test: happy path, input xấu từ model, lỗi API -> error dict.
 
 def test_github_repo_maps_response_and_sends_expected_request(fake_http):
     calls = fake_http(FakeResponse({
@@ -385,3 +405,110 @@ def test_github_repo_api_failure_returns_error_dict(response, expected_error, fa
     assert result["error"] == expected_error
     assert result["message"]
     assert "items" not in result
+
+
+# ---------------- papers / paper_text ----------------
+
+ATOM_FEED = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
+      xmlns:arxiv="http://arxiv.org/schemas/atom">
+  <opensearch:totalResults>4798</opensearch:totalResults>
+  <entry>
+    <id>http://arxiv.org/abs/2401.04088v1</id>
+    <title>Mixtral of
+      Experts</title>
+    <summary>A sparse
+      mixture of experts model.</summary>
+    <published>2024-01-08T00:00:00Z</published>
+    <updated>2024-01-08T00:00:00Z</updated>
+    <author><name>Albert Jiang</name></author>
+    <link href="http://arxiv.org/pdf/2401.04088v1" rel="related" title="pdf"/>
+    <arxiv:primary_category term="cs.LG"/>
+    <category term="cs.LG"/>
+  </entry>
+</feed>"""
+
+
+@pytest.fixture
+def no_arxiv_sleep(monkeypatch):
+    """arXiv tools sleep between requests; skip the waiting in tests."""
+    monkeypatch.setattr("tools.papers.tool.time.sleep", lambda _s: None)
+    monkeypatch.setattr("tools.paper_text.tool.time.sleep", lambda _s: None)
+
+
+def test_papers_maps_atom_feed_and_sends_expected_request(fake_http, no_arxiv_sleep) -> None:
+    calls = fake_http(FakeResponse(text=ATOM_FEED))
+
+    result = papers_tool(query="mixture of experts", max_results=3)
+
+    assert calls[0]["url"] == "https://export.arxiv.org/api/query"
+    assert calls[0]["params"]["search_query"] == "all:mixture AND all:experts"
+    assert calls[0]["params"]["max_results"] == 3
+    assert result["total_results"] == 4798
+    paper = result["items"][0]
+    assert paper["arxiv_id"] == "2401.04088v1"
+    assert paper["title"] == "Mixtral of Experts"  # xuống dòng trong XML được gộp lại
+    assert paper["summary"] == "A sparse mixture of experts model."
+    assert paper["authors"] == ["Albert Jiang"]
+    assert paper["pdf_url"] == "http://arxiv.org/pdf/2401.04088v1"
+
+
+@pytest.mark.parametrize(("given", "expected"), [(0, 5), (-5, 1), (99, 10), ("abc", None)])
+def test_papers_max_results_is_clamped_or_rejected(given, expected, fake_http, no_arxiv_sleep) -> None:
+    calls = fake_http(FakeResponse(text=ATOM_FEED))
+
+    result = papers_tool(query="transformer", max_results=given)
+
+    if expected is None:
+        assert result["error"] == "ValueError"
+        assert calls == []
+    else:
+        assert calls[0]["params"]["max_results"] == expected
+
+
+def test_papers_rate_limited_returns_error_dict_after_retries(fake_http, no_arxiv_sleep) -> None:
+    calls = fake_http(FakeResponse(status_code=429))
+
+    result = papers_tool(query="transformer")
+
+    assert result["error"] == "HTTPError"
+    assert len(calls) == 3  # thử lại 3 lần rồi mới bỏ cuộc
+
+
+def test_papers_malformed_xml_returns_error_dict(fake_http, no_arxiv_sleep) -> None:
+    fake_http(FakeResponse(text="<feed><entry>"))
+
+    assert papers_tool(query="transformer")["error"] == "ParseError"
+
+
+@pytest.mark.parametrize("bad_url", ["", "not an arxiv id", "https://example.com/paper.pdf"])
+def test_paper_text_invalid_id_returns_error_without_http(bad_url, fake_http, no_arxiv_sleep) -> None:
+    calls = fake_http(FakeResponse(content=b"%PDF"))
+
+    result = paper_text_tool(arxiv_url=bad_url)
+
+    assert result["error"] == "ValueError"
+    assert calls == []
+
+
+def test_paper_text_download_failure_returns_error_dict(fake_http, no_arxiv_sleep) -> None:
+    fake_http(FakeResponse(status_code=404))
+
+    assert paper_text_tool(arxiv_url="https://arxiv.org/abs/2401.04088")["error"] == "HTTPError"
+
+
+@pytest.mark.parametrize(
+    ("query", "expected"),
+    [
+        ("mixture of experts", "all:mixture AND all:experts"),
+        ("attention in the transformer", "all:attention AND all:transformer"),
+        ("of the", "all:of AND all:the"),  # only stopwords: keep them rather than send an empty query
+        ("au:hinton", "au:hinton"),  # field syntax is passed through untouched
+    ],
+)
+def test_papers_search_query_drops_stopwords(query, expected):
+    # Regression: arXiv ANDs every term, so "of" made "mixture of experts" return 0 results.
+    from tools.papers.tool import _arxiv_search_query
+
+    assert _arxiv_search_query(query) == expected
