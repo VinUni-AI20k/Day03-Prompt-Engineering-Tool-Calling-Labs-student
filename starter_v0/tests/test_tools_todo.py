@@ -238,18 +238,108 @@ def test_clarify_choice_without_options_returns_error() -> None:
 
 
 # ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# Mỗi test kiểm tra MỘT hành vi cụ thể của , tên test mô tả hành vi đó.
+# Mọi lời gọi HTTP đều được mock bằng fixture  (conftest.py chặn request thật).
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+github_search = TOOL_FUNCTIONS["github_search"]
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def _repo(name: str, stars: int) -> dict:
+    """Dữ liệu giả của 1 repo theo đúng khuôn GitHub REST API trả về."""
+    return {
+        "full_name": name,
+        "html_url": f"https://github.com/{name}",
+        "stargazers_count": stars,
+        "language": "Python",
+        "description": f"Repo {name}",
+    }
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+# 1. Happy path: tham số hợp lệ -> gửi đúng request lên GitHub API VÀ map đúng kết quả trả về.
+def test_github_search_sends_query_with_language_and_maps_repos(fake_http) -> None:
+    calls = fake_http(FakeResponse({"items": [_repo("openai/swarm", 15000)]}))
+
+    result = github_search(query="agent orchestration", language="python", limit=3)
+
+    assert len(calls) == 1
+    assert calls[0]["url"] == "https://api.github.com/search/repositories"
+    assert calls[0]["params"]["q"] == "agent orchestration language:python"
+    assert calls[0]["params"]["per_page"] == 3
+    assert calls[0]["params"]["sort"] == "stars"
+    assert "error" not in result
+    assert result["items"] == [{
+        "title": "openai/swarm",
+        "url": "https://github.com/openai/swarm",
+        "source": "github.com",
+        "stars": 15000,
+        "language": "Python",
+        "summary": "Repo openai/swarm",
+    }]
+
+
+# 2a. Input xấu từ model: query rỗng hoặc sai kiểu -> trả error dict, KHÔNG gọi mạng.
+@pytest.mark.parametrize("bad_query", ["", "   ", None, 123])
+def test_github_search_empty_or_wrong_type_query_returns_error_without_request(fake_http, bad_query) -> None:
+    calls = fake_http(FakeResponse({"items": []}))
+
+    result = github_search(query=bad_query)
+
+    assert calls == []
+    assert result["items"] == []
+    assert result["error"].startswith("missing_required_param")
+    assert "clarify" in result["next_step"]
+
+
+# 2b. Input xấu từ model: limit <= 0 -> trả error dict, không gọi mạng.
+def test_github_search_non_positive_limit_returns_error_without_request(fake_http) -> None:
+    calls = fake_http(FakeResponse({"items": []}))
+
+    result = github_search(query="llm eval", limit=0)
+
+    assert calls == []
+    assert result["error"].startswith("invalid_param")
+
+
+# 2c. Input biên từ model: limit quá lớn hoặc chuỗi số -> ép về khoảng hợp lệ [1, 10].
+def test_github_search_clamps_large_limit_and_accepts_numeric_string(fake_http) -> None:
+    calls = fake_http(FakeResponse({"items": [_repo(f"o/r{i}", 100 - i) for i in range(15)]}))
+
+    result = github_search(query="rag", limit="999")
+
+    assert calls[0]["params"]["per_page"] == 10
+    assert len(result["items"]) == 10
+
+
+# 3a. Nhánh lỗi API: GitHub trả HTTP 429 (rate limit) -> trả error dict, không raise exception.
+def test_github_search_http_429_returns_error_dict(fake_http) -> None:
+    fake_http(FakeResponse({"message": "rate limit"}, status_code=429))
+
+    result = github_search(query="rag benchmark", limit=2)
+
+    assert result["items"] == []
+    assert "github_api_error" in result["error"]
+    assert "429" in result["error"]
+    assert "next_step" in result
+
+
+# 3b. Nhánh lỗi mạng: timeout -> trả error dict, không raise exception.
+def test_github_search_network_timeout_returns_error_dict(fake_http) -> None:
+    import requests
+
+    fake_http(requests.Timeout("read timed out"))
+
+    result = github_search(query="rag benchmark")
+
+    assert result["items"] == []
+    assert "timed out" in result["error"]
+
+
+# 3c. Nhánh dữ liệu lạ từ API: phần tử hỏng hoặc trường None -> bỏ qua an toàn, không crash.
+def test_github_search_malformed_payload_does_not_crash(fake_http) -> None:
+    fake_http(FakeResponse({"items": ["not-a-dict", {"full_name": "a/b", "stargazers_count": None, "description": None}]}))
+
+    result = github_search(query="agent")
+
+    assert len(result["items"]) == 1
+    assert result["items"][0]["stars"] == 0
+    assert result["items"][0]["summary"] == "No description provided."
