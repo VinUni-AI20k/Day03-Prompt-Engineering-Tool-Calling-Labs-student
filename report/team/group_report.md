@@ -62,7 +62,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
+| v0 | baseline |  |  | Pass 15/20 | v0_B_base_openrouter_20261110T173925903234 |
 | v1 |  |  |  |  |  |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
@@ -73,7 +73,11 @@ Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R08_out_of_scope | out_of_scope | send(text="Nguyên hàm…") | Câu hỏi toán không cần tool nhưng agent gọi tool gửi Telegram | Quy định câu hỏi không cần công cụ thì trả lời trực tiếp; send chỉ dùng để xuất bản khi đủ xác nhận |
+| R10_missing_handle | missing_info | timeline(screenname="sama") | Tự đoán tài khoản khi user chưa cung cấp | Kiểm tra lịch sử; nếu chưa có tài khoản thì gọi clarify(response_type="text") |
+| R11_missing_url | missing_info | fetch(url="https://example.com/article") | Tự tạo URL khi user chưa cung cấp | Kiểm tra lịch sử; nếu chưa có URL thì gọi clarify(response_type="text") |
+| R12_confirm_before_send | wrong_boundary | send(text="Bản tin này") | Gọi gửi khi chưa xác nhận; dùng cụm “Bản tin này” làm nội dung thay vì xác định bản tin | Yêu cầu xác nhận bằng clarify(response_type="yes_no"); chỉ gửi nội dung cụ thể đã được xác nhận |
+| R13_parallel_web_and_tweets | wrong_arg_value | lookup(query="AI news", timeframe="day") và social_search(query="AI", search_type="Latest") | Chọn đúng hai tool nhưng sai query và thiếu topic="news" | Làm rõ cách tách chủ đề, loại tìm kiếm và thời gian thành các arguments riêng |
 
 ### B3. Team Eval Cases
 
