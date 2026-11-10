@@ -34,7 +34,9 @@ Provider mặc định `openai` (cần `OPENAI_API_KEY` trong `.env`); đổi b�
 
 > Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
 >
-> URL:
+> URL: https://cnet-francis-catalog-encountered.trycloudflare.com
+>
+> (Cloudflare quick tunnel tạm thời, mở lúc 19:41 ngày 10/11/2026; chỉ sống khi máy chạy `streamlit run app.py` + `cloudflared tunnel --url http://localhost:8501`.)
 
 ### A2. Tool agent có
 
@@ -50,7 +52,7 @@ Provider mặc định `openai` (cần `OPENAI_API_KEY` trong `.env`); đổi b�
 | policy                     | tìm trong tài liệu policy nội bộ                        | không               |
 | papers                     | tìm paper trên arXiv                                    | không               |
 | paper_text                 | tải PDF arXiv và trích text                             | không               |
-| (chờ tên tool của Người 2) | (chờ mô tả)                                             | có                  |
+| extract_keywords           | trích các từ khóa lặp nhiều nhất từ đoạn text có sẵn (chạy local, không cần key) | có                  |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -59,6 +61,8 @@ Provider mặc định `openai` (cần `OPENAI_API_KEY` trong `.env`); đổi b�
 3. Tìm các bài đăng mới nhất về AI agents
 4. Đọc và tóm tắt https://openai.com/research/
 5. Lấy bài đăng của tài khoản đó giúp mình (thiếu tên tài khoản, agent nên hỏi lại)
+6. Dán một đoạn văn rồi hỏi: "Lấy 3 từ khóa chính của đoạn trên" (tool mới `extract_keywords`)
+7. Đăng bản tin này lên Telegram (agent phải hỏi xác nhận yes/no trước, không tự gửi)
 
 ## 3. Giải pháp
 
@@ -77,7 +81,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | v0 | baseline | Đo hành vi starter trước khi tối ưu | – | 0.70 | `runs/v0_B_base_openai_20261110T172625895265.json` |
 | v1 | system_prompt.md | Bỏ chỉ dẫn xấu (đoán / gửi ngay / một bước) + thêm rule clarify, xác nhận, ngoài phạm vi, routing → sửa R08 R10 R11 R12 R14 | 0.70 | 0.85 | `runs/v1_B_base_openai_20261110T173219539876.json` |
 | v2 | tools.yaml | Viết lại description mọi tool (làm gì / khi nào dùng / khi nào không dùng + convention args), giữ nguyên prompt → sửa M02 (regression v1) và R10 | 0.85 | 0.95 | `runs/v2_B_base_openai_20261110T182235056165.json` |
-| v3      |                  |            |               |              |          |
+| v3 | system_prompt.md + tools.yaml (2 thay đổi) | Rule "gửi/đăng → việc đầu tiên luôn là `clarify(yes_no)`" sửa R12 + khai báo tool mới `extract_keywords` | 0.95 | 0.95 | `runs/v3_B_base_openai_20261110T194428881251.json` (group: `runs/v3_B_group_openai_20261110T194452423053.json`) |
 
 Nhận xét (metric chi tiết lấy từ `summary` của run JSON):
 
@@ -86,6 +90,8 @@ Nhận xét (metric chi tiết lấy từ `summary` của run JSON):
 | v0 | 0.70 | 0.75 | 0.70 | 1.00 |
 | v1 | 0.85 | 0.90 | 0.85 | 0.83 |
 | v2 | 0.95 | 1.00 | 0.95 | 1.00 |
+| v3 | 0.95 | 0.95 | 0.95 | 1.00 |
+| v3 (suite group, 10 case) | 1.00 | 1.00 | 1.00 | 1.00 |
 
 - v1 sửa được 4/6 case FAIL của v0: R08, R11, R13, R14. R10 và R12 vẫn FAIL nhưng đã đổi hành vi: R10 không còn đoán `sama` mà gọi `social_search(query="")`; R12 đã hỏi lại bằng `clarify` nhưng với `response_type="text"` thay vì `"yes_no"`.
 - **Regression:** M02 (PASS ở v0) FAIL ở v1. Câu "chỉ tìm robotics thôi, vẫn là tin hôm nay" bị route sang `social_search` thay vì `lookup(topic="news", timeframe="day")`. Mục Routing trong prompt v1 chưa phân biệt "tin tức" (→ `lookup`) với "bài đăng/tweet" (→ `social_search`), và tool description vẫn mơ hồ → giả thuyết cho v2.
@@ -95,6 +101,12 @@ Nhận xét (metric chi tiết lấy từ `summary` của run JSON):
   - M02: `lookup(query="robotics", topic="news", timeframe="day")` → PASS. Description `lookup` nói rõ "tin tức → lookup, kể cả khi lượt sau chỉ đổi chủ đề" và `social_search` nói "hỏi tin mà không nhắc Twitter thì không dùng".
   - R10: `clarify(response_type="text")` hỏi tài khoản → PASS, thay cho `social_search(query="")` ở v1. Description `social_search`/`timeline` cấm gọi với tham số rỗng.
   - R12 vẫn FAIL: model gọi `clarify(question="Nội dung bạn muốn đăng lên Telegram là gì?", response_type="text")`. Description `send` đã nói phải xác nhận yes_no, nhưng vì câu "bản tin này" không kèm nội dung nên model hỏi nội dung trước. Mô tả trong tool chưa đủ ép hành vi này → giả thuyết v3: thêm rule trong system prompt "mọi yêu cầu gửi/đăng → gọi ngay `clarify(response_type="yes_no")`, không hỏi nội dung bằng text".
+
+- **v3** gồm **2 thay đổi** (giống v1, ghi rõ để không lẫn): (1) `system_prompt.md` — rule 2 bắt buộc mọi yêu cầu gửi/đăng phải gọi `clarify(response_type="yes_no")` đầu tiên, không dùng `text`, kể cả khi nội dung mơ hồ; (2) `tools.yaml` + 1 dòng Routing — khai báo tool mới `extract_keywords` (Người 2). Hash: prompt `0272985012ee` → `708eace3a436`, tools `cd1ae0336fb5` → `dd2c48e0c860`. Base vẫn 19/20 (0.95) nhưng **case FAIL đổi chỗ**:
+  - R12 **sửa được**: `clarify(question="Bạn xác nhận đăng bản tin này lên Telegram chứ?", response_type="yes_no")` → PASS. Chứng minh boundary cần rule trong prompt, description `send` ở v2 không đủ.
+  - R10 **regression** (PASS ở v2): "Tóm tắt 5 tweet mới nhất" → `social_search(query="AI", limit=5)`. Model tự bịa chủ đề "AI" (nhiều khả năng lấy từ câu mở đầu prompt "research assistant for AI/tech news") thay vì hỏi lại. R10 đã dao động qua cả 3 version (v1 query rỗng → v2 clarify → v3 query "AI"), cho thấy case thiếu thông tin này nhạy với mọi thay đổi prompt và rule 1 chỉ nói "thiếu handle", chưa nói "thiếu cả tài khoản lẫn chủ đề thì không được tự chọn chủ đề".
+  - Tool mới: suite group 10/10, GM05 gọi đúng `extract_keywords(text=<đoạn đã dán>, max_keywords=3)`. Thêm tool không làm vỡ case routing nào của base.
+  - Giả thuyết nếu có v4: thêm vào rule 1 "yêu cầu tweet/bài đăng mà không có tài khoản và không có chủ đề → `clarify`, không tự chọn chủ đề (kể cả 'AI')".
 
 ### B2. Failure Analysis
 
@@ -117,9 +129,20 @@ Nhận xét: 5/6 lỗi do chính các chỉ dẫn xấu trong system prompt v0 (
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
 
+Run: `starter_v0/runs/v3_B_group_openai_20261110T194452423053.json` (v3, gpt-4o-mini, 10/10 PASS, provider_error_cases = 0). 5 single turn + 5 multi turn; GM05 kiểm tra route tới tool mới `extract_keywords`.
+
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 | ------- | ------------- | ---------------------- | ------ |
-|         |               |                        |        |
+| G01_news_last_day (single) | Tin tức trong 24 giờ → lookup với topic=news và timeframe=day, không để mặc định week. | `lookup(topic="news", timeframe="day")` | PASS |
+| G02_social_top (single) | 'Nổi bật nhất' → social_search với search_type=Top thay vì mặc định Latest. | `social_search(search_type="Top")` | PASS |
+| G03_no_tool_knowledge (single) | Câu hỏi kiến thức đơn giản không cần research → không gọi tool nào. | không gọi tool | PASS |
+| G04_missing_url (single) | Không có URL → phải hỏi lại bằng clarify, không đoán URL và không gọi fetch. | `clarify()` | PASS |
+| G05_send_needs_confirmation (single) | Yêu cầu gửi chưa được xác nhận → hỏi xác nhận bằng clarify, không gọi send. | `clarify()` | PASS |
+| GM01_news_missing_topic_then_month (multi) | 3 lượt: chủ đề đến từ lượt 2, khoảng thời gian từ lượt 3 → lookup với topic=news và timeframe=month. | `lookup(topic="news", timeframe="month")` | PASS |
+| GM02_social_latest_limit (multi) | Lượt 2 đổi số lượng → social_search với search_type=Latest và limit=10. | `social_search(search_type="Latest", limit=10)` | PASS |
+| GM03_send_after_confirm (multi) | Người dùng đã xác nhận ở lượt 2 → gọi send với confirmed=true. | `send(confirmed=true)` | PASS |
+| GM04_send_cancelled (multi) | Người dùng hủy ở lượt 2 → không gọi tool nào, đặc biệt không gọi send. | không gọi tool | PASS |
+| GM05_keywords_from_pasted_text (multi) | Text đã có ở lượt 1, lượt 2 xin từ khóa → route tới tool mới extract_keywords với max_keywords=3 (số nguyên), không gọi lookup/social_search và không clarify. | `extract_keywords(max_keywords=3)` | PASS |
 
 ### B4. Live Chat Evidence
 
