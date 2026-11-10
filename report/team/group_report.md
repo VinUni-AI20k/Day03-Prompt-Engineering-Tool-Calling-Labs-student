@@ -37,6 +37,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
+| source_audit | kiểm tra title và URL HTTP(S) trong danh sách nguồn trước khi trình bày digest | có |
 |  |  |  |
 |  |  |  |
 
@@ -52,7 +53,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- Thêm `source_audit` (`starter_v0/tools/source_audit/`): kiểm tra title và URL HTTP(S) cho từng citation, trả danh sách lỗi theo index; tool không tải URL và không xác minh claim.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -95,11 +96,13 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/source_audit/tool.py`, `TOOL.md`; đăng ký tại `starter_v0/tools/__init__.py` và `starter_v0/artifacts/tools.yaml` | 3 test xác nhận citation HTTP hợp lệ, thiếu title/URL FTP bị báo lỗi, và input `items` sai kiểu trả error dict | Chỉ kiểm tra metadata/cú pháp URL; không xác nhận URL truy cập được hay claim chính xác |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` — `source_audit`: 3 passed; `starter_v0/tests/test_tool_contract.py`: 60 passed | Bắt được title thiếu và scheme FTP, là lỗi dữ liệu citation ở tầng tool | Đây là unit/contract tests, chưa chứng minh model tự route đúng tới tool |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+
+Eval routing: hiện chưa có case nhóm kiểm tra `source_audit`; `starter_v0/data/eval_group.json` đang có `cases: []`. Cần bổ sung theo phần CP4 trước khi kết luận model route tool đúng.
 
 ### B5. Bonus Evidence
 
@@ -125,6 +128,8 @@ Chỉ điền nếu nhóm làm bonus này.
 | v3-<model> | (ollama) | v3 |  |  |  |  |  |
 | v4-local |  |  |  |  |  |  |  |
 | v5-local |  |  |  |  |  |  |  |
+
+Tình trạng run hiện tại: chưa có baseline local hợp lệ và chưa có vòng `v4-local`/`v5-local`. Preflight tool-calling cho `qwen2.5:3b` dừng với lỗi Ollama/CUDA `device kernel image is invalid`; lần này không được tính là benchmark. Cần khắc phục runtime rồi chạy lại trước khi điền số liệu.
 
 Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 

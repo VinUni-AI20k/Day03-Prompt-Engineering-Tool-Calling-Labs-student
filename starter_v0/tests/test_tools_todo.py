@@ -110,13 +110,49 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def _source_audit_tool():
+    tool = TOOL_FUNCTIONS.get("source_audit")
+    assert callable(tool), "source_audit is not registered"
+    return tool
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_source_audit_accepts_complete_http_citations() -> None:
+    result = _source_audit_tool()(items=[{
+        "title": "Research report",
+        "url": "https://example.org/report",
+        "source": "Example",
+        "summary": "A short summary.",
+    }])
+
+    assert result == {
+        "tool": "source_audit",
+        "checked_count": 1,
+        "valid_count": 1,
+        "ok": True,
+        "issues": [],
+    }
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_source_audit_reports_missing_title_and_invalid_url() -> None:
+    result = _source_audit_tool()(items=[
+        {"url": "https://example.org/no-title"},
+        {"title": "FTP source", "url": "ftp://example.org/report"},
+    ])
+
+    assert result["ok"] is False
+    assert result["checked_count"] == 2
+    assert result["valid_count"] == 0
+    assert result["issues"] == [
+        {"index": 0, "title": None, "problems": ["missing_title"]},
+        {"index": 1, "title": "FTP source", "problems": ["invalid_url"]},
+    ]
+
+
+def test_source_audit_wrong_items_type_returns_error_dict() -> None:
+    result = _source_audit_tool()(items="not a list")
+
+    assert result == {
+        "tool": "source_audit",
+        "error": "TypeError",
+        "message": "items must be a list of objects",
+    }
