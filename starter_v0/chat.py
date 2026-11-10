@@ -162,95 +162,94 @@ def main() -> None:
     args = parser.parse_args()
 
     system_prompt = args.system_prompt.read_text(encoding="utf-8")
-    print("system_prompt:", system_prompt)
-    # tool_declarations = load_tool_declarations(args.tools)
-    # openai_tools = to_openai_tools(tool_declarations)
-    # provider = make_provider(args.provider)
-    # selected_model = args.model or getattr(provider, "default_model", None)
-    # artifact_version = build_artifact_version(args.version, args.system_prompt, args.tools)
+    tool_declarations = load_tool_declarations(args.tools)
+    openai_tools = to_openai_tools(tool_declarations)
+    provider = make_provider(args.provider)
+    selected_model = args.model or getattr(provider, "default_model", None)
+    artifact_version = build_artifact_version(args.version, args.system_prompt, args.tools)
 
-    # timestamp = datetime.now().strftime("%Y%m%dT%H%M%S%f")
-    # transcript_id = "_".join([
-    #     safe_slug(args.version),
-    #     safe_slug(args.provider),
-    #     timestamp,
-    # ])
-    # transcript_path = args.transcripts_dir / f"{transcript_id}.transcript.json"
-    # transcript: dict[str, Any] = {
-    #     "transcript_id": transcript_id,
-    #     **artifact_version_dict(artifact_version),
-    #     "provider": args.provider,
-    #     "model": selected_model,
-    #     "system_prompt": str(args.system_prompt),
-    #     "tools": str(args.tools),
-    #     "history_window": args.history_window,
-    #     "max_tool_rounds": args.max_tool_rounds,
-    #     "created_at": now_iso(),
-    #     "updated_at": now_iso(),
-    #     "turns": [],
-    # }
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S%f")
+    transcript_id = "_".join([
+        safe_slug(args.version),
+        safe_slug(args.provider),
+        timestamp,
+    ])
+    transcript_path = args.transcripts_dir / f"{transcript_id}.transcript.json"
+    transcript: dict[str, Any] = {
+        "transcript_id": transcript_id,
+        **artifact_version_dict(artifact_version),
+        "provider": args.provider,
+        "model": selected_model,
+        "system_prompt": str(args.system_prompt),
+        "tools": str(args.tools),
+        "history_window": args.history_window,
+        "max_tool_rounds": args.max_tool_rounds,
+        "created_at": now_iso(),
+        "updated_at": now_iso(),
+        "turns": [],
+    }
 
-    # print(f"Research Agent chat. artifact_version={artifact_version.artifact_version}")
-    # print("Type /exit to stop.")
+    print(f"Research Agent chat. artifact_version={artifact_version.artifact_version}")
+    print("Type /exit to stop.")
 
-    # history: list[dict[str, str]] = []
-    # turn_index = 0
-    # while True:
-    #     try:
-    #         user_text = input("\nYou> ").strip()
-    #     except (EOFError, KeyboardInterrupt):
-    #         print()
-    #         break
+    history: list[dict[str, str]] = []
+    turn_index = 0
+    while True:
+        try:
+            user_text = input("\nYou> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
 
-    #     if not user_text:
-    #         continue
-    #     if user_text in {"/exit", "/quit"}:
-    #         break
+        if not user_text:
+            continue
+        if user_text in {"/exit", "/quit"}:
+            break
 
-    #     turn_index += 1
-    #     messages = [
-    #         {"role": "system", "content": system_prompt},
-    #         *trim_history(history, args.history_window),
-    #         {"role": "user", "content": user_text},
-    #     ]
+        turn_index += 1
+        messages = [
+            {"role": "system", "content": system_prompt},
+            *trim_history(history, args.history_window),
+            {"role": "user", "content": user_text},
+        ]
 
-    #     turn_record: dict[str, Any] = {
-    #         "turn_index": turn_index,
-    #         "started_at": now_iso(),
-    #         "user": user_text,
-    #         "status": "started",
-    #         "assistant_text": None,
-    #         "rounds": [],
-    #         "tool_events": [],
-    #     }
+        turn_record: dict[str, Any] = {
+            "turn_index": turn_index,
+            "started_at": now_iso(),
+            "user": user_text,
+            "status": "started",
+            "assistant_text": None,
+            "rounds": [],
+            "tool_events": [],
+        }
 
-    #     try:
-    #         result = run_model_tool_loop(
-    #             provider=provider,
-    #             messages=messages,
-    #             tools=openai_tools,
-    #             model=args.model,
-    #             max_tool_rounds=args.max_tool_rounds,
-    #         )
-    #         turn_record.update(result)
-    #         assistant_text = result["assistant_text"]
-    #         print(f"\nAgent> {assistant_text}")
-    #         history.append({"role": "user", "content": user_text})
-    #         history.append({"role": "assistant", "content": assistant_text})
-    #     except Exception as exc:
-    #         turn_record.update({
-    #             "status": "provider_error",
-    #             "error": f"{type(exc).__name__}: {str(exc)}",
-    #         })
-    #         print(f"\nERROR> {turn_record['error']}")
+        try:
+            result = run_model_tool_loop(
+                provider=provider,
+                messages=messages,
+                tools=openai_tools,
+                model=args.model,
+                max_tool_rounds=args.max_tool_rounds,
+            )
+            turn_record.update(result)
+            assistant_text = result["assistant_text"]
+            print(f"\nAgent> {assistant_text}")
+            history.append({"role": "user", "content": user_text})
+            history.append({"role": "assistant", "content": assistant_text})
+        except Exception as exc:
+            turn_record.update({
+                "status": "provider_error",
+                "error": f"{type(exc).__name__}: {str(exc)}",
+            })
+            print(f"\nERROR> {turn_record['error']}")
 
-    #     turn_record["ended_at"] = now_iso()
-    #     transcript["turns"].append(turn_record)
-    #     write_transcript(transcript_path, transcript)
-    #     print(f"Transcript saved: {transcript_path}")
+        turn_record["ended_at"] = now_iso()
+        transcript["turns"].append(turn_record)
+        write_transcript(transcript_path, transcript)
+        print(f"Transcript saved: {transcript_path}")
 
-    # write_transcript(transcript_path, transcript)
-    # print(f"Final transcript: {transcript_path}")
+    write_transcript(transcript_path, transcript)
+    print(f"Final transcript: {transcript_path}")
 
 
 if __name__ == "__main__":
