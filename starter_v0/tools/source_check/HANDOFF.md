@@ -3,9 +3,28 @@
 - Ngày: 10/11/2026.
 - Owner: Trần Minh Tân — 2A202603688.
 - Branch: `feature/new-tool-tests-03688`.
-- Trạng thái: hoàn thành triển khai và kiểm tra offline, chờ review/tích hợp nhóm.
+- Trạng thái mới nhất (10/11/2026): tool/test và prompt/routing đã merge vào
+  `main`; Tân kiểm tra tích hợp tại `57c2065`, **122 passed, 0 failed, 0 skipped**.
+  Chờ transcript/report của Minh để kiểm tra arguments thật và review B5.
 - Commit bàn giao: xem `git log -1 --oneline` trên branch này; phần tool và test
   được commit cùng tài liệu bàn giao, chờ review/merge vào nhánh chung.
+
+## Cập nhật kiểm tra tích hợp
+
+Đã fetch remote và xác minh `HEAD` trùng `origin/main` tại
+`57c20650fd2fdaa260c405e2edbc4791a6e2bcde` (PR #3 của Trọng đã merge).
+Chạy lại `.venv\Scripts\python -m pytest -v`: **122 passed, 0 failed,
+0 skipped**, gồm 60 contract, 7 example, 55 tool cases; 1 warning deprecation
+từ plugin `anyio`. Chưa phát hiện lỗi tool cần sửa. Evidence mới:
+[pytest-integration-output.txt](pytest-integration-output.txt), có source commit
+và SHA256 của prompt/tools để Minh đối chiếu khi điền REPORT B5.
+
+Kiểm tra này chạy offline với fake HTTP/provider. Chưa có bằng chứng live
+`source_check` hoặc review B5 hoàn chỉnh; không đánh dấu hai phần đó đã xong.
+Minh có thể làm eval/UI/report ngay bằng code đã merge, không cần chờ Tân.
+Khi có thay đổi mới từ Trọng/Minh, cập nhật code và chạy lại test tương ứng.
+Các bảng bên dưới là hồ sơ bàn giao ban đầu; trạng thái chung mới nhất nằm ở
+[TEAM_HANDOFF_CHECKLIST.md](../../../TEAM_HANDOFF_CHECKLIST.md).
 
 ## Tiến độ từng phần
 

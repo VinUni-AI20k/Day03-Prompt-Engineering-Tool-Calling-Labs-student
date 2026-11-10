@@ -8,17 +8,17 @@ Cập nhật: **10/11/2026**. Phân công gốc: [TASK_ASSIGNMENT.md](TASK_ASSIG
 
 | Thành viên | Phần việc | Trạng thái đã biết | Việc tiếp theo |
 |---|---|---|---|
-| **Trần Minh Tân** — 2A202603688 | Tool mới và unit test | Đã commit/push `8682c8d` trên `feature/new-tool-tests-03688`; Tân xác nhận đã merge vào `main` | Hỗ trợ tích hợp, kiểm tra arguments và sửa regression nếu có |
-| **Nguyễn Nho Trọng** — 2A202603666 | Prompt, routing, tối ưu v0–v3 | Chưa có bằng chứng cập nhật trong phiên bàn giao này | Lấy code từ `main`, review `source_check`, cập nhật routing và chạy eval |
+| **Trần Minh Tân** — 2A202603688 | Tool mới và unit test | Tool/test đã merge; kiểm tra tích hợp tại `57c2065`: **122 passed, 0 failed, 0 skipped** | Chờ transcript/report của Minh để kiểm tra arguments thật và review B5; sửa regression nếu có |
+| **Nguyễn Nho Trọng** — 2A202603666 | Prompt, routing, tối ưu v0–v3 | Prompt/routing và baseline v0 đã merge qua PR #3 tại `57c2065`; có xác nhận Gemini preflight PASS | Tiếp tục v1–v3 và điền version log; phối hợp Minh chạy eval nhóm |
 | **Vũ Quang Minh** — 2A202603657 | Eval, UI, live chat, report | Chưa có bằng chứng cập nhật trong phiên bàn giao này | Lấy code từ `main`, thêm eval cho tool mới, hoàn thiện UI/report |
 
-**Bước bàn giao tool đầu tiên đã hoàn tất theo xác nhận của Tân.** Tiếp theo,
-Trọng tích hợp prompt/routing; Minh có thể viết eval và dựng UI song song, rồi
-chạy group eval sau khi có bản prompt tích hợp. Tân chưa cần chờ để hỗ trợ review.
+**Tool/test và bản prompt/routing đầu tiên đã có trên `main`.** Minh có thể
+viết eval, dựng UI và làm report ngay, không cần chờ thêm code tool từ Tân.
+Trọng tiếp tục tối ưu v1–v3; group eval cuối cần dùng đúng artifact đã chốt.
 
-Thông tin merge vào `main` ở trên do Tân xác nhận; chưa kiểm tra lại remote ở
-lần cập nhật tài liệu này. Trạng thái của Trọng/Minh là **chưa cập nhật**, không
-có nghĩa hai bạn chưa làm. Mỗi bạn bổ sung branch, commit và bằng chứng bên dưới.
+Đã fetch và xác minh `HEAD` trùng `origin/main` tại `57c2065` trong lần kiểm tra
+tích hợp của Tân ngày 10/11/2026. Trạng thái Minh là **chưa cập nhật**, không có
+nghĩa Minh chưa làm. Mỗi bạn bổ sung branch, commit và bằng chứng bên dưới.
 
 ## 2. Gói bàn giao của Tân
 
@@ -42,6 +42,7 @@ Tài liệu để hai bạn dùng trực tiếp:
 | Contract input/output/error và ví dụ gọi tool | [TOOL.md](starter_v0/tools/source_check/TOOL.md) |
 | Gợi ý routing, mẫu eval JSON và đoạn nội dung cho REPORT B5 | [HANDOFF.md](starter_v0/tools/source_check/HANDOFF.md) |
 | Output thật của bộ test | [pytest-output.txt](starter_v0/tools/source_check/pytest-output.txt) |
+| Output test sau tích hợp prompt/routing, kèm source commit và artifact hashes | [pytest-integration-output.txt](starter_v0/tools/source_check/pytest-integration-output.txt) |
 | Implementation | [tool.py](starter_v0/tools/source_check/tool.py) |
 | Unit test | [test_tools_todo.py](starter_v0/tests/test_tools_todo.py) |
 
@@ -62,7 +63,7 @@ Thông tin merge mới nhất được theo dõi trong file chung này.
 - [ ] Chạy `v2`, ghi bằng chứng tương ứng.
 - [ ] Chạy `v3`, ghi bằng chứng tương ứng.
 - [ ] Điền đủ `v0`–`v3` trong `artifacts/version_log.csv`; không tạo metric hoặc log giả.
-- [ ] Chạy lại test sau thay đổi YAML; bàn giao commit/PR prompt cho cả nhóm. **Chưa chạy được:** `.venv` thiếu `pytest` và `PyYAML`; pip bị chặn mạng (`WinError 10013`). Kiểm tra tĩnh `compileall` đã PASS.
+- [x] Prompt/routing đã bàn giao qua PR #3 và merge tại `57c2065`; Tân kiểm tra lại toàn bộ test sau thay đổi YAML: **122 passed, 0 failed, 0 skipped**. Evidence: [output tích hợp](starter_v0/tools/source_check/pytest-integration-output.txt). Lỗi thiếu dependency trước đó là trạng thái lịch sử.
 - [ ] Review REPORT B1/B2 và mô tả prompt/tool declaration sau khi Minh tổng hợp.
 
 Files chính: `starter_v0/artifacts/system_prompt.md`, `tools.yaml`, `version_log.csv`.
@@ -99,18 +100,18 @@ Files chính: `starter_v0/data/eval_group.json`, `app.py`, `artifacts/REPORT.md`
 - [x] Lưu bằng chứng **122 passed, 0 failed, 0 skipped** tại commit bàn giao.
 - [x] Chuẩn bị mẫu eval và nội dung REPORT B5 cho nhóm.
 - [x] Commit/push `8682c8d`; merge vào `main` theo xác nhận của Tân.
-- [ ] Sau khi phần Trọng/Minh merge, cập nhật `main` vào nhánh làm việc.
-- [ ] Chạy lại toàn bộ test và ghi kết quả của bản tích hợp mới.
+- [x] Cập nhật bản tích hợp prompt/routing của Trọng vào nhánh làm việc: `HEAD` trùng `origin/main` tại `57c2065`; phần Minh chưa có bằng chứng merge, cần cập nhật lại khi có.
+- [x] Chạy lại toàn bộ test tại `57c2065`: **122 passed, 0 failed, 0 skipped**, 1 warning plugin `anyio`; [output tích hợp](starter_v0/tools/source_check/pytest-integration-output.txt). Cần chạy lại sau khi nhận thay đổi code/test tiếp theo.
 - [ ] Kiểm tra tool call thật truyền đúng `items`; item thiếu URL/source vẫn được báo lỗi.
-- [ ] Nếu có bug, sửa tool và bổ sung regression test; ghi evidence trước/sau.
+- [ ] Nếu có bug, sửa tool và bổ sung regression test; ghi evidence trước/sau. Lần kiểm tra `57c2065` chưa phát hiện lỗi tool cần sửa; tiếp tục theo dõi khi có eval/transcript mới.
 - [ ] Review REPORT B5: test count, mô tả tool, giới hạn metadata-only và bằng chứng.
 
 ## 6. Checklist chung trước khi chốt bài
 
-- [x] Cả ba thành viên xác nhận setup; provider preflight thành công trên môi trường chạy eval. Trọng đã xác nhận Gemini preflight PASS trên máy chạy eval.
+- [ ] Cả ba thành viên xác nhận setup; provider preflight thành công trên môi trường chạy eval. Hiện xác nhận được **máy Trọng** đã preflight Gemini PASS; Tân đã chạy test offline, chưa xác nhận live preflight; Minh chưa cập nhật setup. Chưa đủ bằng chứng để tick hoàn tất setup cả nhóm.
 - [ ] `main` chứa tool/test của Tân, prompt/routing của Trọng và eval/UI/report của Minh.
 - [ ] Bản tích hợp cuối chạy `pytest`: **0 failed, 0 skipped**; lưu output mới.
-- [ ] Contract khớp tên tool, function signature, YAML và `TOOL.md`.
+- [x] Contract tại `57c2065` khớp tên tool, function signature, YAML và `TOOL.md`: **60 contract cases PASS** trong output tích hợp; kiểm tra lại nếu thay đổi khai báo/registry/tool.
 - [ ] Có run JSON thật cho `v0`, `v1`, `v2`, `v3` và đủ 4 dòng version log.
 - [ ] Group eval đủ 10 case, đúng tỷ lệ 5/5, có case tool mới và run JSON.
 - [ ] Có transcript ít nhất 3 lượt live, thể hiện clarification và confirmation.
@@ -121,8 +122,8 @@ Files chính: `starter_v0/data/eval_group.json`, `app.py`, `artifacts/REPORT.md`
 
 Setup/provider ở máy Tân chưa được xác nhận: lần kiểm tra trước không có `.env`
 hoặc `OPENROUTER_API_KEY`. Mỗi thành viên tự ghi trạng thái môi trường của mình;
-không suy ra máy khác cũng thiếu key. Trọng đã có `GEMINI_API_KEY` trong `.env`
-nhưng chưa preflight được vì `.venv` thiếu `PyYAML` (và các dependency khác).
+không suy ra máy khác cũng thiếu key. Trọng đã xử lý trở ngại dependency và
+xác nhận Gemini preflight PASS như bằng chứng bên dưới.
 
 **Evidence Mốc 0 của Trọng (10/11/2026):** `.env` có `GEMINI_API_KEY` (không ghi
 giá trị), dependencies đã hoạt động trong `.venv`, `pytest` đạt **122 passed,
@@ -151,8 +152,8 @@ dependencies theo README. Eval/preflight cần provider key; pytest chạy offli
 
 ```powershell
 python -m pytest -v
-python scripts/preflight_provider.py --provider openrouter
-python run_eval.py --provider openrouter --version v0 --suite base --eval-cases data/eval_base.json
+python scripts/preflight_provider.py --provider gemini --model gemini-3.5-flash
+python run_eval.py --provider gemini --model gemini-3.5-flash --version v0 --suite base --eval-cases data/eval_base.json
 ```
 
 Trọng chạy lại lệnh base eval với từng `--version v1`, `v2`, `v3` sau thay đổi
@@ -160,10 +161,14 @@ thực tế tương ứng; không chạy bốn nhãn trên cùng code rồi coi 
 Sau khi tích hợp bản v3 và eval nhóm, Minh chạy:
 
 ```powershell
-python run_eval.py --provider openrouter --version v3 --suite group --eval-cases data/eval_group.json
-python chat.py --provider openrouter --version v3
+python run_eval.py --provider gemini --model gemini-3.5-flash --version v3 --suite group --eval-cases data/eval_group.json
+python chat.py --provider gemini --model gemini-3.5-flash --version v3
 streamlit run app.py
 ```
+
+Các lệnh trên phản ánh provider/model đã có bằng chứng chạy của Trọng. Nếu
+nhóm đổi provider/model, ghi lại lựa chọn mới trong version log và dùng nhất
+quán khi so sánh; key tương ứng cấu hình riêng trên từng máy, không commit.
 
 ## 8. Nhật ký bàn giao chung
 
@@ -182,6 +187,11 @@ checkpoint chung sau review. Khi cùng sửa file này, fetch/merge trước khi
 | 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Hoàn tất Mốc 0 | `pytest -q`: **122 passed**; preflight Gemini ngoài sandbox: `OK provider=gemini model=gemini-3.5-flash`, tool `timeline` gọi đúng args `screenname=sama`, `limit=1` | Chuyển sang Mốc 1: chạy baseline v0 và lập danh sách lỗi từ run JSON |
 | 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Chạy và kiểm tra baseline v0 | `runs/v0_B_base_gemini_20261110T105830047307.json`; hash prompt/tools khớp artifact; 20/20 case `provider_error`, `measured_cases=0` do `WinError 10013` | Chạy lại v0 trên môi trường có kết nối Gemini để phân loại routing/args/missing/boundary từ kết quả đo thật |
 | Chưa cập nhật | Minh | Điền branch / commit / PR thực tế | Điền phần đã hoàn thành | Eval, UI, transcript, report | Điền người nhận và bước tiếp theo |
+| 10/11/2026 | Tân | `feature/new-tool-tests-03688`; source kiểm tra `57c2065` (PR #3 đã merge) | Fetch xác nhận bản tích hợp trùng `origin/main`; kiểm tra lại registry/YAML/tool, toàn bộ unit và contract tests | [pytest-integration-output.txt](starter_v0/tools/source_check/pytest-integration-output.txt): **122 passed, 0 failed, 0 skipped**, kèm commit/hashes; không gọi model/API thật | Minh dùng evidence mới cho B5; khi có transcript/report, Tân kiểm tra args thật và review B5; chạy lại test nếu code thay đổi |
+
+Các dòng nhật ký cũ ghi “chưa commit”, “thiếu dependency” hoặc “chưa có run” là
+lịch sử tại thời điểm ghi, không phải trạng thái mới nhất. Dùng bảng tổng quan
+và evidence bàn giao mới nhất để quyết định bước tiếp theo.
 
 Quy ước: `[x]` là đã có bằng chứng hoặc xác nhận được ghi rõ; `[ ]` là chưa xác
 nhận hoàn tất. Bỏ tick nếu thay đổi mới làm điều kiện không còn đúng. Hoàn thành
