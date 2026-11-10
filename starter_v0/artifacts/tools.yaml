@@ -123,3 +123,13 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tools ----------------
+  - name: redact
+    description: "Ẩn thông tin nhạy cảm (email, số điện thoại, API key, bearer token, mật khẩu, credentials trong URL) khỏi một đoạn text. DÙNG khi user dán nội dung có PII/secret và nội dung đó sắp được đưa vào tool live khác (lookup, fetch, social_search, timeline) hoặc đăng lên kênh — gọi redact TRƯỚC khi dùng tool khác. KHÔNG dùng để tóm tắt, tìm kiếm, hay render digest. Kết quả chỉ báo loại và số lượng đã ẩn, không trả lại giá trị gốc."
+    parameters:
+      type: object
+      properties:
+        text: {type: string, default: "", description: "Nội dung cần ẩn PII/secret"}
+        extra_patterns: {type: array, default: [], items: {type: string}, description: "Regex tùy chọn để ẩn thêm loại dữ liệu riêng của nhóm"}
+      required: [text]

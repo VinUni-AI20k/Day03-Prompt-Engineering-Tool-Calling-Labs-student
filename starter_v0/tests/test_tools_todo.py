@@ -104,19 +104,43 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
     pytest.skip(TODO)
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# ---------------- redact (team tool) ----------------
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def _all_strings(value):
+    """Yield every string nested anywhere inside a result dict."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from _all_strings(item)
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            yield from _all_strings(item)
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_redact_masks_email_phone_and_api_key() -> None:
+    text = "lien he an.nguyen@company.vn, SDT 0912345678, key sk-or-v1-abc123"
+    result = TOOL_FUNCTIONS["redact"](text)
+
+    assert "error" not in result
+    assert result["redaction_count"] == 3
+    assert {item["type"] for item in result["findings"]} == {"email", "phone", "api_key"}
+
+    # The whole point of the tool: no raw secret may survive anywhere in the result.
+    for secret in ("an.nguyen@company.vn", "0912345678", "sk-or-v1-abc123"):
+        for text_value in _all_strings(result):
+            assert secret not in text_value, f"secret {secret!r} leaked into the result"
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_redact_empty_text_returns_error_dict() -> None:
+    result = TOOL_FUNCTIONS["redact"]("")
+
+    assert result["error"] == "ValueError"
+    assert "empty" in result["message"].lower()
+
+
+def test_redact_invalid_extra_pattern_returns_error_dict() -> None:
+    result = TOOL_FUNCTIONS["redact"]("xin chào", ["[unclosed"])
+
+    assert result["error"] == "ValueError"
+    assert "regex" in result["message"].lower()
