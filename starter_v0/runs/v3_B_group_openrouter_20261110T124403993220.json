@@ -1,0 +1,889 @@
+{
+  "run_id": "v3_B_group_openrouter_20261110T124403993220",
+  "version": "v3",
+  "artifact_version": "v3+p03f49c00c387+tf71266163eeb",
+  "prompt_hash": "03f49c00c38765bba8adb61252d862b932600f028661aaba7dfab1e2146a2b27",
+  "tools_hash": "f71266163eeb843b994a7b812f55b219aa97d5586bbf047b225c044861e18bca",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "system_prompt": "/home/duong/Downloads/AI_Vin/K5-L3A-DAY03-NhomNoName-Prompt-Function-Calling-Tool-Design-MCP/starter_v0/artifacts/system_prompt.md",
+  "tools": "/home/duong/Downloads/AI_Vin/K5-L3A-DAY03-NhomNoName-Prompt-Function-Calling-Tool-Design-MCP/starter_v0/artifacts/tools.yaml",
+  "eval_cases": "data/eval_group.json",
+  "dataset_id": "day04_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T12:44:03",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 10,
+    "provider_error_cases": 0,
+    "passed_cases": 10,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": 1.0,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_handle_without_at",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Bỏ ký tự @ khỏi handle và giữ đúng số lượng người dùng yêu cầu."
+      },
+      "input": "Lấy 4 bài đăng mới nhất của tài khoản @NASA.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "NASA",
+              "limit": 4
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "NASA",
+              "limit": 4
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "NASA",
+            "limit": 4
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "NASA",
+            "items": [
+              {
+                "title": "We had a great time at MAX POWER — and made a lot of news!",
+                "summary": "We had a great time at MAX POWER — and made a lot of news!\n\nWe're recruiting a new class of astronauts, making major advancements on the Moon Base, and challenging students to a $1 million design competition. Catch up with everything we announced at the festival: https://t.co/GrfsD9eADy",
+                "url": "https://x.com/NASA/status/2119846862286930036",
+                "source": "@NASA",
+                "date": "Mon Nov 09 17:37:31 +0000 2026",
+                "metrics": {
+                  "favorites": 1148,
+                  "retweets": 144,
+                  "views": "338887"
+                }
+              },
+              {
+                "title": "The weekend ends. The mission keeps going.",
+                "summary": "The weekend ends. The mission keeps going.\n\nThis is what American ambition looks like. 🇺🇸🚀 https://t.co/C5d5Z0imPm",
+                "url": "https://x.com/NASA/status/2119833829389041896",
+                "source": "@NASA",
+                "date": "Mon Nov 09 16:45:44 +0000 2026",
+                "metrics": {
+                  "favorites": 1915,
+                  "retweets": 282,
+                  "views": "673073"
+                }
+              },
+              {
+                "title": "RT @WhiteHouse: Under the Trump Administration, ambition is back. Momentum is back. Leadership is back. @NASA is BACK. 🚀",
+                "summary": "RT @WhiteHouse: Under the Trump Administration, ambition is back. Momentum is back. Leadership is back. @NASA is BACK. 🚀🇺🇸 https://t.co/6FK…",
+                "url": "https://x.com/NASA/status/2119813183628284317",
+                "source": "@NASA",
+                "date": "Mon Nov 09 15:23:41 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 1662,
+                  "views": "49510"
+                }
+              },
+              {
+                "title": "Just announced at MAX POWER: a $1 million Moon Base Student Challenge! https://t.co/w2MEiVhdPu",
+                "summary": "Just announced at MAX POWER: a $1 million Moon Base Student Challenge! https://t.co/w2MEiVhdPu\n\nThe competition tasks U.S. high school and post-secondary student teams to develop solutions to real-world engineering constraints for establishing a long-term human presence on the Moon.",
+                "url": "https://x.com/NASA/status/2119467718373941588",
+                "source": "@NASA",
+                "date": "Sun Nov 08 16:30:56 +0000 2026",
+                "metrics": {
+                  "favorites": 3269,
+                  "retweets": 540,
+                  "views": "634514"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_social_top",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Phân biệt Top với Latest và truyền đúng số lượng bài."
+      },
+      "input": "Tìm 6 bài đăng nổi bật trên Twitter về cybersecurity, ưu tiên độ phổ biến thay vì mới nhất.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "cybersecurity",
+              "search_type": "Top",
+              "limit": 6
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "cybersecurity",
+              "search_type": "Top",
+              "limit": 6
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "cybersecurity",
+            "search_type": "Top",
+            "limit": 6
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "cybersecurity",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "Learn Coding by playing games 🎯 ",
+                "summary": "Learn Coding by playing games 🎯 \n\n1. Kubernetes\nhttps://t.co/mFIeYW0wbF\n\n2. DevOps\nhttps://t.co/JvLRR6LGqL\n\n3. Linux\nhttps://t.co/g5f7hG4Oi6\n\n4. Git\nhttps://t.co/wNS7kmDgvS\n\n5. Python\nhttps://t.co/9pI0zOcXUg\n\n6. CSS & HTML\nhttps://t.co/dPRVUCs57N\n\n7. Cybersecurity\nhttps://t.co/KGujVA0AIA\n\n8. Mobile Coding (like Duolingo)\nhttps://t.co/OD687WHj9L\n\n9. For Complete Beginners\nhttps://t.co/CuUrBILiyV\n\n10. 25+ Programming Languages\nhttps://t.co/8qkTCRKcc7",
+                "url": "https://x.com/Bharambe2Kiran/status/2119755612485746745",
+                "source": "@Bharambe2Kiran",
+                "date": "Mon Nov 09 11:34:55 +0000 2026",
+                "metrics": {
+                  "favorites": 37,
+                  "retweets": 14,
+                  "views": "1164"
+                }
+              },
+              {
+                "title": "Learn Coding by playing games ",
+                "summary": "Learn Coding by playing games \n\n1. Kubernetes\nhttps://t.co/1mQKyVWN6z\n\n2. DevOps\nhttps://t.co/E0NzILKPrt\n\n3. Linux\nhttps://t.co/cI18V3lK1q\n\n4. Git\nhttps://t.co/wGMWJp4LfO\n\n5. Python\nhttps://t.co/polRQHlzI4\n\n6. CSS & HTML\nhttps://t.co/q4DwF1hxcN\n\n7. Cybersecurity\nhttps://t.co/xeCX4zogAH\n\n8. Mobile Coding (like Duolingo)\nhttps://t.co/m9GDOsxWaB\n\n9. For Complete Beginners\nhttps://t.co/SLQMeZQ7UN\n\n10. 25+ Programming Languages\nhttps://t.co/lruXdLpMb3",
+                "url": "https://x.com/AlinaDavy20/status/2118332997347021222",
+                "source": "@AlinaDavy20",
+                "date": "Thu Nov 05 13:21:57 +0000 2026",
+                "metrics": {
+                  "favorites": 56,
+                  "retweets": 18,
+                  "views": "9442"
+                }
+              },
+              {
+                "title": "Hiring managers don't just want to hear you know pfSense or Splunk, they want to see you running them.",
+                "summary": "Hiring managers don't just want to hear you know pfSense or Splunk, they want to see you running them.\n\nBuild a home cybersecurity lab, break stuff, fix it, and show that off. That's what actually makes you stand out. https://t.co/GqEllWY00w",
+                "url": "https://x.com/NetworkChuck/status/2117981964011507735",
+                "source": "@NetworkChuck",
+                "date": "Wed Nov 04 14:07:05 +0000 2026",
+                "metrics": {
+                  "favorites": 711,
+                  "retweets": 47,
+                  "views": "38089"
+                }
+              },
+              {
+                "title": "How to bypass OTP",
+                "summary": "How to bypass OTP\n\nHacking Tutorials daily \n\n(Not intended for illegal purposes\nEducational and informational only) https://t.co/ypv89xoYMB",
+                "url": "https://x.com/cyber_rekk/status/2119165200590831826",
+                "source": "@cyber_rekk",
+                "date": "Sat Nov 07 20:28:50 +0000 2026",
+                "metrics": {
+                  "favorites": 4275,
+                  "retweets": 506,
+                  "views": "239290"
+                }
+              },
+              {
+                "title": "🚨 Sometimes curiosity leads to something new! 👀",
+                "summary": "🚨 Sometimes curiosity leads to something new! 👀\n\nI can spend hours watching FortiGuard activity—not because life is boring, but because the movement is fascinating!\n\nMaybe it's time to get an IT-related certification? 🤔💻\n\nBig respect to all our IT warriors fighting on the cybersecurity front! 🫡🔥\n\nFollow @OpenAi221",
+                "url": "https://x.com/OpenAi221/status/2119785765584695487",
+                "source": "@OpenAi221",
+                "date": "Mon Nov 09 13:34:44 +0000 2026",
+                "metrics": {
+                  "favorites": 40,
+                  "retweets": 34,
+                  "views": "494"
+                }
+              },
+              {
+                "title": "https://t.co/P4HFdDbF1G",
+                "summary": "https://t.co/P4HFdDbF1G",
+                "url": "https://x.com/cyber_razz/status/2119043975722291421",
+                "source": "@cyber_razz",
+                "date": "Sat Nov 07 12:27:08 +0000 2026",
+                "metrics": {
+                  "favorites": 809,
+                  "retweets": 54,
+                  "views": "32653"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_missing_url",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "G_missing_url"
+      },
+      "input": "Tóm tắt bài viết này, mình chưa gửi link.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn vui lòng cung cấp đường link (URL) của bài viết cần tóm tắt?",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn vui lòng cung cấp đường link (URL) của bài viết cần tóm tắt?",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn vui lòng cung cấp đường link (URL) của bài viết cần tóm tắt?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_deduplicate",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "G_deduplicate"
+      },
+      "input": "Loại các link trùng trong danh sách này, giữ item đầu tiên: [{\"url\":\"https://example.com/a\"},{\"url\":\"https://example.com/a\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.com/a"
+                },
+                {
+                  "url": "https://example.com/a"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.com/a"
+                },
+                {
+                  "url": "https://example.com/a"
+                }
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "deduplicate",
+          "args": {
+            "items": [
+              {
+                "url": "https://example.com/a"
+              },
+              {
+                "url": "https://example.com/a"
+              }
+            ]
+          },
+          "result": {
+            "tool": "deduplicate",
+            "items": [
+              {
+                "url": "https://example.com/a"
+              }
+            ],
+            "item_count": 1,
+            "duplicate_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_missing_send_content",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "G_missing_send_content"
+      },
+      "input": "Mình muốn gửi bản tin lên Telegram nhưng chưa có nội dung. Hỏi mình nội dung trước, chưa gửi.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn muốn gửi nội dung gì lên Telegram? Hãy cung cấp văn bản bản tin bạn muốn gửi.",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn muốn gửi nội dung gì lên Telegram? Hãy cung cấp văn bản bản tin bạn muốn gửi.",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn muốn gửi nội dung gì lên Telegram? Hãy cung cấp văn bản bản tin bạn muốn gửi.",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_count_correction",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "G_count_correction"
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Lấy 8 tweet mới nhất của sama"
+        },
+        {
+          "role": "user",
+          "content": "Đổi thành 2 tweet"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn tài khoản sama nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 2
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 2
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "sama",
+            "limit": 2
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "sama",
+            "items": [
+              {
+                "title": "RT @fouadmatin: Today’s GPT-6 Cyber release is a meaningful step for defenders: stronger vulnerability research and bett",
+                "summary": "RT @fouadmatin: Today’s GPT-6 Cyber release is a meaningful step for defenders: stronger vulnerability research and better alignment. We’ve…",
+                "url": "https://x.com/sama/status/2118471941002842341",
+                "source": "@sama",
+                "date": "Thu Nov 05 22:34:04 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 53,
+                  "views": "47402"
+                }
+              },
+              {
+                "title": "RT @thsottiaux: Day 25/",
+                "summary": "RT @thsottiaux: Day 25/\n\nWe are doubling all usage limits for all Pro 100/200/500 tiers and Business Premium, effective today.\n\nWe heard yo…",
+                "url": "https://x.com/sama/status/2117797818756952416",
+                "source": "@sama",
+                "date": "Wed Nov 04 01:55:21 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 2703,
+                  "views": "41973"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_time_carryover",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "G_time_carryover"
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm tin GPU tuần này"
+        },
+        {
+          "role": "user",
+          "content": "Đổi chủ đề sang LLM"
+        },
+        {
+          "role": "user",
+          "content": "Giữ khoảng thời gian như trước"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "LLM",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "LLM",
+              "topic": "news",
+              "timeframe": "week",
+              "max_results": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "LLM",
+            "topic": "news",
+            "timeframe": "week",
+            "max_results": 5
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "LLM",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Ricoh paper on information-theoretic method for steering LLM behavior accepted at AACL 2026 | Global | Ricoh",
+                "url": "https://www.ricoh.com/info/2026/1105_1",
+                "source": "ricoh.com",
+                "summary": "TOKYO, November 5, 2026 – Ricoh announced today that its research paper on an information-theoretic method for steering large language model (LLM) behavior has been accepted for presentation at The 5th Asia-Pacific Chapter of the Association for Computational Linguistics & the 15th International Joint Conference on Natural Language Processing (AACL 2026), an international conference in the field of natural language processing. The paper is scheduled to be presented at the conference, which will [...] The research proposes a method for steering LLM behavior for different purposes through lightweight intervention in the model's internal processing during inference, without requiring additional model training. Using an information-theoretic framework, the method formulates the design of steering interventions as an optimization problem. Experiments presented in the paper demonstrated that the method can steer LLM behavior while maintaining natural language quality. The approach could help [...] approach could help reduce the cost and operational burden of adapting LLMs for different purposes, with potential applications ranging from controlling text generation behavior to enhancing the safety of generative AI.",
+                "score": 0.69870013
+              },
+              {
+                "title": "Building an LLM-Powered Content Moderation Bot in the Classroom -",
+                "url": "https://politicalsciencenow.com/building-an-llm-powered-content-moderation-bot-in-the-classroom",
+                "source": "politicalsciencenow.com",
+                "summary": "As online platforms seek to improve content-moderation strategies, large language models (LLMs) may be a potential tool. This study examines opportunities and limitations of LLM-powered moderation through a unique lens: student projects for a Stanford University course titled Trust and Safety. In this course, students developed Discord bots using LLMs to moderate specific types of harmful content. Interviews with 16 of the students suggest that these models demonstrate high accuracy, often [...] accuracy, often exceeding students’ expectations. Notably, in cases of disagreement between the student and the model, closer analysis frequently validated the model’s judgments. However, students also observed limitations: LLMs proved unhelpfully sensitive to prompt phrasing and exhibited many contextual interpretation challenges common to human moderators and traditional machine-learning classifiers.",
+                "score": 0.64182705
+              },
+              {
+                "title": "Does LLM Now Mean Large Liability Model?",
+                "url": "https://www.forrester.com/blogs/does-llm-now-mean-large-liability-model",
+                "source": "forrester.com",
+                "summary": "It also means making acceptable and unacceptable risks explicit, because the most dangerous outcomes will occur when ambition outruns organizational readiness and controls. [...] not trained on your organization’s proprietary knowledge, data, policies, and expectations about customer experience. [...] While most public concerns about AI focus on generative AI hallucinations, bias, intellectual property theft, and job elimination, autonomous agents pose a different type of risk. Instead of generating a questionable answer, they take actions, interact with systems, make decisions, and pursue goals in ways that those who’ve created them may have never explicitly intended. It is not unreasonable to start thinking of LLMs as “large liability models,” especially when they are not trained on your",
+                "score": 0.6244086
+              },
+              {
+                "title": "FIA-LLM: feedback conditioned learning state estimation with large language models | Scientific Reports",
+                "url": "https://www.nature.com/articles/s41598-026-74388-5",
+                "source": "nature.com",
+                "summary": "Despite this progress, three limitations persist across current LLM-for-education systems. First, they lack structured behavioral anchoring: without a dedicated mechanism to encode and condition on a student’s complete interaction sequence, LLM outputs risk inconsistency across time steps. Second, most systems adopt a two-stage paradigm in which a conventional predictor generates numerical estimates and a separate LLM invocation writes explanatory text afterward, creating a semantic gap between [...] LLM-human agreement validation. To avoid a self-referential LLM supervision loop, we validate pseudo-label quality against human teacher annotations before using pseudo-labels for large-scale training. On the stratified audit subset, LLM pseudo-labels achieve \\(\\textrm{ICC}=0.83\\) with human teacher scores. This agreement level supports the use of pseudo-labels as weak supervision, while the frozen expert test set remains the primary basis for reporting learning-state estimation performance. [...] We propose FIA-LLM, a dual-stream framework that fuses behavioral interaction sequences with feedback proxies and produces structured outputs through shared representations. Our work makes three contributions:",
+                "score": 0.6158511
+              },
+              {
+                "title": "Distributed LLM Inference on Kubernetes with llm-d, Wasm, & TornadoVM - InfoQ",
+                "url": "https://www.infoq.com/podcasts/distributed-llm-inference-kubernetes",
+                "source": "infoq.com",
+                "summary": "Edoardo Vacchi: Yes, to the conclusion earlier. And I said a lot about prefix caches and KV caches, but yes. So, essentially the way an LLM works is that essentially you always send the entirety of the conversation to the LLM. And what really happens is the LLM completes the conversation. I don't know if people recall how OpenAI and the GPT Lab playground worked a few years ago. Basically, it was the completion API. You wrote a sentence and then the LLM wrote the continuation of that. And the [...] That does not mean necessarily that you haven't sent the entire history to the LLM, it just means that even though you are sending the entire history, the history is recognized as part of a prefix of a cache, and so the LLM can compute only the continuation instead of the entire prompt. [...] of that. And the cool thing was that someone discovered if you wrote that prompt as a conversation, as a dialogue with quotes, user says da, da, da, computer says... The LLM will continue the conversation. And that's how ChatGPT basically was born. People notice this, and notice this pattern.",
+                "score": 0.45333505
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_account_correction",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "G_account_correction"
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Lấy 2 tweet mới nhất của sama"
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang elonmusk"
+        },
+        {
+          "role": "user",
+          "content": "Giữ số lượng như trước"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 2
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 2
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "elonmusk",
+            "limit": 2
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "elonmusk",
+            "items": [
+              {
+                "title": "RT @MegynKellyShow: .@MegynKelly on the absolute double standard in the Russell Brand sentencing: “If you needed any fur",
+                "summary": "RT @MegynKellyShow: .@MegynKelly on the absolute double standard in the Russell Brand sentencing: “If you needed any further proof that thi…",
+                "url": "https://x.com/elonmusk/status/2119996001490768028",
+                "source": "@elonmusk",
+                "date": "Tue Nov 10 03:30:09 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 1056,
+                  "views": "453758"
+                }
+              },
+              {
+                "title": "RT @firesidealpha: JUST IN: Memphis Mayor reveals SpaceX data center taxes more than doubled to $54 million, after $25 m",
+                "summary": "RT @firesidealpha: JUST IN: Memphis Mayor reveals SpaceX data center taxes more than doubled to $54 million, after $25 million last year ma…",
+                "url": "https://x.com/elonmusk/status/2119993726898774521",
+                "source": "@elonmusk",
+                "date": "Tue Nov 10 03:21:06 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 319,
+                  "views": "405648"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_send_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "G_send_confirmation"
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Nội dung bản tin: Hôm nay nhóm đã hoàn thành demo. Nơi nhận là kênh Telegram đã cấu hình."
+        },
+        {
+          "role": "user",
+          "content": "Chuẩn bị đăng bản tin đó, nhưng hỏi mình xác nhận có/không trước khi gửi."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có muốn gửi nội dung: 'Hôm nay nhóm đã hoàn thành demo' đến kênh Telegram đã cấu hình không?",
+              "response_type": "yes_no"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có muốn gửi nội dung: 'Hôm nay nhóm đã hoàn thành demo' đến kênh Telegram đã cấu hình không?",
+            "response_type": "yes_no"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có muốn gửi nội dung: 'Hôm nay nhóm đã hoàn thành demo' đến kênh Telegram đã cấu hình không?",
+            "response_type": "yes_no",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G_changed_content_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "what_it_tests": "G_changed_content_confirmation"
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Nội dung cũ: Bản tin A. Nơi nhận: kênh Telegram đã cấu hình."
+        },
+        {
+          "role": "user",
+          "content": "Mình đồng ý gửi bản tin A."
+        },
+        {
+          "role": "user",
+          "content": "Khoan, đổi nội dung thành Bản tin B. Hỏi lại xác nhận trước khi gửi bản mới."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có muốn gửi Bản tin B đến kênh Telegram đã cấu hình không?",
+              "response_type": "yes_no"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có muốn gửi Bản tin B đến kênh Telegram đã cấu hình không?",
+            "response_type": "yes_no"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có muốn gửi Bản tin B đến kênh Telegram đã cấu hình không?",
+            "response_type": "yes_no",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    }
+  ]
+}

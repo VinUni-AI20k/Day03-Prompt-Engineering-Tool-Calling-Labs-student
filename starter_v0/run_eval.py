@@ -101,7 +101,12 @@ def normalize_value(value: Any) -> Any:
     if isinstance(value, str):
         return value.strip().lower()
     if isinstance(value, list):
-        return sorted(normalize_value(item) for item in value)
+        normalized = [normalize_value(item) for item in value]
+        # Structured items have meaningful order and dicts cannot be sorted.
+        # Retain the existing order-insensitive behavior for scalar lists.
+        if any(isinstance(item, (dict, list)) for item in normalized):
+            return normalized
+        return sorted(normalized)
     return value
 
 

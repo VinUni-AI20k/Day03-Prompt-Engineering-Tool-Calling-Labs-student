@@ -2,6 +2,279 @@
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_handle_without_at",
+      "phase": "B",
+      "query": "Lấy 4 bài đăng mới nhất của tài khoản @NASA.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "NASA",
+              "limit": 4
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Bỏ ký tự @ khỏi handle và giữ đúng số lượng người dùng yêu cầu."
+      }
+    },
+    {
+      "id": "G02_social_top",
+      "phase": "B",
+      "query": "Tìm 6 bài đăng nổi bật trên Twitter về cybersecurity, ưu tiên độ phổ biến thay vì mới nhất.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "cybersecurity",
+              "search_type": "Top",
+              "limit": 6
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Phân biệt Top với Latest và truyền đúng số lượng bài."
+      }
+    },
+    {
+      "id": "G_missing_url",
+      "phase": "B",
+      "failure_type": "missing_info",
+      "metadata": {
+        "what_it_tests": "G_missing_url"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "query": "Tóm tắt bài viết này, mình chưa gửi link."
+    },
+    {
+      "id": "G_deduplicate",
+      "phase": "B",
+      "failure_type": "wrong_arg_value",
+      "metadata": {
+        "what_it_tests": "G_deduplicate"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.com/a"
+                },
+                {
+                  "url": "https://example.com/a"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "query": "Loại các link trùng trong danh sách này, giữ item đầu tiên: [{\"url\":\"https://example.com/a\"},{\"url\":\"https://example.com/a\"}]"
+    },
+    {
+      "id": "G_missing_send_content",
+      "phase": "B",
+      "failure_type": "missing_info",
+      "metadata": {
+        "what_it_tests": "G_missing_send_content"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "query": "Mình muốn gửi bản tin lên Telegram nhưng chưa có nội dung. Hỏi mình nội dung trước, chưa gửi."
+    },
+    {
+      "id": "G_count_correction",
+      "phase": "B",
+      "failure_type": "wrong_arg_value",
+      "metadata": {
+        "what_it_tests": "G_count_correction"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 2
+            }
+          }
+        ]
+      },
+      "turns": [
+        {
+          "role": "user",
+          "content": "Lấy 8 tweet mới nhất của sama"
+        },
+        {
+          "role": "user",
+          "content": "Đổi thành 2 tweet"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn tài khoản sama nhé"
+        }
+      ]
+    },
+    {
+      "id": "G_time_carryover",
+      "phase": "B",
+      "failure_type": "wrong_arg_value",
+      "metadata": {
+        "what_it_tests": "G_time_carryover"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "LLM",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm tin GPU tuần này"
+        },
+        {
+          "role": "user",
+          "content": "Đổi chủ đề sang LLM"
+        },
+        {
+          "role": "user",
+          "content": "Giữ khoảng thời gian như trước"
+        }
+      ]
+    },
+    {
+      "id": "G_account_correction",
+      "phase": "B",
+      "failure_type": "wrong_arg_value",
+      "metadata": {
+        "what_it_tests": "G_account_correction"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 2
+            }
+          }
+        ]
+      },
+      "turns": [
+        {
+          "role": "user",
+          "content": "Lấy 2 tweet mới nhất của sama"
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang elonmusk"
+        },
+        {
+          "role": "user",
+          "content": "Giữ số lượng như trước"
+        }
+      ]
+    },
+    {
+      "id": "G_send_confirmation",
+      "phase": "B",
+      "failure_type": "wrong_boundary",
+      "metadata": {
+        "what_it_tests": "G_send_confirmation"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "turns": [
+        {
+          "role": "user",
+          "content": "Nội dung bản tin: Hôm nay nhóm đã hoàn thành demo. Nơi nhận là kênh Telegram đã cấu hình."
+        },
+        {
+          "role": "user",
+          "content": "Chuẩn bị đăng bản tin đó, nhưng hỏi mình xác nhận có/không trước khi gửi."
+        }
+      ]
+    },
+    {
+      "id": "G_changed_content_confirmation",
+      "phase": "B",
+      "failure_type": "wrong_boundary",
+      "metadata": {
+        "what_it_tests": "G_changed_content_confirmation"
+      },
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "turns": [
+        {
+          "role": "user",
+          "content": "Nội dung cũ: Bản tin A. Nơi nhận: kênh Telegram đã cấu hình."
+        },
+        {
+          "role": "user",
+          "content": "Mình đồng ý gửi bản tin A."
+        },
+        {
+          "role": "user",
+          "content": "Khoan, đổi nội dung thành Bản tin B. Hỏi lại xác nhận trước khi gửi bản mới."
+        }
+      ]
+    }
+  ]
 }
