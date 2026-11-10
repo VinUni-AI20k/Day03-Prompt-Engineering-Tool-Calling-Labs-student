@@ -17,6 +17,7 @@ from tools import TOOL_FUNCTIONS  # noqa: F401
 
 TODO = "TODO CP3 (student): implement this test"
 
+deduplicate_tool = TOOL_FUNCTIONS["deduplicate_sources"]
 
 # ---------------- clarify ----------------
 
@@ -110,13 +111,29 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_keeps_first_duplicate_and_order() -> None:
+    first = {"title": "First", "url": "https://example.com/a"}
+    duplicate = {"title": "Duplicate", "url": "https://example.com/a"}
+    second = {"title": "Second", "url": "https://example.com/b"}
+
+    result = deduplicate_tool(items=[first, duplicate, second])
+
+    assert result["items"] == [first, second]
+    assert result["removed_count"] == 1
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_keeps_items_without_url() -> None:
+    no_url = {"title": "No URL"}
+    empty_url = {"title": "Empty URL", "url": ""}
+
+    result = deduplicate_tool(items=[no_url, empty_url])
+
+    assert result["items"] == [no_url, empty_url]
+    assert result["removed_count"] == 0
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_invalid_items_returns_error_dict() -> None:
+    result = deduplicate_tool(items="not-a-list")
+
+    assert result["error"] == "TypeError"
+    assert "items must be a list" in result["message"]
