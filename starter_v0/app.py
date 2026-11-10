@@ -15,13 +15,6 @@ from env_loader import load_lab_env
 from providers import make_provider
 from providers.base import ModelResponse, ToolCall
 
-# Import every provider module so the dropdown below can use them even when
-# only some vendor SDKs are installed (SDK imports happen inside complete()).
-import providers.ollama_provider
-import providers.openai_provider
-import providers.anthropic_provider
-import providers.gemini_provider
-import providers.openrouter_provider
 from tools import load_tool_declarations, to_openai_tools
 from versioning import build_artifact_version
 
