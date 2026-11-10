@@ -14,120 +14,265 @@
     {
       "id": "G01_deduplicate_collected_articles",
       "phase": "B",
+      "suite": "group",
       "query": "Lọc trùng URL trong danh sách bài viết đã có sau, giữ bài đầu tiên và bỏ fragment khi so sánh. Chỉ lọc trùng, chưa cần định dạng hay tìm thêm: [{\"url\":\"https://example.com/ai#intro\",\"title\":\"AI first\"},{\"url\":\"https://example.com/robotics\",\"title\":\"Robotics\"},{\"url\":\"https://example.com/ai#end\",\"title\":\"AI duplicate\"}]",
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
             "name": "deduplicate",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate (tool mới của nhóm), không gọi lookup/fetch/format. Chỉ chấm routing vì harness không so sánh được list-of-dict trong args."
+      }
+    },
+    {
+      "id": "G02_dedupe_missing_list",
+      "phase": "B",
+      "suite": "group",
+      "query": "Lọc trùng các bài viết mình đã thu thập giúp mình nhé.",
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
             "args": {
-              "items": [
-                {
-                  "url": "https://example.com/ai#intro",
-                  "title": "AI first"
-                },
-                {
-                  "url": "https://example.com/robotics",
-                  "title": "Robotics"
-                },
-                {
-                  "url": "https://example.com/ai#end",
-                  "title": "AI duplicate"
-                }
-              ]
+              "response_type": "text"
             }
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate với toàn bộ input, không tự loại trước và không gọi lookup/fetch/format."
+        "skill": "clarify_missing_input_new_tool",
+        "what_it_tests": "Yêu cầu lọc trùng nhưng KHÔNG có danh sách bài/URL → hỏi lại (clarify text), không gọi deduplicate với items bịa hoặc rỗng."
       }
     },
     {
-      "id": "G02_filter_sources",
+      "id": "G03_send_with_content_still_confirms",
       "phase": "B",
-      "query": "Only keep sources on arxiv.org, including its subdomains, from this collected list. Do not search or format. Items: [{\"url\": \"https://arxiv.org/abs/1234\"}, {\"url\": \"https://example.com/post\"}]",
+      "suite": "group",
+      "query": "Gửi đoạn này lên Telegram cho nhóm: \"Họp sprint dời sang thứ Sáu 9h\"",
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "confirm_before_write_with_content",
+        "what_it_tests": "Dù đã có đủ nội dung cần gửi, hành động gửi vẫn phải xin xác nhận (clarify yes_no) trước, không gọi send ngay."
+      }
+    },
+    {
+      "id": "G04_out_of_scope_creative_writing",
+      "phase": "B",
+      "suite": "group",
+      "query": "Viết giúp mình một bài thơ lục bát về mùa thu Hà Nội.",
+      "failure_type": "out_of_scope",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "metadata": {
+        "skill": "out_of_scope",
+        "what_it_tests": "Yêu cầu sáng tác văn học nằm ngoài phạm vi research agent → không gọi tool (đặc biệt không bắn qua send), từ chối hoặc định hướng lại."
+      }
+    },
+    {
+      "id": "G05_news_week_keyword_only",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm tin về chip AI trong tuần này.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "chip AI",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_convention_news_timeframe",
+        "what_it_tests": "Tin tức → lookup với topic=news, timeframe=week theo 'tuần này', query chỉ giữ từ khóa 'chip AI' (không thêm 'news'/'tin tức') — lỗi tương tự R13 của v0."
+      }
+    },
+    {
+      "id": "G06_multiturn_clarify_topic_then_search",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm giúp mình các tweet bàn về chủ đề đó"
+        },
+        {
+          "role": "user",
+          "content": "Chủ đề là Gemini nhé"
+        },
+        {
+          "role": "user",
+          "content": "Lấy các tweet mới nhất thôi"
+        }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Latest"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_fill_topic",
+        "what_it_tests": "3 turns: lượt 1 thiếu chủ đề, lượt 2 bổ sung 'Gemini', lượt 3 chọn Latest → social_search với query=Gemini, search_type=Latest."
+      }
+    },
+    {
+      "id": "G07_multiturn_change_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Hôm nay có tin gì về robot không?"
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang tin trong tuần này đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn chủ đề robot nhé"
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "robot",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_override_timeframe",
+        "what_it_tests": "3 turns: người dùng đổi timeframe từ day sang week ở lượt 2 và giữ chủ đề robot → lookup phải dùng timeframe=week (giá trị mới nhất), không giữ day cũ."
+      }
+    },
+    {
+      "id": "G08_multiturn_confirmed_send",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Gửi \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram"
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn muốn mình gửi đúng nội dung \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram phải không?"
+        },
+        {
+          "role": "user",
+          "content": "Đúng, gửi đi"
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "send_after_confirmation",
+        "what_it_tests": "Người dùng đã xác nhận rõ ở lượt cuối → gọi send với confirmed=true, không hỏi lại thừa (mặt đối xứng của G03)."
+      }
+    },
+    {
+      "id": "G09_multiturn_thanks_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tin về năng lượng tái tạo hôm nay có gì?"
+        },
+        {
+          "role": "assistant",
+          "content": "Đây là vài tin nổi bật về năng lượng tái tạo hôm nay."
+        },
+        {
+          "role": "user",
+          "content": "Cảm ơn, mình đọc đủ rồi nhé"
+        }
+      ],
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "metadata": {
+        "skill": "no_tool_closing",
+        "what_it_tests": "Lượt cuối chỉ là lời cảm ơn kết thúc → không gọi tool nào (không tìm kiếm lại, không gửi), chỉ đáp lại ngắn gọn."
+      }
+    },
+    {
+      "id": "G10_multiturn_dedupe_from_earlier_list",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Mình thu thập được 3 bài: [{\"url\":\"https://example.org/solar\",\"title\":\"Solar\"},{\"url\":\"https://example.org/wind\",\"title\":\"Wind\"},{\"url\":\"https://example.org/solar#top\",\"title\":\"Solar again\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Bài thứ ba có vẻ trùng bài đầu"
+        },
+        {
+          "role": "user",
+          "content": "Loại bài trùng URL khỏi danh sách trên giúp mình"
+        }
+      ],
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "filter_sources",
-            "args": {
-              "items": [
-                {
-                  "url": "https://arxiv.org/abs/1234"
-                },
-                {
-                  "url": "https://example.com/post"
-                }
-              ],
-              "allowed_domains": [
-                "arxiv.org"
-              ]
-            }
+            "name": "deduplicate",
+            "args": {}
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Route to filter_sources with original collected items and requested parameters, without unnecessary search."
-      }
-    },
-    {
-      "id": "G03_filter_by_date",
-      "phase": "B",
-      "query": "Filter these collected items to dates from 2026-11-01 through 2026-11-10 inclusive. Do not search or format. Items: [{\"title\": \"New\", \"date\": \"2026-11-10\"}, {\"title\": \"Old\", \"date\": \"2026-10-01\"}]",
-      "failure_type": "wrong_tool",
-      "expect": {
-        "tool_calls": [
-          {
-            "name": "filter_by_date",
-            "args": {
-              "items": [
-                {
-                  "title": "New",
-                  "date": "2026-11-10"
-                },
-                {
-                  "title": "Old",
-                  "date": "2026-10-01"
-                }
-              ],
-              "start_date": "2026-11-01",
-              "end_date": "2026-11-10"
-            }
-          }
-        ]
-      },
-      "metadata": {
-        "what_it_tests": "Route to filter_by_date with original collected items and requested parameters, without unnecessary search."
-      }
-    },
-    {
-      "id": "G04_validate_citations",
-      "phase": "B",
-      "query": "Check whether these collected citations have title, source and valid HTTP(S) URL fields. Report structural errors only; do not browse or format. Items: [{\"title\": \"Article\", \"url\": \"https://example.com/a\", \"source\": \"Example\"}, {\"title\": \"Missing fields\"}]",
-      "failure_type": "wrong_tool",
-      "expect": {
-        "tool_calls": [
-          {
-            "name": "validate_citations",
-            "args": {
-              "items": [
-                {
-                  "title": "Article",
-                  "url": "https://example.com/a",
-                  "source": "Example"
-                },
-                {
-                  "title": "Missing fields"
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "metadata": {
-        "what_it_tests": "Route to validate_citations with original collected items and requested parameters, without unnecessary search."
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách nằm ở lượt 1, yêu cầu lọc trùng ở lượt cuối → gọi deduplicate dùng lại danh sách từ ngữ cảnh, không hỏi lại URL và không gọi tool tìm kiếm."
       }
     }
   ]

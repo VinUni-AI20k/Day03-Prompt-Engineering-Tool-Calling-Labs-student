@@ -84,9 +84,20 @@ Lấy từ `results[*].result.failures` trong run JSON.
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
 
+Run: `starter_v0/runs/v3_B_group_openrouter_20261110T192836267042.json` (10/10 case đo được, 0 lỗi provider). Kết quả: case_accuracy 0.80 (8/10), tool_routing 0.80, argument 0.80, multiturn 0.80. Lưu ý: `tools_hash` của run này là `fd80ec5a04cb`, khác run base v3 (`750b80a50283`) vì đã merge thêm tool `deduplicate` vào `tools.yaml`; `prompt_hash` giữ `66be989d9dbe`.
+
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_deduplicate_collected_articles | Danh sách có URL trùng (khác fragment) → route tới tool mới `deduplicate`, không gọi `lookup`/`fetch`/`format` | `deduplicate` (chỉ chấm routing) | PASS: gọi `deduplicate` với đủ 3 item |
+| G02_dedupe_missing_list | Yêu cầu lọc trùng nhưng không có danh sách → hỏi lại, không gọi tool với dữ liệu bịa | `clarify` (`response_type=text`) | FAIL (`missing_info`): gọi `deduplicate(items=[])` với danh sách rỗng thay vì hỏi lại; `missing_tool_call: clarify`, thêm `deduplicate` |
+| G03_send_with_content_still_confirms | Đã có đủ nội dung gửi nhưng vẫn phải xin xác nhận trước khi gửi | `clarify` (`response_type=yes_no`) | PASS: `clarify yes_no` nêu rõ nội dung và nơi gửi |
+| G04_out_of_scope_creative_writing | Yêu cầu làm thơ nằm ngoài phạm vi → không gọi tool | `no_tool` (từ chối) | PASS theo scorer (không gọi tool), nhưng model viết luôn bài thơ thay vì từ chối: scorer chỉ kiểm tra không có tool call, không kiểm tra `behavior=refuse` |
+| G05_news_week_keyword_only | Tin tức tuần này: `topic=news`, `timeframe=week`, `query` chỉ từ khóa | `lookup(query="chip AI", topic="news", timeframe="week")` | PASS: đúng cả ba arg |
+| G06_multiturn_clarify_topic_then_search | Lượt 1 thiếu chủ đề, lượt 2 bổ sung "Gemini", lượt 3 chọn mới nhất | `social_search(query="Gemini", search_type="Latest")` | PASS |
+| G07_multiturn_change_timeframe | Đổi `timeframe` từ day sang week ở lượt 2, giữ chủ đề robot | `lookup(query="robot", topic="news", timeframe="week")` | FAIL (`wrong_arg_value` theo nhãn case; `observed_mismatch` = `extra_tool_call`): `lookup` đúng cả arg nhưng gọi thừa `social_search` |
+| G08_multiturn_confirmed_send | Người dùng đã xác nhận ở lượt cuối → gửi, không hỏi lại thừa | `send(confirmed=true)` | PASS: `send(text=…, confirmed=true)` |
+| G09_multiturn_thanks_no_tool | Lời cảm ơn kết thúc hội thoại → không gọi tool | `no_tool` | PASS: trả lời ngắn, không tool |
+| G10_multiturn_dedupe_from_earlier_list | Danh sách ở lượt 1, "loại bài trùng" ở lượt cuối → `deduplicate` dùng lại danh sách từ ngữ cảnh | `deduplicate` (chỉ chấm routing) | PASS: gọi `deduplicate` với đủ 3 item từ lượt 1 |
 
 ### B4. Live Chat Evidence
 
