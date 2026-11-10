@@ -20,6 +20,7 @@ from .lookup.tool import web_search
 from .hackernews.tool import search_hackernews
 from .wikipedia.tool import wikipedia_summary
 from .openalex.tool import search_openalex
+from .top_papers.tool import get_top_papers
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -38,11 +39,11 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
-    # Team tools (public APIs, no key needed):
+    # Team tools (hackernews / wikipedia / openalex need no API key):
     "hackernews": search_hackernews,
     "wikipedia": wikipedia_summary,
     "openalex": search_openalex,
-    # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
+    "top_papers": get_top_papers,
 }
 
 

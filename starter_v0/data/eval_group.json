@@ -78,25 +78,24 @@
       }
     },
     {
-      "id": "G04_openalex_topic_routing",
+      "id": "G01_top_papers_routing",
       "phase": "B",
-      "suite": "group",
-      "query": "Bài báo khoa học nào về retrieval-augmented generation được trích dẫn nhiều nhất?",
+      "query": "Cho mình 10 bài báo được trích dẫn nhiều nhất về AI agents đăng trên tạp chí và hội nghị trong 9 tháng qua",
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "openalex",
+            "name": "top_papers",
             "args": {
-              "sort": "cited"
+              "months": 9
             }
           }
         ]
       },
       "metadata": {
-        "skill": "routing_new_tool_openalex_topic",
+        "skill": "routing_top_cited_published_papers",
         "difficulty": "medium",
-        "what_it_tests": "Tìm theo CHỦ ĐỀ + xếp theo trích dẫn → openalex, không nhầm sang papers (arXiv theo từ khóa) hay lookup (tin tức)."
+        "what_it_tests": "Hỏi bài báo được trích dẫn nhiều nhất trên tạp chí/hội nghị trong 9 tháng → phải route tới tool mới top_papers (không phải papers/arXiv hay lookup) với months=9."
       }
     },
     {

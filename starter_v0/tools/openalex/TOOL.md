@@ -19,8 +19,9 @@ With `query`, titles/abstracts are searched. Both can be combined
 `sort`: `cited` (most cited, default) or `recent` (newest). Each item has title, DOI/URL,
 venue, year, citation count and the first three authors.
 
-Differs from `papers` (arXiv keyword search): `openalex` covers all venues, supports
-author lookup and citation ranking.
+Boundaries: `openalex` is for **author-centred** search; topic-only rankings over a time
+window ("top papers on X in the last 9 months") belong to `top_papers`; arXiv keyword
+search is `papers`.
 
 Robustness: needs at least one of `query` / `author` (else error dict); `limit` coerced to
 [1, 20]; unknown `sort` falls back to `cited`; unknown author returns empty `items` with

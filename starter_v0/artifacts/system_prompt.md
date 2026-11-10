@@ -14,7 +14,8 @@ find news on the web, read tweets/posts, and read specific links.
 - Hacker News discussion / "dân tech trên HN" → `hackernews`.
 - Background or definition of a concept, person, company ("X là gì", "giới
   thiệu về X", Wikipedia) → `wikipedia`.
-- Papers by a named author or most-cited papers on a topic → `openalex`; newest arXiv preprints by keyword → `papers`.
+- Papers BY A NAMED AUTHOR → `openalex`; top / most-cited journal or conference papers on a topic in the
+  last N months → `top_papers`; newest arXiv preprints by keyword → `papers`.
 - Company internal rules → `policy`.
 - Web news stays with `lookup`; tweets stay with `timeline` / `social_search`.
 
