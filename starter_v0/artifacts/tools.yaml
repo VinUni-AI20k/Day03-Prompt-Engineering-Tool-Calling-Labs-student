@@ -123,3 +123,42 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang tối đa cần đọc."}
         max_chars: {type: integer, default: 8000, description: "Số ký tự tối đa trả về."}
       required: [arxiv_url]
+
+  # ---------------- New tools (team) ----------------
+  - name: github_repo
+    description: "Lấy thông tin một repo GitHub cụ thể (stars, ngôn ngữ, license, lần cập nhật, README). Dùng khi user nêu rõ repo (owner/name hoặc URL github.com). KHÔNG dùng để tìm repo theo chủ đề (dùng lookup). Nếu chưa rõ repo nào, gọi clarify."
+    parameters:
+      type: object
+      properties:
+        repo: {type: string, default: "", description: "Dạng owner/name, ví dụ openai/whisper. Bỏ phần https://github.com/."}
+        include_readme: {type: boolean, default: false, description: "true nếu user hỏi repo làm gì / cách dùng."}
+      required: [repo]
+
+  - name: hn_search
+    description: "Tìm bài (story) trên Hacker News. Chỉ dùng khi user nhắc Hacker News / HN / cộng đồng dev. KHÔNG dùng cho Twitter/X (dùng social_search) hay tin báo chí (dùng lookup topic=news)."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khoá tiếng Anh ngắn, ví dụ Claude, RAG evaluation."}
+        sort: {type: string, enum: [relevance, date], default: "relevance", description: "date khi user muốn mới nhất / gần đây."}
+        timeframe: {type: string, enum: [day, week, month, year, all], default: "week", description: "Khoảng thời gian tính từ hiện tại."}
+        limit: {type: integer, default: 5, description: "Số bài, 1-20."}
+      required: [query]
+
+  - name: wiki_summary
+    description: "Lấy tóm tắt Wikipedia của một khái niệm / tổ chức / người (kiến thức ổn định: định nghĩa, bối cảnh, lịch sử). KHÔNG dùng cho tin tức hay thông tin thay đổi theo thời gian (dùng lookup). Nếu tên mơ hồ (nhiều nghĩa), gọi clarify trước."
+    parameters:
+      type: object
+      properties:
+        title: {type: string, default: "", description: "Tên bài Wikipedia, ví dụ Retrieval-augmented generation."}
+        lang: {type: string, enum: [en, vi], default: "en", description: "vi chỉ khi user muốn nguồn tiếng Việt."}
+      required: [title]
+
+  - name: pypi_package
+    description: "Lấy thông tin một package Python trên PyPI (version mới nhất, ngày phát hành, yêu cầu Python, license, lệnh cài). Dùng khi user nêu tên package cụ thể. KHÔNG dùng để tìm thư viện theo chủ đề (dùng lookup) hay xem stars/issues (dùng github_repo)."
+    parameters:
+      type: object
+      properties:
+        package: {type: string, default: "", description: "Tên package trên PyPI, ví dụ langchain. Không kèm pip install hay ==version."}
+        version: {type: string, default: "", description: "Để trống = bản mới nhất. Chỉ điền khi user hỏi version cụ thể."}
+      required: [package]

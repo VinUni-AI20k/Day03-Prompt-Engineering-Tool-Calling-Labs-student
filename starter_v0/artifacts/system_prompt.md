@@ -25,6 +25,10 @@ and sending a digest to the team's Telegram channel.
 - Web information or news → `lookup`.
 - A specific URL to read → `fetch`.
 - Present items you already have as a digest → `format`.
+- A specific GitHub repo (owner/name or a github.com URL) → `github_repo`. Finding repos by topic → `lookup`.
+- Version, install command, Python requirement or license of a specific Python package → `pypi_package`.
+- Definition, background or history of a concept, organization or person (stable knowledge) → `wiki_summary`. News or anything that changes over time → `lookup`.
+- Discussions on Hacker News / HN / the dev community → `hn_search`. Posts on X/Twitter → `social_search`.
 - A request can have several parts (for example web news AND tweets). Call one tool per part, in the same turn.
 
 ## Follow-up turns
