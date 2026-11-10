@@ -3,6 +3,7 @@
 # khiến model không phân biệt "tin tức" (lookup) với "bài đăng/tweet" (social_search) → M02 regression.
 # Fix: mỗi description nói rõ LÀM GÌ / KHI NÀO DÙNG / KHI NÀO KHÔNG DÙNG + convention args.
 # Tên tool và tên tham số giữ nguyên để khớp tools/__init__.py và data/eval_*.json.
+# v3: thêm khai báo tool mới extract_keywords (tools/keywords/, Người 2).
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
@@ -240,3 +241,25 @@ tools:
           default: 8000
           description: "Số ký tự text tối đa trả về; mặc định 8000."
       required: [arxiv_url]
+
+  # ---------------- Tool mới của nhóm ----------------
+  - name: extract_keywords
+    description: >-
+      Trích các từ khóa lặp nhiều nhất từ một đoạn text CÓ SẴN (người dùng dán vào, hoặc kết quả tool trước đó), chạy offline.
+      DÙNG KHI: người dùng muốn lấy từ khóa / chủ đề chính / keyword của một đoạn văn, bài viết, tóm tắt đã có trong hội thoại,
+      hoặc cần rút từ khóa từ text dài để làm query cho lookup/social_search.
+      KHÔNG DÙNG KHI: chưa có text nào (người dùng nói "bài đó" mà không dán, không có URL) → clarify;
+      cần đọc nội dung một URL → fetch trước; cần tìm thông tin mới trên web/Twitter → lookup/social_search;
+      cần tóm tắt nội dung (tool này chỉ đếm từ khóa, không tóm tắt).
+    parameters:
+      type: object
+      properties:
+        text:
+          type: string
+          default: ""
+          description: "Nguyên văn đoạn text cần trích từ khóa (copy từ tin nhắn người dùng hoặc từ kết quả tool). Không được rỗng."
+        max_keywords:
+          type: integer
+          default: 5
+          description: "Số từ khóa cần lấy, là SỐ NGUYÊN từ 1 đến 20 (không truyền chuỗi). Theo con số người dùng nói ('3 từ khóa' → 3); không nói → 5."
+      required: [text]

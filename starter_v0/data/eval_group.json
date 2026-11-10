@@ -173,6 +173,37 @@
         "difficulty": "hard",
         "what_it_tests": "Người dùng hủy ở lượt 2 → không gọi tool nào, đặc biệt không gọi send."
       }
+    },
+    {
+      "id": "GM05_keywords_from_pasted_text",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Mình dán đoạn này nhé: 'AI agents are changing research workflows. Research teams use AI agents to search papers, summarize papers and track AI news. AI agents still need human review.'"
+        },
+        {
+          "role": "user",
+          "content": "Lấy giúp mình 3 từ khóa chính của đoạn trên"
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "extract_keywords",
+            "args": {
+              "max_keywords": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "route_new_tool_extract_keywords",
+        "difficulty": "medium",
+        "what_it_tests": "Text đã có ở lượt 1, lượt 2 xin từ khóa → route tới tool mới extract_keywords với max_keywords=3 (số nguyên), không gọi lookup/social_search và không clarify."
+      }
     }
   ]
 }
