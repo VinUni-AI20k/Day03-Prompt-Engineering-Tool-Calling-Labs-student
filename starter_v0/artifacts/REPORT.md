@@ -58,20 +58,20 @@ Hiện có run baseline v0; chưa có run v1–v3 hoặc version log đã điề
 Nguồn: run v0 và `analysis/base_runs.csv`; không suy đoán arguments sai của R13 khi log tóm tắt không ghi rõ.
 
 ## B3. Team Eval
-`data/eval_group.json` có đủ 10 case (5 single-turn, 5 multi-turn) do nhóm tự xây dựng để kiểm thử các tình huống chuyên biệt.
+`data/eval_group.json` có đủ 10 case (5 single-turn, 5 multi-turn) do nhóm tự xây dựng để kiểm thử các tình huống chuyên biệt. Đã chạy đánh giá thực tế với model OpenRouter (`runs/v0_B_group_openrouter_20261110T222620690855.json`), đạt **7/10 pass (70%)**, **tool routing accuracy đạt 90%**.
 
-| Case | Kiểm tra | Kỳ vọng | Kết quả |
+| Case | Kiểm tra | Kỳ vọng | Kết quả baseline v0 |
 |---|---|---|---|
-| `group_dedup_single` | Deduplicate danh sách đã cho (single-turn). | `deduplicate_sources` | Chưa đo |
-| `group_dedup_missing_items` | Hỏi khi thiếu danh sách nguồn (single-turn). | `clarify` | Chưa đo |
-| `group_arxiv_paper_search` | Tìm bài báo khoa học trên arXiv (single-turn). | `papers` | Chưa đo |
-| `group_company_policy_search` | Tra cứu chính sách công ty (single-turn). | `policy` | Chưa đo |
-| `group_out_of_scope_math` | Từ chối câu hỏi giải toán ngoài phạm vi (single-turn). | Không gọi tool | Chưa đo |
-| `group_dedup_multi` | Dùng danh sách ở lượt trước để bỏ trùng (multi-turn). | `deduplicate_sources` | Chưa đo |
-| `group_clarify_then_send` | Xác nhận ở lượt sau rồi mới gửi Telegram (multi-turn). | `send` (`confirmed=true`) | Chưa đo |
-| `group_missing_url_then_fetch` | Cung cấp URL ở lượt sau rồi mới đọc (multi-turn). | `fetch` | Chưa đo |
-| `group_correction_search_timeframe` | Sửa khoảng thời gian tìm kiếm từ hôm nay sang tháng (multi-turn). | `lookup` (`timeframe=month`) | Chưa đo |
-| `group_switch_search_to_timeline` | Đổi từ tìm kiếm sang xem bài đăng tài khoản chính chủ (multi-turn). | `timeline` | Chưa đo |
+| `group_dedup_single` | Deduplicate danh sách đã cho (single-turn). | `deduplicate_sources` | PASS |
+| `group_dedup_missing_items` | Hỏi khi thiếu danh sách nguồn (single-turn). | `clarify` | PASS |
+| `group_arxiv_paper_search` | Tìm bài báo khoa học trên arXiv (single-turn). | `papers` | PASS |
+| `group_company_policy_search` | Tra cứu chính sách công ty (single-turn). | `policy` | FAIL (arg query dài) |
+| `group_out_of_scope_math` | Từ chối câu hỏi giải toán ngoài phạm vi (single-turn). | Không gọi tool | FAIL (gọi lookup do prompt v0) |
+| `group_dedup_multi` | Dùng danh sách ở lượt trước để bỏ trùng (multi-turn). | `deduplicate_sources` | PASS |
+| `group_clarify_then_send` | Xác nhận ở lượt sau rồi mới gửi Telegram (multi-turn). | `send` (`confirmed=true`) | PASS |
+| `group_missing_url_then_fetch` | Cung cấp URL ở lượt sau rồi mới đọc (multi-turn). | `fetch` | PASS |
+| `group_correction_search_timeframe` | Sửa khoảng thời gian tìm kiếm từ hôm nay sang tháng (multi-turn). | `lookup` (`timeframe=month`) | FAIL (arg query thừa từ) |
+| `group_switch_search_to_timeline` | Đổi từ tìm kiếm sang xem bài đăng tài khoản chính chủ (multi-turn). | `timeline` | PASS |
 
 ## B4. Live Chat
 Chưa có transcript live trong repo; transcript mẫu không được tính là bằng chứng.
