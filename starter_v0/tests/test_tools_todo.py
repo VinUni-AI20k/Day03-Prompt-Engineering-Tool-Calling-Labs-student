@@ -11,6 +11,7 @@ Rules:
 from __future__ import annotations
 
 import pytest
+import requests
 
 from conftest import FakeResponse  # noqa: F401  (you will need it)
 from tools import TOOL_FUNCTIONS  # noqa: F401
@@ -162,3 +163,46 @@ def test_my_new_tool_failure_returns_error_dict(monkeypatch) -> None:
     assert result["tool"] == "weather"
     assert result["error"] == "RuntimeError"
     assert "Missing TAVILY_API_KEY" in result["message"]
+
+
+# ---------------- hn_search ----------------
+
+def test_hn_search_maps_hits_and_respects_limit(fake_http) -> None:
+    calls = fake_http(FakeResponse({"hits": [
+        {"objectID": "1", "title": "Show HN: Agent eval", "url": "https://www.example.com/a", "points": 120, "num_comments": 45, "created_at": "2026-11-01T00:00:00Z"},
+        {"objectID": "2", "title": "Ask HN: no link", "url": None, "points": 10, "num_comments": 3},
+        {"objectID": "3", "title": "Third", "url": "https://x.org/c"},
+    ]}))
+    result = TOOL_FUNCTIONS["hn_search"](query="AI agent eval", limit=2)
+    assert calls[0]["url"] == "https://hn.algolia.com/api/v1/search"
+    assert calls[0]["params"]["query"] == "AI agent eval"
+    assert calls[0]["params"]["hitsPerPage"] == 2
+    assert len(result["items"]) == 2
+    first, second = result["items"]
+    assert first["source"] == "example.com"
+    assert first["metrics"] == {"points": 120, "comments": 45}
+    assert second["url"] == "https://news.ycombinator.com/item?id=2"
+
+
+def test_hn_search_bad_input_from_model(fake_http) -> None:
+    calls = fake_http(FakeResponse({"hits": []}))
+    empty = TOOL_FUNCTIONS["hn_search"](query="   ")
+    assert empty["error"] == "ValueError" and calls == []
+    result = TOOL_FUNCTIONS["hn_search"](query="LLM", sort_by="newest", limit="abc", timeframe="decade")
+    assert "error" not in result
+    assert result["sort_by"] == "relevance"
+    assert calls[0]["params"]["hitsPerPage"] == 5
+    assert "numericFilters" not in calls[0]["params"]
+    TOOL_FUNCTIONS["hn_search"](query="LLM", sort_by="date", limit=0, timeframe="week")
+    assert calls[1]["url"].endswith("/search_by_date")
+    assert calls[1]["params"]["hitsPerPage"] == 1
+    assert calls[1]["params"]["numericFilters"].startswith("created_at_i>")
+
+
+def test_hn_search_http_error_returns_error_dict(fake_http) -> None:
+    fake_http(FakeResponse(status_code=503))
+    result = TOOL_FUNCTIONS["hn_search"](query="OpenAI")
+    assert result["tool"] == "hn_search"
+    assert result["error"] == "HTTPError"
+    fake_http(requests.Timeout("timed out"))
+    assert TOOL_FUNCTIONS["hn_search"](query="OpenAI")["error"] == "Timeout"
