@@ -52,6 +52,21 @@ Số liệu chi tiết: `starter_v0/artifacts/version_log.csv`. Bảng lỗi t�
   - Chọn sai công cụ hoặc thiếu công cụ (R03, R13).
 - Bảng chi tiết nằm trong `report/team/group_report.md` (mục B2).
 
+## Giao diện
+
+### Giao diện web và server cho agent
+
+- **Thêm:** thư mục `web/` (Next.js, React, shadcn/ui) và `starter_v0/server.py` (FastAPI).
+- **Vì sao:** đề bài yêu cầu giao diện chạy được và chat thử ít nhất 3 lượt có lưu transcript.
+- **Làm được gì:**
+  - Chat với agent thật, thấy từng công cụ được gọi (tên, tham số, kết quả, thời gian) ngay khi nó chạy.
+  - Khi agent hỏi lại thì hiện câu hỏi; khi cần xác nhận trước khi gửi thì hiện hộp Đồng ý / Không.
+  - Lưu transcript mỗi phiên, cùng định dạng với `chat.py`; che khóa bí mật trước khi ghi. Có nút tải transcript.
+  - Lưu lịch sử chat trong trình duyệt, có chế độ sáng/tối, dùng được trên điện thoại.
+- **Cách chạy:** xem `web/README.md`.
+- **Kiểm tra đã làm:** build và lint sạch; gọi thử qua proxy thấy kết quả về từng bước (không phải chờ đến cuối). Chưa chat thử ba lượt đầy đủ trên giao diện.
+- **Việc tiếp theo:** chat thử ba lượt (yêu cầu thường, thiếu thông tin rồi bổ sung, yêu cầu gửi) và lưu transcript làm bằng chứng.
+
 ## Việc khác đã làm
 
 - **Phân việc nhóm:** thư mục `tasks/` có bảng vai trò và checklist cho từng người.
