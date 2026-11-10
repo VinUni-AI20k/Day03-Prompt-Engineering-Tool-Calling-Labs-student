@@ -18,6 +18,9 @@
 
 Research agent tiếng Việt: tìm tin trên web, tìm tweet theo chủ đề hoặc theo tài khoản, tìm bài thảo luận trên Hacker News và paper arXiv, đọc nội dung một URL, tra chính sách nội bộ, rồi tổng hợp thành bản tin. Agent hỏi lại khi thiếu thông tin (account, URL) và chỉ gửi bản tin lên Telegram sau khi người dùng xác nhận.
 
+Research agent tiếng Việt: tìm tin trên web theo chủ đề và khoảng thời gian, xem tweet của một tài khoản hoặc theo từ khóa, đọc nội dung một URL, tìm paper arXiv, tra chính sách nội bộ, và tổng hợp thành bản tin. Khi thiếu thông tin (không rõ tài khoản, URL), agent hỏi lại thay vì tự đoán.
+
+
 **Cách chạy UI:**
 
 ```bash
@@ -28,9 +31,13 @@ streamlit run app.py              # http://localhost:8501
 
 UI có 2 tab: **💬 Chat** (chat với agent, hiện mọi tool call và kết quả thật, kể cả lỗi; tự ghi transcript vào `starter_v0/transcripts/`) và **📊 Eval runs** (xem summary và từng case của `runs/*.json`). Sidebar có dropdown **Prompt + tools** để chọn chat với `current` hoặc snapshot `v0`–`v4` trong `starter_v0/artifacts/versions/`.
 
+- Trang **Chat**: khung chat ở giữa, danh sách tool ở sidebar trái, câu hỏi mẫu bấm được ở dưới. Mọi tool call và kết quả thật (kể cả lỗi) hiện ngay trong câu trả lời. Mỗi phiên chat tự lưu transcript vào `starter_v0/transcripts/`.
+- Trang **Eval runs**: xem metric, case FAIL, expected vs actual tool calls của từng run trong `starter_v0/runs/` và `version_log.csv`.
+
+
 **Link dùng thử (deploy):**
 
-URL: <D điền link `https://<random>.trycloudflare.com` khi chạy `cloudflared tunnel --url http://localhost:8501`>
+URL: https://stayed-mardi-teeth-internationally.trycloudflare.com/ (Cloudflare Tunnel, link tạm, chỉ sống khi máy D còn chạy `cloudflared`)
 
 ### A2. Tool agent có
 
@@ -199,13 +206,17 @@ Run group trước đó `v3_B_group_openrouter_20261111T010252364523` cũng 9/10
 
 Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
-> **Chưa có transcript** (thư mục `starter_v0/transcripts/` chưa tồn tại). D chạy UI (chọn `v4` trong dropdown **Prompt + tools**) hoặc `python chat.py --provider openrouter --version v4 --system-prompt artifacts/versions/v4/system_prompt.md --tools artifacts/versions/v4/tools.yaml`, đủ 3 loại lượt dưới đây, rồi điền bảng từ file transcript thật. Không điền bảng khi chưa có transcript.
+Transcript: `starter_v0/transcripts/v2_openrouter_20261111T004058101246.transcript.json` (5 lượt, `chat.py`) và `starter_v0/transcripts/v2_openrouter_ui_20261111T002104008525.transcript.json` (2 lượt, UI). Cả hai chạy với nhãn `v2`.
+
+> Ghi chú: `artifact_version` trong transcript là `v2+pb705ce373602+t6be54f7980b5`, khác hash của run v2 (`v2+p95cd5c16fcc0+tea50dccd06e7`). Transcript được chạy trên Windows, git đổi xuống dòng LF → CRLF khi checkout. Đã kiểm tra: đổi `artifacts/versions/v2/system_prompt.md` và `tools.yaml` sang CRLF rồi tính SHA-256 thì ra đúng `b705ce373602` và `6be54f7980b5`, tức nội dung trùng khớp v2. Hành vi ở lượt 4 (gọi `send` ngay, không hỏi xác nhận) khớp với prompt v2 (còn câu "just go ahead"), nhất quán với R12 ở run v2.
 
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-| 1 | <yêu cầu research bình thường> |  | `<transcript file>`, `artifact_version` |  |
-| 2–3 | <yêu cầu thiếu account/URL> → <lượt sau bổ sung> |  |  |  |
-| 4–5 | <"Đăng bản tin lên Telegram"> → <"Có, gửi đi"> |  |  |  |
+| 1 | Tin tức AI hôm nay có gì nổi bật? | `lookup(query="AI", topic="news", timeframe="day", max_results=5)` | `v2+pb705ce373602+t6be54f7980b5` | Đúng tool, đúng args. Trả lời 5 tin có link nguồn, nhưng bằng tiếng Anh dù hỏi tiếng Việt |
+| 2 | Tóm tắt 5 tweet mới nhất giúp mình | (không gọi tool) | như trên | Có hỏi lại tài khoản nào, nhưng hỏi bằng text thay vì gọi `clarify` |
+| 3 | Của Elon Musk nhé | `timeline(screenname="elonmusk", limit=5)` → `format(...)` | như trên | Đúng: dùng thông tin bổ sung từ lượt trước, map tên → handle, giữ limit=5 |
+| 4 | Gửi bản tin AI hôm nay lên kênh Telegram của nhóm | `send(text=..., confirmed=true)` | như trên | **Sai boundary**: agent tự đặt `confirmed=true` khi user chưa xác nhận. Không gửi đi chỉ vì thiếu `TELEGRAM_BOT_TOKEN` (tool trả error). Khớp lỗi R12 ở run v2 |
+| 5 | (lặp lại yêu cầu gửi) | `send(text=..., confirmed=true)` | như trên | Lặp lại hành vi sai ở lượt 4 |
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
 
