@@ -1,0 +1,907 @@
+{
+  "run_id": "v3_B_group_ollama_20261110T234727795333",
+  "version": "v3",
+  "artifact_version": "v3+p3ddd6af1ce1d+tacc71cc37f0f",
+  "prompt_hash": "3ddd6af1ce1dd521c7d93a0110973a651b7e448cc1009ee2fde706f7125920b2",
+  "tools_hash": "acc71cc37f0f8513ebfe637bbb99e3180a41e8e8dd1a66958544943835e1e7d9",
+  "phase": "B",
+  "suite": "group",
+  "provider": "ollama",
+  "model": "qwen2.5:3b",
+  "system_prompt": "C:\\lab_day_3\\K5-L3B-DAY03-BLG-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "C:\\lab_day_3\\K5-L3B-DAY03-BLG-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T23:47:27",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 10,
+    "provider_error_cases": 0,
+    "passed_cases": 10,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": 1.0,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_hackernews_topic_routing",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_hackernews_new_tool",
+        "difficulty": "easy",
+        "what_it_tests": "Hỏi thảo luận trên Hacker News → route tới tool mới hackernews (không dùng lookup hay social_search)."
+      },
+      "input": "Trên Hacker News đang bàn luận gì về Rust?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "query": "Rust",
+              "sort_by": "relevance"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hackernews",
+          "args": {
+            "query": "Rust",
+            "sort_by": "relevance"
+          },
+          "result": {
+            "tool": "hackernews",
+            "query": "Rust",
+            "sort_by": "relevance",
+            "items": [
+              {
+                "title": "Why Discord is switching from Go to Rust",
+                "url": "https://blog.discordapp.com/why-discord-is-switching-from-go-to-rust-a190bbca2b1f",
+                "source": "blog.discordapp.com",
+                "summary": "HN by Sikul (1582 points, 642 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=22238335",
+                "points": 1582,
+                "num_comments": 642
+              },
+              {
+                "title": "Leaving Rust gamedev after 3 years",
+                "url": "https://loglog.games/blog/leaving-rust-gamedev/",
+                "source": "loglog.games",
+                "summary": "HN by darthdeus (1484 points, 972 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=40172033",
+                "points": 1484,
+                "num_comments": 972
+              },
+              {
+                "title": "A half-hour to learn Rust",
+                "url": "https://fasterthanli.me/articles/a-half-hour-to-learn-rust",
+                "source": "fasterthanli.me",
+                "summary": "HN by selvan (1444 points, 330 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=25610741",
+                "points": 1444,
+                "num_comments": 330
+              },
+              {
+                "title": "Announcing Rust 1.0",
+                "url": "http://blog.rust-lang.org/2015/05/15/Rust-1.0.html",
+                "source": "blog.rust-lang.org",
+                "summary": "HN by jhund (1363 points, 306 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=9551937",
+                "points": 1363,
+                "num_comments": 306
+              },
+              {
+                "title": "CityBound – An open source city simulation game in Rust",
+                "url": "https://github.com/citybound/citybound",
+                "source": "github.com",
+                "summary": "HN by formalsystem (1340 points, 264 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=19583384",
+                "points": 1340,
+                "num_comments": 264
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_hackernews_latest_limit_args",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_hackernews_sort_and_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Tìm bài 'mới nhất' kèm số lượng trên Hacker News → gọi hackernews với sort_by='date' và limit=3."
+      },
+      "input": "Lấy 3 bài thảo luận mới nhất trên Hacker News về LLM",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "query": "LLM",
+              "sort_by": "date",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "limit": 3,
+              "query": "LLM",
+              "sort_by": "date"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hackernews",
+          "args": {
+            "limit": 3,
+            "query": "LLM",
+            "sort_by": "date"
+          },
+          "result": {
+            "tool": "hackernews",
+            "query": "LLM",
+            "sort_by": "date",
+            "items": [
+              {
+                "title": "Show HN: A Swift package that makes any macOS app translatable",
+                "url": "https://github.com/FuzzyIdeas/LimbaKit",
+                "source": "github.com",
+                "summary": "HN by alin23 (2 points, 0 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=50442289",
+                "points": 2,
+                "num_comments": 0
+              },
+              {
+                "title": "Show HN: Ilo Musi 8 – Handheld Game Console Emulating CHIP-8 Platform",
+                "url": "https://ilomusi8.sadale.net/en/welcome",
+                "source": "ilomusi8.sadale.net",
+                "summary": "HN by jan_Sate (1 points, 0 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=50442258",
+                "points": 1,
+                "num_comments": 0
+              },
+              {
+                "title": "Show HN: Ziperu is rubyzip with a Rust core, same API but faster and safer",
+                "url": "https://github.com/caplanmaor/ziperu",
+                "source": "github.com",
+                "summary": "HN by BambaNugat (1 points, 0 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=50442141",
+                "points": 1,
+                "num_comments": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_web_news_month_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "medium",
+        "what_it_tests": "Cụm 'trong tháng này' → gọi lookup với topic='news' và timeframe='month' (bộ base mới chỉ kiểm tra day và week)."
+      },
+      "input": "Tin tức AI trong tháng này có gì nổi bật?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "max_results": 5,
+              "timeframe": "month",
+              "topic": "news"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "AI",
+            "max_results": 5,
+            "timeframe": "month",
+            "topic": "news"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "AI",
+            "topic": "news",
+            "timeframe": "month",
+            "items": [
+              {
+                "title": "A single AI model simulates the behavior of many substances, from sliding sand to folding proteins | MIT News | Massachusetts Institute of Technology",
+                "url": "https://news.mit.edu/2026/single-ai-model-simulates-many-substances-behavior-1109",
+                "source": "news.mit.edu",
+                "summary": "Unified simulation\n\nFor this work, the researchers drew inspiration from world models. These powerful AI systems learn the rules that govern the physical world so they can predict how objects or environments will change over time in response to certain actions or conditions.\n\nThe researchers applied these concepts to develop a unified AI architecture that can simulate multiple types of physical phenomena. [...] ## More MIT News\n\nRobot serving a cup of coffee while being instructed not to spill on the laptop\n\n### AI-assisted learning platform helps robots reason beyond literal commands\n\nThe new approach, known as FLEX, could lead to more intuitive, interactive household and assistive robots.\n\nRead full story →\n\nMan wearing a T-shirt and safety goggles standing above a concrete beam in the lab, operating a bench-mounted laser tool scanning the concrete. [...] The system represents every material it simulates, from a dune of sand to a protein molecule, as tiny particles and predicts where those particles will move one step at a time. Because it learns the underlying dynamics rather than being programmed with an equation, the model can adapt to materials, forces, and environments it never encountered during training.",
+                "score": 0.2975827
+              },
+              {
+                "title": "AI-driven, large-scale nation-state campaign using ARTEX enables supply chain compromise | Microsoft Security Blog",
+                "url": "https://www.microsoft.com/en-us/security/blog/2026/10/21/storm-0940-uses-artex-agentic-ai-connectwise-supply-chain-compromise",
+                "source": "microsoft.com",
+                "summary": "Threat actor misuse of AI accelerates risk across enterprise environments by amplifying existing threats such as exploitation of vulnerabilities, phishing, malware threats, and insider activity. To help organizations stay ahead of AI-enabled threat activity, Microsoft has introduced the Security Dashboard for AI. The dashboard provides users with a unified view of AI security posture by aggregating security, identity, and data risk across Microsoft Defender, Microsoft Entra, and Microsoft [...] and Microsoft Purview. This allows organizations to understand what AI assets exist in their environment, recognize emerging risk patterns, and prioritize governance and security across AI agents, applications, and platforms. To learn more about the Microsoft Security Dashboard for AI see: Assess your organization’s AI risk with Microsoft Security Dashboard for AI (Preview). [...] This activity demonstrates how threat actors are integrating agentic AI into existing offensive security workflows and allows them to scale their operations exponentially. Agents are not constrained by factors affecting humans – they can work around the clock, on weekends, and on holidays and attempt multiple breach paths simultaneously enabling significantly reduced time from selecting a target to achieving objectives, increasing the speed and impact of complex attacks like supply chain",
+                "score": 0.28645408
+              },
+              {
+                "title": "How AI agents shape experts’ judgment calls \\ Anthropic",
+                "url": "https://www.anthropic.com/research/agents-judgment-calls",
+                "source": "anthropic.com",
+                "summary": "Deferral of this kind is hard to detect. Checking AI-assisted work for errors, or against a reference answer, assumes there is a correct answer. But where there isn’t one, as in judgment calls, the work can look sound whichever option is chosen. Asking experts afterward may not help either, because they may not notice the agent’s influence.\n\nThis isn’t an argument for using AI less. Used well, AI could expand people’s agency rather than eroding it. We suggest three areas for future study: [...] Changing institutions. Institutions often treat an expert’s sign-off as evidence of independent judgment. As AI does more of the work, that assumption becomes shakier. Organizations will need to decide deliberately which decisions need a person’s own informed judgment, and give people the time and resources to form one. Judgment also depends on skill, and people who stop making these decisions may lose the ability to make them. As models become more capable, institutions will need an explicit [...] The same problem applies to AI safety research. Researchers have begun to use AI agents to run and analyze experiments, in part because there is more work than human staff can keep up with. Keeping a human in the loop assumes that the human’s judgment provides an independent check. But in our study, analysts signed off on work in which judgment calls had largely been settled by the agent’s randomly assigned preferences. Our full paper also shows that agents without an assigned lean have weaker",
+                "score": 0.25748536
+              },
+              {
+                "title": "No Signs of AI Payoff Outside the Tech Sector | The Daily Spark",
+                "url": "https://www.apollo.com/wealth/insights-news/insights/daily-spark/no-signs-of-ai-payoff-outside-the-tech-sector",
+                "source": "apollo.com",
+                "summary": "The question looking ahead is whether, even as models become commoditized, mainstream corporate America can turn increasingly cheap intelligence into higher revenue growth and higher profit margins. That may be harder than it sounds. AI may be a great calculator, but in business, intelligence is mostly judgment. Judgment depends on context, and the answer varies with which human or which model you ask. Perhaps most importantly, AI does not understand accountability, trust, culture, unwritten",
+                "score": 0.25054628
+              },
+              {
+                "title": "Inside Democrats’ 2028 brainstorm on AI safety - POLITICO",
+                "url": "https://www.politico.com/news/2026/11/09/democrats-2028-brainstorm-ai-safety-01155925",
+                "source": "politico.com",
+                "summary": "The two-day event held just days after the midterm election underscores how 2028 hopefuls are viewing AI as a crucial part of their potential presidential bids after voter discontent over issues like AI data centers played a role in Democrats’ sweeping wins last week. [...] The meeting featured one-on-one interviews and group discussions of what the party should actually do about AI, according to three people with direct knowledge of the event, granted anonymity to candidly discuss private conversations. The people said reports from AI safety researchers scared many of the more traditional Democrats in attendance. [...] The event, hosted by Who Decides — an AI safety advocacy organization run by New York Assemblymember Alex Bores and his former legislative aide Anna Myers — also cemented the organization as an early Democratic power player in the AI and politics fight. Bores has become a key voice on AI safety since authoring a landmark law in the state and losing a congressional primary amid intense opposition spending from the industry.",
+                "score": 0.19980752
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_out_of_scope_translation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope_translation",
+        "difficulty": "easy",
+        "what_it_tests": "Yêu cầu dịch thuật/ngữ pháp ngoài phạm vi research → no_tool=true, từ chối thẳng không gọi clarify hay lookup."
+      },
+      "input": "Dịch giúp mình câu này sang tiếng Anh và giải thích ngữ pháp: Hôm nay trời đẹp quá.",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G05_unnecessary_tool_greeting_meta",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "no_tool_role_meta",
+        "difficulty": "easy",
+        "what_it_tests": "Câu hỏi meta về bản thân và vai trò của trợ lý → trả lời thẳng không gọi tool (no_tool=true), tránh gọi nhầm policy hoặc lookup."
+      },
+      "input": "Bạn là gì và vai trò chính của bạn khi hỗ trợ người dùng là gì?",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Tôi là một trợ lý được tạo để hỗ trợ người dùng bằng cách tìm kiếm thông tin, trả lời câu hỏi, và thực hiện các tác vụ theo yêu cầu của bạn. Vai trò chính của tôi là giúp bạn tìm kiếm và hiểu thông tin một cách nhanh chóng và chính xác. Tôi cũng có thể gửi thông tin đến Telegram nếu bạn đồng ý.",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "GM01_confirm_then_send_telegram",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_confirmed_send",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: sau khi đã hỏi xác nhận và user đồng ý ở lượt cuối → gọi send với confirmed=true (chỉ kiểm tra subset confirmed=true)."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Đăng bản tin tóm tắt AI hôm nay lên Telegram giúp mình: OpenAI và Anthropic ra mắt mô hình mới."
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn xác nhận gửi bản tin này lên Telegram nhé?"
+        },
+        {
+          "role": "user",
+          "content": "Đồng ý, xác nhận gửi bản tin đó lên Telegram đi."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true,
+              "text": "Đây là bản tin tóm tắt về OpenAI và Anthropic ra mắt mô hình mới: OpenAI và Anthropic vừa công bố ra mắt mô hình mới."
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "confirmed": true,
+            "text": "Đây là bản tin tóm tắt về OpenAI và Anthropic ra mắt mô hình mới: OpenAI và Anthropic vừa công bố ra mắt mô hình mới."
+          },
+          "result": {
+            "tool": "send_telegram",
+            "error": "RuntimeError",
+            "message": "Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM02_switch_twitter_to_hackernews",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_to_hackernews",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: đổi nguồn từ Twitter sang tool mới hackernews ở lượt cuối, giữ chủ đề OpenAI và limit=5."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mọi người trên Twitter đang bàn gì về OpenAI?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi bỏ Twitter đi, chuyển sang tìm trên Hacker News nhé"
+        },
+        {
+          "role": "user",
+          "content": "Giữ chủ đề OpenAI và lấy 5 bài mới nhất trên Hacker News"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "query": "OpenAI",
+              "limit": 5
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "query": "OpenAI",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hackernews",
+          "args": {
+            "query": "OpenAI",
+            "limit": 5
+          },
+          "result": {
+            "tool": "hackernews",
+            "query": "OpenAI",
+            "sort_by": "relevance",
+            "items": [
+              {
+                "title": "OpenAI's board has fired Sam Altman",
+                "url": "https://openai.com/blog/openai-announces-leadership-transition",
+                "source": "openai.com",
+                "summary": "HN by davidbarker (5710 points, 2530 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=38309611",
+                "points": 5710,
+                "num_comments": 2530
+              },
+              {
+                "title": "Google “We have no moat, and neither does OpenAI”",
+                "url": "https://www.semianalysis.com/p/google-we-have-no-moat-and-neither",
+                "source": "semianalysis.com",
+                "summary": "HN by klelatti (2455 points, 1039 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=35813322",
+                "points": 2455,
+                "num_comments": 1039
+              },
+              {
+                "title": "Discovery of a new OpenAI agent message board",
+                "url": "https://collusion.wiki/",
+                "source": "collusion.wiki",
+                "summary": "HN by moultano (2301 points, 1603 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=49563355",
+                "points": 2301,
+                "num_comments": 1603
+              },
+              {
+                "title": "Open models by OpenAI",
+                "url": "https://openai.com/open-models/",
+                "source": "openai.com",
+                "summary": "HN by lackoftactics (2124 points, 876 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=44800746",
+                "points": 2124,
+                "num_comments": 876
+              },
+              {
+                "title": "We have reached an agreement in principle for Sam to return to OpenAI as CEO",
+                "url": "https://twitter.com/openai/status/1727206187077370115",
+                "source": "twitter.com",
+                "summary": "HN by staranjeet (1980 points, 1950 comments)",
+                "hn_url": "https://news.ycombinator.com/item?id=38375239",
+                "points": 1980,
+                "num_comments": 1950
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM03_correction_url_fetch",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_url_correction",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: user sửa lại URL ở lượt 2 → gọi fetch đúng URL mới của Anthropic, không đọc URL cũ ở lượt 1."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt giúp mình bài viết ở link này: https://openai.com/blog/gpt-5"
+        },
+        {
+          "role": "user",
+          "content": "À mình gửi nhầm link, đổi sang https://www.anthropic.com/research nhé"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ đọc đúng link mới đó thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://www.anthropic.com/research"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://www.anthropic.com/research"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "fetch",
+          "args": {
+            "url": "https://www.anthropic.com/research"
+          },
+          "result": {
+            "tool": "read_url",
+            "url": "https://www.anthropic.com/research",
+            "items": [
+              {
+                "title": "Research \\ Anthropic",
+                "url": "https://www.anthropic.com/research",
+                "source": "anthropic.com",
+                "summary": "[Skip to main content](https://www.anthropic.com/research#main-content)\n\n# Our research teams study the inner workings of AI models, stress-test their limits, and track their effects in the real world.\n\n[**Alignment**](https://www.anthropic.com/research/team/alignment)\n\n51 posts\n\nWorks to understand the risks of AI models and develop ways to ensure future ones remain helpful, honest, and harmless.\n\n[**Economics**](https://www.anthropic.com/research/team/economics)\n\n26 posts\n\nStudies and monitors the impact of AI systems on individuals, firms, and economies.\n\n[**Engineering**](https://www.anthropic.com/engineering)\n\n28 posts\n\nBuilds the infrastructure and systems that make Claude reliable and trustworthy.\n\n[**Frontier Red Team**](https://www.anthropic.com/research/team/frontier-red-team)\n\n38 posts\n\nStress-tests AI systems to understand the full extent of their current capabilities and anticipate what comes next.\n\n[**Interpretability**](https://www.anthropic.com/research/team/interpretability)\n\n35 posts\n\nStudies how large language models work internally as a foundation for AI safety.\n\n[**Societal Impacts**](https://www.anthropic.com/research/team/societal-impacts)\n\n25 posts\n\nStudies how AI affects people, both individually and collectively.\n\n[**Science**](https://www.anthropic.com/science)\n\n19 posts\n\nExplores how AI can increase the pace of scientific progress through both research and collaborations.\n\n[**Alignment**](https://www.anthropic.com/research/team/alignment)\n\n51 posts\n\nWorks to understand the risks of AI models and develop ways to ensure future ones remain helpful, honest, and harmless.\n\n[**Economics**](https://www.anthropic.com/research/team/economics)\n\n26 posts\n\nStudies and monitors the impact of AI systems on individuals, firms, and economies.\n\n[**Engineering**](https://www.anthropic.com/engineering)\n\n28 posts\n\nBuilds the infrastructure and systems that make Claude reliable and trustworthy.\n\n[**Frontier Red Team**](https://www.anthropic.com/research/team/frontier-red-team)\n\n38 posts\n\nStress-tests AI systems to understand the full extent of their current capabilities and anticipate what comes next.\n\n[**Interpretability**](https://www.anthropic.com/research/team/interpretability)\n\n35 posts\n\nStudies how large language models work internally as a foundation for AI safety.\n\n[**Societal Impacts**](https://www.anthropic.com/research/team/societal-impacts)\n\n25 posts\n\nStudies how AI affects people, both individually and collectively.\n\n[**Science**](https://www.anthropic.com/science)\n\n19 posts\n\nExplores how AI can increase the pace of scientific progress through both research and collaborations.\n\n- [![Collage illustration pairing vintage measuring scales over a black-and-white photograph with a green print of a ribbed, vaulted cathedral ceiling.](https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F99ce1c2ac2d0649d677f097132829da2ab3c4e18-1280x1280.jpg&w=3840&q=75)](https://www.anthropic.com/research/investigating-vault-particles-with-claude)\n- [![AI for scientific discovery: How researchers use Claude](https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F3d70ee592fadda2eed33c12f180c2576a7eefbbf-1280x1280.jpg&w=3840&q=75)](https://www.anthropic.com/research/how-researchers-use-claude)\n- [![Collage of a vintage lithograph of a schooner heeling in a stormy sea, layered over an aged paper folder and a blue-tinted handwritten ship passenger list.](https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F5b5ef1d3d54a1d98d6775e113b321561c0d25875-1280x1280.jpg&w=3840&q=75)](https://www.anthropic.com/research/agents-judgment-calls)\n- [![Illuminating the frontier](https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F949253a4fe1d64bb09bac48fd94a5110c2132916-1280x1280.jpg&w=3840&q=75)](https://www.anthropic.com/insti"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM04_correction_social_search_topic",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_correction_social_search_topic",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: đổi chủ đề tìm kiếm trên Twitter từ GPT-5 sang Claude và trích đúng limit=5 ở lượt cuối."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Cho mình các tweet phổ biến (top) nhất về GPT-5 trên Twitter"
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang chủ đề Claude đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn lấy 5 tweet phổ biến (top) nhất về Claude trên Twitter nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Claude",
+              "limit": 5
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Claude",
+              "limit": 5,
+              "search_type": "Latest"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Claude",
+            "limit": 5,
+            "search_type": "Latest"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Claude",
+            "search_type": "Latest",
+            "items": [
+              {
+                "title": "Claude Fable 5.2: Le hardware n’est plus si hard",
+                "summary": "Claude Fable 5.2: Le hardware n’est plus si hard\nhttps://t.co/rPAcMiq97t",
+                "url": "https://x.com/strategia_sam/status/2120196556368322863",
+                "source": "@strategia_sam",
+                "date": "Tue Nov 10 16:47:05 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "8"
+                }
+              },
+              {
+                "title": "@GeminiApp Google never learn anything. They have many computes (since all users pay Claude and Codex) they still incomp",
+                "summary": "@GeminiApp Google never learn anything. They have many computes (since all users pay Claude and Codex) they still incompetence enough to make same mistake when release Gemini 4 Argon. Their model not even worth using for free. Very funny Google",
+                "url": "https://x.com/K7335807334520K/status/2120196555911385216",
+                "source": "@K7335807334520K",
+                "date": "Tue Nov 10 16:47:04 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "Anthropic released Claude Fable 5.2 and Mythos 5.2 on Monday: the same underlying model at $8 per million input tokens a",
+                "summary": "Anthropic released Claude Fable 5.2 and Mythos 5.2 on Monday: the same underlying model at $8 per million input tokens and $40 output, 20% cheaper than 5.1 and up to 30% faster. Fable is open to everyone. Mythos is vetted organizations only. The split is the product now.",
+                "url": "https://x.com/shival/status/2120196551918149879",
+                "source": "@shival",
+                "date": "Tue Nov 10 16:47:03 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "کاش Claude هم مثل GPT یه Image Generation خفن و Native داخل اپش داشت.",
+                "summary": "کاش Claude هم مثل GPT یه Image Generation خفن و Native داخل اپش داشت.\n\nبه نظرم یکی از بزرگ‌ترین ضعف‌های Claude همین نبودن قابلیت تولید تصویر به‌صورت مستقیم داخل اپلیکیشنشه.",
+                "url": "https://x.com/hamzeh_ux/status/2120196536206565395",
+                "source": "@hamzeh_ux",
+                "date": "Tue Nov 10 16:47:00 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "3"
+                }
+              },
+              {
+                "title": "Claude should be running for elections atp, I'm gonna vote.",
+                "summary": "Claude should be running for elections atp, I'm gonna vote.",
+                "url": "https://x.com/HalfChocolate01/status/2120196533522145642",
+                "source": "@HalfChocolate01",
+                "date": "Tue Nov 10 16:46:59 +0000 2026",
+                "metrics": {
+                  "favorites": 1,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM05_clarify_then_fill_handle_sama",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_fill_sama",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: lượt 1 thiếu tên người, sau khi được hỏi lại thì lượt 3 bổ sung Sam Altman và số lượng 5 → gọi timeline(screenname='sama', limit=5)."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt các tweet mới nhất giúp mình"
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn muốn xem tweet của tài khoản nào?"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 5 tweet mới nhất của Sam Altman nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 5
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "sama",
+            "limit": 5
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "sama",
+            "items": [
+              {
+                "title": "RT @fouadmatin: Today’s GPT-6 Cyber release is a meaningful step for defenders: stronger vulnerability research and bett",
+                "summary": "RT @fouadmatin: Today’s GPT-6 Cyber release is a meaningful step for defenders: stronger vulnerability research and better alignment. We’ve…",
+                "url": "https://x.com/sama/status/2118471941002842341",
+                "source": "@sama",
+                "date": "Thu Nov 05 22:34:04 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 53,
+                  "views": "47596"
+                }
+              },
+              {
+                "title": "RT @thsottiaux: Day 25/",
+                "summary": "RT @thsottiaux: Day 25/\n\nWe are doubling all usage limits for all Pro 100/200/500 tiers and Business Premium, effective today.\n\nWe heard yo…",
+                "url": "https://x.com/sama/status/2117797818756952416",
+                "source": "@sama",
+                "date": "Wed Nov 04 01:55:21 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 2701,
+                  "views": "42067"
+                }
+              },
+              {
+                "title": "People should always be in control of the future.",
+                "summary": "People should always be in control of the future.\n\nOpenAI is against the notion that it would be acceptable for people to be relegated to a role of doing things that “AI systems think makes sense to reward in humans”.\n\nPeople should not cede control of the future to superintelligence, and that requirement should ultimately constrain AI progress.",
+                "url": "https://x.com/sama/status/2117794005165748448",
+                "source": "@sama",
+                "date": "Wed Nov 04 01:40:12 +0000 2026",
+                "metrics": {
+                  "favorites": 20691,
+                  "retweets": 1021,
+                  "views": "10660574"
+                }
+              },
+              {
+                "title": "RT @danintheory: We are announcing three new discoveries in mathematics, computer science, and physics about harmonic an",
+                "summary": "RT @danintheory: We are announcing three new discoveries in mathematics, computer science, and physics about harmonic analysis, complexity…",
+                "url": "https://x.com/sama/status/2114864981934329996",
+                "source": "@sama",
+                "date": "Mon Oct 26 23:41:18 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 1117,
+                  "views": "48208"
+                }
+              },
+              {
+                "title": "6.1 Terra is here! It is good at a lot of things, but we are especially excited for this new era of computer use.",
+                "summary": "6.1 Terra is here! It is good at a lot of things, but we are especially excited for this new era of computer use.",
+                "url": "https://x.com/sama/status/2114818620782248024",
+                "source": "@sama",
+                "date": "Mon Oct 26 20:37:05 +0000 2026",
+                "metrics": {
+                  "favorites": 10120,
+                  "retweets": 494,
+                  "views": "1661309"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

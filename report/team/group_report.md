@@ -66,6 +66,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | v1 | `system_prompt.md` | Gỡ chỉ dẫn bẫy của starter + thêm rule routing, map handle và ranh giới out-of-scope/clarify | 0.40 (8/20) | 0.45 (9/20) | `starter_v0/runs/v1_B_base_ollama_20261110T185037706863.json` |
 | v2 | `tools.yaml` | Viết lại description ngắn gọn (DÙNG KHI / KHÔNG DÙNG KHI) và quy ước tham số trong `tools.yaml` | 0.45 (9/20) | 0.70 (14/20) | `starter_v0/runs/v2_B_base_ollama_20261110T191308230206.json` |
 | v3 | `system_prompt.md` | Siết rule `http(s)://` → `fetch`, cấm gọi `clarify` với coding/toán, thêm ví dụ gọi `clarify` và truyền `limit` | 0.70 (14/20) | 0.80 (16/20) | `starter_v0/runs/v3_B_base_ollama_20261110T192354388698.json` |
+| v3-group | `tools.yaml` | Khai báo thêm tool mới `hackernews` trong `tools.yaml` và đo trên bộ eval nhóm 10 case (`eval_group.json`) | 0.80 (base) | 1.00 (10/10 group) | `starter_v0/runs/v3_B_group_ollama_20261110T231457884672.json` |
 
 ### B2. Failure Analysis
 
@@ -92,7 +93,16 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| `G01_hackernews_topic_routing` | Single-turn (`wrong_tool`): Hỏi thảo luận trên Hacker News → route tới tool mới `hackernews` (không dùng `lookup` hay `social_search`) | `hackernews(query="Rust")` | PASS |
+| `G02_hackernews_latest_limit_args` | Single-turn (`wrong_arg_value`): Tìm bài "mới nhất" kèm số lượng trên Hacker News → trích đúng `sort_by="date"` và `limit=3` | `hackernews(query="LLM", sort_by="date", limit=3)` | PASS |
+| `G03_web_news_month_timeframe` | Single-turn (`wrong_arg_value`): Cụm "trong tháng này" → gọi `lookup` với `topic="news"`, `timeframe="month"` (bộ base mới chỉ test `day` và `week`) | `lookup(query="AI", topic="news", timeframe="month")` | PASS |
+| `G04_out_of_scope_translation` | Single-turn (`out_of_scope`): Yêu cầu dịch thuật/giải thích ngữ pháp ngoài phạm vi research → từ chối thẳng, không gọi `clarify` hay `lookup` | `no_tool: true` (`refuse`) | PASS |
+| `G05_unnecessary_tool_greeting_meta` | Single-turn (`unnecessary_tool`): Câu hỏi meta về bản thân và vai trò của trợ lý → trả lời thẳng không gọi tool, tránh gọi nhầm `policy` hoặc `lookup` | `no_tool: true` (`answer_without_tool`) | PASS |
+| `GM01_confirm_then_send_telegram` | Multi-turn (`wrong_boundary`): 3 turns — sau khi agent hỏi xác nhận và user đồng ý ở lượt cuối → gọi `send` với `confirmed=true` (kiểm tra subset `confirmed=true`) | `send(confirmed=true)` | PASS |
+| `GM02_switch_twitter_to_hackernews` | Multi-turn (`wrong_tool`): 3 turns — đổi nguồn từ Twitter sang tool mới `hackernews` ở lượt cuối, giữ chủ đề `OpenAI` và truyền `limit=5` | `hackernews(query="OpenAI", limit=5)` | PASS |
+| `GM03_correction_url_fetch` | Multi-turn (`wrong_arg_value`): 3 turns — user sửa lại URL ở lượt 2 → gọi `fetch` đúng URL mới của Anthropic, bỏ qua URL cũ ở lượt 1 | `fetch(url="https://www.anthropic.com/research")` | PASS |
+| `GM04_correction_social_search_topic` | Multi-turn (`wrong_arg_value`): 3 turns — đổi chủ đề tìm kiếm trên Twitter từ `GPT-5` sang `Claude` và trích đúng `limit=5` ở lượt cuối | `social_search(query="Claude", limit=5)` | PASS |
+| `GM05_clarify_then_fill_handle_sama` | Multi-turn (`missing_info`): 3 turns — lượt 1 thiếu tên người, sau khi được hỏi lại thì lượt 3 bổ sung Sam Altman và số lượng 5 → gọi `timeline(screenname="sama", limit=5)` | `timeline(screenname="sama", limit=5)` | PASS |
 
 ### B4. Live Chat Evidence
 
@@ -110,7 +120,14 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 | Unit test tool mới (3 test) | `starter_v0/tests/test_tools_todo.py` (`pytest -v`: 70 passed, 14 skipped, 0 failed) | Pass cả 3 test: happy path (`search_by_date` + fallback `hn_url`), input xấu (query rỗng, enum sai, `limit` dạng chuỗi), và HTTP 503 trả error dict | Eval chỉ kiểm tra model có gọi đúng `hackernews(query=...)` hay không, không bắt được bug bên trong code tool (ví dụ quên truyền `hitsPerPage` hoặc crash khi `hit["url"]` là `None`); unit test bắt được ngay offline |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+- **Tool unit tests (số test đã viết và ví dụ lỗi unit test bắt được nhưng eval không bắt được):**
+  - **Số test đã viết cho tool mới (`hackernews`):** **3 unit tests** trong `starter_v0/tests/test_tools_todo.py` (kết hợp cùng **60 contract tests** trong `test_tool_contract.py` và **7 example tests** → tổng cộng **70 passed, 0 failed**):
+    1. `test_hackernews_happy_path_maps_hits_and_sort_by_date`: kiểm tra `sort_by="date"` gọi đúng endpoint `https://hn.algolia.com/api/v1/search_by_date`, truyền đúng `params={"query": "agents", "tags": "story", "hitsPerPage": 2}` và ánh xạ dữ liệu trả về.
+    2. `test_hackernews_bad_input_handles_empty_query_and_invalid_args`: kiểm tra input xấu từ model như `query="   "` (trả về `{"error": "ValueError"}` mà không gọi mạng), `sort_by="invalid_enum"` (tự fallback về `"relevance"`), và `limit="3"` dạng chuỗi (ép kiểu sang `int` `3`).
+    3. `test_hackernews_http_error_returns_error_dict`: kiểm tra khi Algolia API trả về HTTP `503`, hàm bắt ngoại lệ và trả về `{"tool": "hackernews", "error": "HTTPError", ...}` thay vì làm crash vòng lặp agent.
+  - **Ví dụ lỗi thực tế mà Unit Test bắt được nhưng Eval (`run_eval.py`) không bắt được:**
+    - Trên Hacker News, các bài dạng *Ask HN* hoặc *Show HN* chỉ có nội dung thảo luận nội bộ nên trường `hit["url"]` từ Algolia API trả về giá trị `None`. Nếu trong `search_hackernews()` viết `hit.get("url", "").strip()`, khi gặp `url: null` (`None`) Python sẽ văng lỗi `AttributeError: 'NoneType' object has no attribute 'strip'`, hoặc nếu quên đổi endpoint sang `search_by_date` khi `sort_by="date"` thì kết quả trả về cho người dùng sẽ bị sắp xếp sai.
+    - Trong khi đó, `run_eval.py` chỉ chấm trên `response.tool_calls` do model sinh ra (ví dụ thấy model gọi `hackernews(query="LLM", sort_by="date", limit=3)` là chấm **PASS** ngay) mà không kiểm tra `tool_results` có bị lỗi hay gọi sai URL API hay không. Unit test `test_hackernews_happy_path_maps_hits_and_sort_by_date` dùng `fake_http` giả lập `hit["url"] = None` và assert trực tiếp cả `calls[0]["url"]` lẫn fallback `result["items"][1]["url"] == "https://news.ycombinator.com/item?id=42002"`, nên bắt được lỗi này ngay lập tức.
 
 ### B5. Bonus Evidence
 
