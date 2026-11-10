@@ -105,18 +105,77 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 
 
 # ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# text_stats, date_diff, dedupe: local tools, no API, so no fake_http needed.
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+text_stats_tool = TOOL_FUNCTIONS["text_stats"]
+date_diff_tool = TOOL_FUNCTIONS["date_diff"]
+dedupe_tool = TOOL_FUNCTIONS["dedupe"]
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+# ---- text_stats ----
+
+def test_text_stats_counts_words_sentences_and_reading_time() -> None:
+    result = text_stats_tool(text="Xin chào các bạn. Hôm nay trời đẹp! Bạn khỏe không?")
+    assert result["words"] == 11
+    assert result["sentences"] == 3
+    assert result["chars"] == len("Xin chào các bạn. Hôm nay trời đẹp! Bạn khỏe không?")
+    assert result["reading_minutes"] == 1
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_text_stats_empty_or_none_text_returns_zeros() -> None:
+    for value in ("", None):
+        result = text_stats_tool(text=value)
+        assert (result["chars"], result["words"], result["sentences"], result["reading_minutes"]) == (0, 0, 0, 0)
+
+
+def test_text_stats_wrong_type_returns_error_dict() -> None:
+    result = text_stats_tool(text=12345)
+    assert result["error"] == "TypeError"
+    assert result["tool"] == "text_stats"
+
+
+# ---- date_diff ----
+
+def test_date_diff_returns_days_and_weeks() -> None:
+    result = date_diff_tool(start_date="2026-11-01", end_date="2026-11-15")
+    assert result["days"] == 14
+    assert result["weeks"] == 2.0
+
+
+def test_date_diff_end_before_start_gives_negative_days() -> None:
+    assert date_diff_tool(start_date="2026-11-15", end_date="2026-11-01")["days"] == -14
+
+
+def test_date_diff_bad_or_missing_date_returns_error_dict() -> None:
+    for start, end in (("", "2026-11-15"), ("10/11/2026", "2026-11-15"), ("2026-02-30", "2026-03-01")):
+        result = date_diff_tool(start_date=start, end_date=end)
+        assert result["error"] == "ValueError"
+
+
+# ---- dedupe ----
+
+def test_dedupe_removes_duplicate_urls_and_keeps_first() -> None:
+    items = [
+        {"title": "A", "url": "https://www.Example.com/post/"},
+        {"title": "A copy", "url": "https://example.com/post"},
+        {"title": "B", "url": "https://example.com/other"},
+    ]
+    result = dedupe_tool(items=items)
+    assert [item["title"] for item in result["items"]] == ["A", "B"]
+    assert result["item_count"] == 2
+    assert result["removed_count"] == 1
+
+
+def test_dedupe_empty_items_and_items_without_key_do_not_crash() -> None:
+    assert dedupe_tool(items=None)["item_count"] == 0
+    assert dedupe_tool(items=[])["removed_count"] == 0
+    items = [{"title": "No link 1"}, {"title": "No link 2"}, "not a dict"]
+    result = dedupe_tool(items=items)
+    assert result["item_count"] == 3
+    assert result["removed_count"] == 0
+
+
+def test_dedupe_unknown_key_returns_error_dict() -> None:
+    result = dedupe_tool(items=[{"url": "https://a.com"}], key="author")
+    assert result["error"] == "ValueError"
+    assert "key must be one of" in result["message"]

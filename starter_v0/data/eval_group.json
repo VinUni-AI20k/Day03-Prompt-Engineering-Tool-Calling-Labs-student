@@ -2,6 +2,72 @@
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_text_stats_routing",
+      "phase": "B",
+      "query": "Đoạn này dài bao nhiêu từ và đọc mất bao lâu? \"Xin chào các bạn. Hôm nay trời đẹp! Bạn khỏe không?\"",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "text_stats",
+            "args": {
+              "text": "Xin chào các bạn. Hôm nay trời đẹp! Bạn khỏe không?"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Hỏi độ dài/thời gian đọc của đoạn văn có sẵn → route tới text_stats, không dùng fetch hay lookup."
+      }
+    },
+    {
+      "id": "G02_date_diff_args",
+      "phase": "B",
+      "query": "Từ ngày 2026-11-01 đến ngày 2026-11-15 là bao nhiêu ngày?",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_diff",
+            "args": {
+              "start_date": "2026-11-01",
+              "end_date": "2026-11-15"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Tính khoảng cách giữa hai ngày → date_diff với ngày đúng định dạng YYYY-MM-DD."
+      }
+    },
+    {
+      "id": "G03_dedupe_routing",
+      "phase": "B",
+      "query": "Loại bỏ link trùng trong danh sách này: [{\"title\":\"A\",\"url\":\"https://example.com/a\"},{\"title\":\"A copy\",\"url\":\"https://example.com/a/\"},{\"title\":\"B\",\"url\":\"https://example.com/b\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "dedupe",
+            "args": {
+              "key": "url"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Danh sách có sẵn cần bỏ trùng → route tới dedupe, không gọi lookup/format."
+      }
+    }
+  ]
 }

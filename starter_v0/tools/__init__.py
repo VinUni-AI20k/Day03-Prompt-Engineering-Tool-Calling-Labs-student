@@ -17,6 +17,9 @@ from .policy.tool import search_company_policy
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
+from .text_stats.tool import text_stats
+from .date_diff.tool import date_diff
+from .dedupe.tool import dedupe
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -35,7 +38,10 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
-    # TODO CP3 (student): register your new tool here, e.g. "my_tool": my_tool_function,
+    # Team tools (CP3)
+    "text_stats": text_stats,
+    "date_diff": date_diff,
+    "dedupe": dedupe,
     # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
 }
 
