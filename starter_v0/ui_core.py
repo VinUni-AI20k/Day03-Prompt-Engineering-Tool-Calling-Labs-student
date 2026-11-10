@@ -330,9 +330,11 @@ def resolve_confirmation(
     gate_event = turn["tool_events"][-1]
     gate_event["ui_gate"].update({"user_decision": decision, "text_edited_by_user": edited})
     if decision == "confirmed":
-        call.args["text"] = updated_text
         func = (pending["tool_functions"] or TOOL_FUNCTIONS).get(call.name)
-        if func and "confirmed" in inspect.signature(func).parameters:
+        parameters = inspect.signature(func).parameters if func else {}
+        if "text" in call.args or "text" in parameters:
+            call.args["text"] = updated_text
+        if "confirmed" in parameters:
             call.args["confirmed"] = True
         event = execute_tool_call(call, pending["tool_functions"])
     else:
