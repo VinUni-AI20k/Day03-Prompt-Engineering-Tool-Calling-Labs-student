@@ -17,6 +17,8 @@ from .policy.tool import search_company_policy
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
+from .deduplicate.tool import deduplicate_sources
+from .citation_audit.tool import audit_citations
 from .weather.tool import get_weather
 from .github_search.tool import search_github
 
@@ -27,6 +29,8 @@ from .github_search.tool import search_github
 #   artifacts/tools.yaml  ->  this dict  ->  data/eval_base.json + data/eval_research_extension.json
 # Otherwise the eval raises "not declared in tools.yaml" or scores every call as a name mismatch.
 TOOL_FUNCTIONS = {
+    "deduplicate": deduplicate_sources,
+    "citation_audit": audit_citations,
     "clarify": ask_user,
     "timeline": get_user_tweets,
     "social_search": search_tweets,

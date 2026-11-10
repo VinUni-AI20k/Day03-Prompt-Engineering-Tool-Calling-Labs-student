@@ -12,6 +12,7 @@ from providers import make_provider
 from providers.base import ToolCall
 from tools import TOOL_FUNCTIONS, load_tool_declarations, to_openai_tools
 from versioning import artifact_version_dict, build_artifact_version
+from tools.send.tool import approve_message
 
 
 ROOT = Path(__file__).parent
@@ -50,6 +51,22 @@ def execute_tool_call(call: ToolCall) -> dict[str, Any]:
             "result": {"error": "unknown_tool", "message": f"No local implementation for {call.name}"},
         }
     try:
+        if call.name == "send":
+            text = call.args.get("text")
+            if not isinstance(text, str) or not text.strip() or len(text) > 4096:
+                return {"tool": call.name, "args": call.args,
+                        "result": {"error": "ValueError", "message": "Message must contain 1-4096 characters"}}
+            print("\nTelegram message preview:\n" + text)
+            try:
+                answer = input("Send this exact message? Type SEND to confirm: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                answer = ""
+            if answer != "SEND":
+                return {"tool": call.name, "args": call.args,
+                        "result": {"status": "cancelled", "message": "User did not approve sending."}}
+            with approve_message(text):
+                result = func(text=text, confirmed=True)
+            return {"tool": call.name, "args": {"text": text, "confirmed": True}, "result": result}
         result = func(**call.args)
     except Exception as exc:
         result = {"error": type(exc).__name__, "message": str(exc)}
@@ -84,6 +101,7 @@ def run_model_tool_loop(
     tools: list[dict[str, Any]],
     model: str | None,
     max_tool_rounds: int,
+    execute_call: Any = execute_tool_call,
 ) -> dict[str, Any]:
     working_messages = list(messages)
     rounds: list[dict[str, Any]] = []
@@ -112,8 +130,10 @@ def run_model_tool_loop(
         non_clarification_events: list[dict[str, Any]] = []
 
         for call in calls:
-            print(f"🔧 {call.name}({json.dumps(call.args, ensure_ascii=False, sort_keys=True)})")
-            event = execute_tool_call(call)
+            # Windows server stdout may use a legacy encoding. Keep console logs
+            # ASCII; tool arguments and UI/transcript text remain Unicode.
+            print(f"Tool: {ascii(call.name)}({json.dumps(call.args, ensure_ascii=True, sort_keys=True)})")
+            event = execute_call(call)
             round_record["tool_results"].append(event)
             all_tool_events.append(event)
 
