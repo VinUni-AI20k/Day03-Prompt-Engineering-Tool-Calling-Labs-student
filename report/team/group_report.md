@@ -69,7 +69,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | ------- | ---------------- | ---------- | ------------: | -----------: | -------- |
 | v0 | baseline | Đo hành vi starter trước khi tối ưu | – | 0.70 | `runs/v0_B_base_openai_20261110T172625895265.json` |
 | v1 | system_prompt.md | Bỏ chỉ dẫn xấu (đoán / gửi ngay / một bước) + thêm rule clarify, xác nhận, ngoài phạm vi, routing → sửa R08 R10 R11 R12 R14 | 0.70 | 0.85 | `runs/v1_B_base_openai_20261110T173219539876.json` |
-| v2      |                  |            |               |              |          |
+| v2 | tools.yaml | Viết lại description mọi tool (làm gì / khi nào dùng / khi nào không dùng + convention args), giữ nguyên prompt → sửa M02 (regression v1) và R10 | 0.85 | 0.95 | `runs/v2_B_base_openai_20261110T182235056165.json` |
 | v3      |                  |            |               |              |          |
 
 Nhận xét (metric chi tiết lấy từ `summary` của run JSON):
@@ -78,10 +78,16 @@ Nhận xét (metric chi tiết lấy từ `summary` của run JSON):
 |---|---:|---:|---:|---:|
 | v0 | 0.70 | 0.75 | 0.70 | 1.00 |
 | v1 | 0.85 | 0.90 | 0.85 | 0.83 |
+| v2 | 0.95 | 1.00 | 0.95 | 1.00 |
 
 - v1 sửa được 4/6 case FAIL của v0: R08, R11, R13, R14. R10 và R12 vẫn FAIL nhưng đã đổi hành vi: R10 không còn đoán `sama` mà gọi `social_search(query="")`; R12 đã hỏi lại bằng `clarify` nhưng với `response_type="text"` thay vì `"yes_no"`.
 - **Regression:** M02 (PASS ở v0) FAIL ở v1. Câu "chỉ tìm robotics thôi, vẫn là tin hôm nay" bị route sang `social_search` thay vì `lookup(topic="news", timeframe="day")`. Mục Routing trong prompt v1 chưa phân biệt "tin tức" (→ `lookup`) với "bài đăng/tweet" (→ `social_search`), và tool description vẫn mơ hồ → giả thuyết cho v2.
 - **v1 gồm 2 thay đổi, từ v2 mới tách riêng mỗi version một giả thuyết.** (1) Bỏ các chỉ dẫn xấu của starter (đoán thay vì hỏi, gửi không xác nhận, ép một bước) và thay bằng rule clarify / xác nhận / ngoài phạm vi. (2) Thêm mục Routing (tool nào cho loại yêu cầu nào). Vì gộp hai thay đổi nên không tách được case nào do thay đổi nào sửa; ví dụ R13 PASS nhiều khả năng nhờ thay đổi (2), còn regression M02 cũng có thể do (2).
+
+- **v2** (chỉ sửa `tools.yaml`, `prompt_hash` giữ nguyên `0272985012ee`, `tools_hash` `41a2894f8ad1` → `cd1ae0336fb5`): sửa được M02 và R10, không làm vỡ case nào (19/20).
+  - M02: `lookup(query="robotics", topic="news", timeframe="day")` → PASS. Description `lookup` nói rõ "tin tức → lookup, kể cả khi lượt sau chỉ đổi chủ đề" và `social_search` nói "hỏi tin mà không nhắc Twitter thì không dùng".
+  - R10: `clarify(response_type="text")` hỏi tài khoản → PASS, thay cho `social_search(query="")` ở v1. Description `social_search`/`timeline` cấm gọi với tham số rỗng.
+  - R12 vẫn FAIL: model gọi `clarify(question="Nội dung bạn muốn đăng lên Telegram là gì?", response_type="text")`. Description `send` đã nói phải xác nhận yes_no, nhưng vì câu "bản tin này" không kèm nội dung nên model hỏi nội dung trước. Mô tả trong tool chưa đủ ép hành vi này → giả thuyết v3: thêm rule trong system prompt "mọi yêu cầu gửi/đăng → gọi ngay `clarify(response_type="yes_no")`, không hỏi nội dung bằng text".
 
 ### B2. Failure Analysis
 
