@@ -3,5 +3,116 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_policy_routing",
+      "phase": "B",
+      "suite": "group",
+      "query": "Theo chính sách nội bộ của công ty, mình có được đưa dữ liệu khách hàng vào ChatGPT để phân tích không?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "data_privacy"}}]},
+      "metadata": {"skill": "routing_internal_policy", "difficulty": "medium", "what_it_tests": "Câu hỏi về quy định nội bộ → gọi policy với policy_area=data_privacy, không đi tìm trên web (lookup)."}
+    },
+    {
+      "id": "G02_papers_sort_latest",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm giúp mình các paper mới nộp gần đây nhất trên arXiv về retrieval-augmented generation",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "papers", "args": {"sort_by": "submittedDate"}}]},
+      "metadata": {"skill": "routing_papers_sort", "difficulty": "medium", "what_it_tests": "Tìm paper học thuật → papers (không phải lookup); 'mới nộp gần đây nhất' → sort_by=submittedDate."}
+    },
+    {
+      "id": "G03_handle_strip_at",
+      "phase": "B",
+      "suite": "group",
+      "query": "Cho mình xem 3 bài đăng gần nhất của @ylecun",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "ylecun", "limit": 3}}]},
+      "metadata": {"skill": "arg_handle_without_at", "difficulty": "easy", "what_it_tests": "User gõ handle có '@' → screenname phải bỏ '@' (ylecun) và limit=3."}
+    },
+    {
+      "id": "G04_news_timeframe_month",
+      "phase": "B",
+      "suite": "group",
+      "query": "Có tin tức gì mới về Nvidia trong tháng này không?",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news", "timeframe": "month"}}]},
+      "metadata": {"skill": "arg_timeframe_month", "difficulty": "easy", "what_it_tests": "'tin tức ... tháng này' → lookup với topic=news, timeframe=month (không dùng default week)."}
+    },
+    {
+      "id": "G05_out_of_scope_poem",
+      "phase": "B",
+      "suite": "group",
+      "query": "Viết giúp mình một bài thơ lục bát về mùa thu Hà Nội",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "answer_without_tool"},
+      "metadata": {"skill": "out_of_scope_creative", "difficulty": "easy", "what_it_tests": "Yêu cầu sáng tác ngoài phạm vi research → không gọi tool nào (không lookup, không send)."}
+    },
+    {
+      "id": "G06_clarify_then_paper",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đọc rồi tóm tắt giúp mình paper này"},
+        {"role": "user", "content": "Paper 'Attention Is All You Need', arXiv 1706.03762"},
+        {"role": "user", "content": "Đọc thẳng nội dung paper đó luôn, không cần tìm thêm"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "paper_text"}]},
+      "metadata": {"skill": "multiturn_clarify_paper", "difficulty": "medium", "what_it_tests": "3 turns: lượt 1 thiếu paper, lượt 2 bổ sung arXiv ID → gọi paper_text (không gọi papers để tìm lại, không fetch)."}
+    },
+    {
+      "id": "G07_confirm_before_send_multiturn",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm tin AI hôm nay giúp mình"},
+        {"role": "user", "content": "Ok, tóm tắt 3 tin nổi bật nhất"},
+        {"role": "user", "content": "Đăng bản tóm tắt đó lên kênh Telegram của nhóm đi"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
+      "metadata": {"skill": "multiturn_confirm_before_send", "difficulty": "medium", "what_it_tests": "3 turns: yêu cầu đăng sau một chuỗi research → vẫn phải hỏi xác nhận yes_no, không gọi send ngay."}
+    },
+    {
+      "id": "G08_send_after_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Gửi lên Telegram của nhóm nội dung sau: 'Test bản tin AI ngày hôm nay từ research agent.'"},
+        {"role": "user", "content": "Đúng nội dung đó, không sửa gì"},
+        {"role": "user", "content": "Có, mình xác nhận gửi"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
+      "metadata": {"skill": "multiturn_send_after_confirm", "difficulty": "hard", "what_it_tests": "3 turns: user đã xác nhận rõ nội dung → gọi send với confirmed=true, không hỏi lại thêm lần nữa."}
+    },
+    {
+      "id": "G09_switch_timeline_to_top_search",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tweet mới nhất của Yann LeCun là gì?"},
+        {"role": "user", "content": "Thôi, không cần của riêng ông ấy nữa"},
+        {"role": "user", "content": "Tìm các tweet nổi bật nhất về Llama trên Twitter đi"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"search_type": "Top"}}]},
+      "metadata": {"skill": "multiturn_switch_to_search", "difficulty": "hard", "what_it_tests": "3 turns: đổi từ xem timeline một người sang tìm theo chủ đề → social_search với search_type=Top, không gọi timeline."}
+    },
+    {
+      "id": "G10_papers_refine_args",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm paper về diffusion models giúp mình"},
+        {"role": "user", "content": "Chỉ cần 3 bài thôi"},
+        {"role": "user", "content": "Và sắp theo ngày nộp mới nhất nhé"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "papers", "args": {"max_results": 3, "sort_by": "submittedDate"}}]},
+      "metadata": {"skill": "multiturn_papers_carryover", "difficulty": "hard", "what_it_tests": "3 turns: carry max_results=3 từ lượt 2 và sort_by=submittedDate từ lượt 3 vào cùng một lời gọi papers."}
+    }
+  ]
 }
