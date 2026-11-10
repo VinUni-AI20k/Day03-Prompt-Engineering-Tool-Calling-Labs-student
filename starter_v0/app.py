@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib import request as urlrequest
 
 import streamlit as st
 
@@ -106,6 +108,55 @@ def build_provider(name: str, *, allow_fallback: bool = True):
     return provider, default_model
 
 
+# Ollama discovery: the local server is the default provider whenever it is up.
+def _ollama_root() -> str:
+    base = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1").rstrip("/")
+    return base[: -len("/v1")] if base.endswith("/v1") else base
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def list_ollama_models() -> list[str]:
+    """Models installed in the local Ollama server (empty list when it is down)."""
+    try:
+        with urlrequest.urlopen(f"{_ollama_root()}/api/tags", timeout=1.0) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return []
+    names = [item.get("name") for item in payload.get("models", []) if item.get("name")]
+    return names
+
+
+def default_provider_name(ollama_models: list[str]) -> str:
+    preferred = os.getenv("DEFAULT_PROVIDER", "").strip()
+    if preferred.startswith("demo"):
+        return "demo (offline)"
+    if preferred in PROVIDERS:
+        return preferred
+    return "ollama" if ollama_models else "demo (offline)"
+
+
+def resolve_model(provider_name: str, default_model: str | None, override: str | None) -> str | None:
+    """Pick a model the provider can actually serve.
+
+    For Ollama, prefers the configured/default model but falls back to the first
+    installed tag when that model has not been pulled.
+    """
+    if override:
+        return override
+    if provider_name != "ollama":
+        return None
+    models = list_ollama_models()
+    configured = default_model or os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+    if configured in models:
+        return configured
+    # Same model family (e.g. qwen2.5) before an unrelated model.
+    family = configured.split(":", 1)[0]
+    same_family = [name for name in models if name.split(":", 1)[0] == family]
+    if same_family:
+        return same_family[0]
+    return models[0] if models else None
+
+
 # Session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -121,7 +172,15 @@ def new_conversation() -> None:
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Cấu hình")
-    provider_name = st.selectbox("Provider", PROVIDERS, index=PROVIDERS.index("demo (offline)"))
+    ollama_models = list_ollama_models()
+    provider_name = st.selectbox("Provider", PROVIDERS, index=PROVIDERS.index(default_provider_name(ollama_models)))
+    if ollama_models:
+        st.caption(
+            f"🟢 Ollama sẵn sàng · {len(ollama_models)} model: "
+            + " · ".join(f"`{name}`" for name in ollama_models[:4])
+        )
+    else:
+        st.caption("")
     demo_fallback = st.checkbox(
         "Fallback sang demo scripted khi provider lỗi",
         value=True,
@@ -214,6 +273,7 @@ if prompt:
         with st.spinner("Agent đang chạy…"):
             try:
                 provider, default_model = build_provider(provider_name, allow_fallback=demo_fallback)
+                chosen_model = resolve_model(provider_name, default_model, selected_model)
                 history = [
                     {"role": item["role"], "content": item.get("content") or ""}
                     for item in st.session_state.messages
@@ -229,7 +289,7 @@ if prompt:
                     provider=provider,
                     messages=messages,
                     tools=openai_tools,
-                    model=selected_model,
+                    model=chosen_model,
                     max_tool_rounds=max_rounds,
                 )
 
@@ -283,7 +343,7 @@ if prompt:
                         "transcript_id": transcript_id,
                         "source": "streamlit",
                         "provider": provider_name,
-                        "model": selected_model or default_model,
+                        "model": chosen_model or default_model,
                         "system_prompt": prompt_path,
                         "tools": tools_path,
                         "created_at": now_iso(),
