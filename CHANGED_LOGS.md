@@ -165,6 +165,19 @@ Tên run JSON trong lệnh parse là file của lần đo cuối đã thực hi�
 - **Kiểm tra đã làm:** 130 test đạt (thêm 12 test cho phần version), lint và build giao diện sạch.
 - **Khi làm v4:** chép `system_prompt.md` và `tools.yaml` hiện tại vào `artifacts/versions/v4/` sau khi chạy eval và ghi `version_log.csv`; ô chọn sẽ tự hiện thêm v4.
 
+### Chạy 10 tình huống của nhóm (eval group) trên v3
+
+- **Chạy:** `run_eval.py --version v3 --suite group` với `data/eval_group.json`, model `gpt-4o-mini`. Run hợp lệ: 10/10 tình huống được đo, không có lỗi từ nhà cung cấp mô hình.
+- **Kết quả:** đạt 7/10 (chọn đúng công cụ 0.70, điền đúng tham số 0.70, hội thoại nhiều lượt 0.80).
+- **Ba tình huống sai:**
+  - G01 (thiếu chủ đề arXiv): agent gọi tìm bài báo với truy vấn rỗng thay vì hỏi lại.
+  - G03 (tìm bài arXiv): agent tìm hai lần ("AI Agents" và "build AI Agents") trong khi kỳ vọng một lần.
+  - G07 (đã đồng ý rồi gửi): agent hỏi xác nhận thêm lần nữa thay vì gửi.
+- **Cách chạy an toàn:** tắt biến Telegram khi chạy để tình huống G07 không thể đăng thật lên kênh của nhóm (eval chạy công cụ thật).
+- **Bằng chứng:** `starter_v0/runs/v3_B_group_openai_20261110T191440431333.json`, `starter_v0/analysis/v3_group.csv`.
+- **Phát hiện kèm theo:** bản v3 xử lý đúng câu "Đăng bản tin này lên Telegram giúp mình" nhưng lệch với cách nói khác như "Đưa tin này lên Telegram giúp tôi" (agent hỏi bằng chữ thường, không dùng công cụ hỏi lại). Điểm 20/20 của v3 phụ thuộc vào câu chữ của từng tình huống.
+- **Việc tiếp theo:** đề xuất v4 liệt kê đủ các cách nói gửi/đăng/đưa và nêu nguyên văn nội dung khi xin xác nhận.
+
 ## Việc khác đã làm
 
 - **Phân việc nhóm:** thư mục `tasks/` có bảng vai trò và checklist cho từng người.
