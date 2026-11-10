@@ -153,3 +153,57 @@ tools:
         sort_by: {type: string, enum: [relevance, date], default: "relevance", description: "relevance (độ liên quan/phổ biến) hoặc date (mới nhất)"}
         limit: {type: integer, default: 5, description: "Số lượng kết quả trả về (1–20)"}
       required: [query]
+  # ---------------- Custom tools ----------------
+  - name: github_repos
+    description: >
+      Tìm kiếm repository mã nguồn mở trên GitHub theo từ khóa, ngôn ngữ lập trình, số sao tối thiểu, hoặc repo đang hot gần đây.
+      DÙNG KHI: người dùng hỏi tìm repo/dự án GitHub, open-source project nhiều sao hoặc mới nổi trên GitHub.
+      KHÔNG DÙNG KHI: tìm bài báo khoa học (dùng `papers`), tra cứu gói Python trên PyPI (dùng `pypi_package`), tìm tin tức web chung (dùng `lookup`), hoặc đọc một URL cụ thể (dùng `fetch`).
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          default: ""
+          description: "Từ khóa chủ đề/công nghệ trên GitHub (ví dụ: 'ai agent', 'mcp', 'rag'). Có thể để trống nếu lọc theo language/timeframe."
+        sort_by:
+          type: string
+          enum: [stars, hot, updated, forks]
+          default: "stars"
+          description: "Đặt 'hot' khi tìm repo mới nổi/tăng sao nhanh gần đây; 'stars' khi xếp theo tổng số sao; 'updated' theo cập nhật mới nhất; 'forks' theo lượt fork."
+        timeframe:
+          type: string
+          enum: [all, day, week, month, year]
+          default: "all"
+          description: "Khoảng thời gian tạo repo: 'day', 'week', 'month', 'year', hoặc 'all'."
+        min_stars:
+          type: integer
+          default: 0
+          description: "Số sao tối thiểu (ví dụ: 100, 1000). Mặc định 0 (không lọc)."
+        language:
+          type: string
+          default: ""
+          description: "Ngôn ngữ lập trình cần lọc (ví dụ: 'python', 'typescript'). Để trống nếu không lọc."
+        limit:
+          type: integer
+          default: 5
+          description: "Số lượng repository trả về (1-20)."
+      required: []
+
+  - name: pypi_package
+    description: >
+      Tra cứu thông tin chi tiết của một thư viện/package Python trên PyPI (phiên bản mới nhất, ngày phát hành, license, yêu cầu Python, link repo).
+      DÙNG KHI: người dùng hỏi phiên bản mới nhất, thông tin, license hoặc metadata của một gói Python trên PyPI (ví dụ: fastapi, pydantic, openai).
+      KHÔNG DÙNG KHI: tìm dự án GitHub theo từ khóa chung (dùng `github_repos`), tìm tin tức web (dùng `lookup`), hoặc đọc một URL cụ thể (dùng `fetch`).
+    parameters:
+      type: object
+      properties:
+        package_name:
+          type: string
+          default: ""
+          description: "Tên chính xác của package trên PyPI (ví dụ: 'fastapi', 'requests', 'pydantic')."
+        include_releases:
+          type: boolean
+          default: false
+          description: "Đặt true nếu người dùng muốn xem thêm tối đa 5 phiên bản phát hành gần nhất."
+      required: [package_name]
