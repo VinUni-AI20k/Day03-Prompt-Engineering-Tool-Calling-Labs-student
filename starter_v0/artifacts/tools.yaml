@@ -123,3 +123,22 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: source_check
+    description: "Kiểm tra URL HTTP(S) và thông tin nguồn của các item đã có trước khi tạo bản tin. Trả lỗi từng item và danh sách item hợp lệ. Chạy offline, chỉ kiểm tra metadata; không xác minh sự thật, uy tín hoặc khả năng truy cập URL. Không dùng để tìm kiếm hay đọc trang; dùng lookup/fetch cho các việc đó."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Các item nghiên cứu đã thu thập; mỗi item cần url và source không rỗng. Giữ nguyên các trường nội dung khác."
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string, description: "URL HTTP(S) đầy đủ, không chứa credentials hay khoảng trắng"}
+              source: {type: string, description: "Tên nguồn, domain hoặc handle; không rỗng"}
+              summary: {type: string}
+              section: {type: string}
+            required: [url, source]
+      required: [items]
