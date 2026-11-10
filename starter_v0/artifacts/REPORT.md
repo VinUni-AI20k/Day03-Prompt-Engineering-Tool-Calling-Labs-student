@@ -89,6 +89,7 @@ Các lỗi dưới đây được đối chiếu từ `results[*].result.failure
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
+| v0/R03_web_news_routing | `wrong_tool` | `lookup(query="AI news", topic="news", timeframe="day")` | `query: expected 'AI', got 'AI news'` — nhồi từ khóa `"news"` vào `query` | Tách chủ đề khỏi `topic="news"` trong `system_prompt.md`; đã PASS ở v1 (`18/20`). |
 | v0/R08_out_of_scope | `out_of_scope` | `send` | Câu toán ngoài phạm vi nhưng model dùng `send` như tool trả lời. | Thêm rule ngoài phạm vi: không gọi tool; cấm dùng `send` để trình bày câu trả lời. |
 | v0/R10_missing_handle | `missing_info` | `timeline` | Thiếu tài khoản nhưng model tự đoán `sama`. | Thiếu handle phải gọi `clarify(response_type="text")`; không tự chọn tài khoản nổi tiếng. |
 | v0/R11_missing_url | `missing_info` | `fetch` | Model tự tạo `https://example.com/article` khi chưa có URL. | Chỉ dùng `fetch` với URL có thật trong hội thoại; thiếu URL phải hỏi `clarify(text)`. |
@@ -102,20 +103,20 @@ Các lỗi dưới đây được đối chiếu từ `results[*].result.failure
 
 ## B3. Team Eval Cases
 
-Đã thêm 10 case vào `data/eval_group.json`, gồm 5 single-turn và 5 multi-turn. Run `runs/v3_B_group_openai_20261110T151111781188.json` đạt 6/10 case, case accuracy 0.60, tool routing 0.90, argument accuracy 0.60 và multi-turn accuracy 0.80.
+List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn) covering `weather`, `github_search`, `deduplicate`, `citation_audit`, and routing/boundary traps. Run evidence: `runs/v1_B_group_openai_20261110T172643256578.json` (**9/10 PASS**, `case_accuracy: 0.9`, `multiturn_accuracy: 1.0`).
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-| G01_weather_current_city | Route câu hỏi thời tiết hiện tại và giữ đơn vị độ C. | `weather(location="Hanoi", units="celsius")` | FAIL — gọi đúng `weather` nhưng bỏ `units`; schema mặc định là `celsius`, khác expected args tường minh dù cùng giá trị mặc định khi thực thi. |
-| G02_github_top_repositories | Ánh xạ số lượng và thứ tự nhiều sao nhất khi tìm repository. | `github_search(query="RAG", sort="stars", order="desc", max_results=3)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định của tool, nhưng bộ chấm yêu cầu truyền tường minh. |
-| G03_weather_missing_location | Không tự đoán vị trí khi câu hỏi thời tiết thiếu địa điểm. | `clarify(response_type="text")` | PASS |
-| G04_send_after_explicit_confirmation | Chỉ gửi đúng nội dung sau xác nhận rõ ràng. | `send(text="Bản tin AI hôm nay", confirmed=true)` | FAIL — model gọi `clarify` thay vì `send`; expected chấp nhận xác nhận cùng câu, trong khi model tiếp tục hỏi xác nhận. |
-| G05_out_of_scope_translation | Không gọi tool cho yêu cầu dịch thuật ngoài phạm vi research. | Không gọi tool; từ chối/định hướng | PASS |
-| G06_multiturn_weather_correction | Carry yêu cầu thời tiết, thay địa điểm mới nhất và đổi sang độ F. | `weather(location="Đà Nẵng", units="fahrenheit")` | PASS |
-| G07_multiturn_github_constraints | Carry chủ đề, thêm qualifier ngôn ngữ và áp dụng limit/sort ở lượt cuối. | `github_search(query="FastAPI language:Python", sort="stars", order="desc", max_results=4)` | FAIL — thiếu `order="desc"`; đây là giá trị mặc định của tool, nhưng bộ chấm yêu cầu truyền tường minh. |
-| G08_multiturn_send_confirmation | Carry chính xác nội dung và chỉ gửi sau lượt xác nhận. | `send(text="AI agent ra mắt hôm nay.", confirmed=true)` | PASS |
-| G09_multiturn_url_replacement | URL mới nhất ghi đè URL cũ và không gọi thừa `fetch`. | `fetch(url="https://www.anthropic.com/research")` | PASS |
-| G10_multiturn_switch_papers_to_github | Bỏ nguồn paper cũ, chuyển sang GitHub nhưng giữ chủ đề và số lượng. | `github_search(query="RAG", max_results=2)` | PASS |
+| `G01_weather_fahrenheit_routing` | Single-turn (`weather`): phân biệt `weather` với `lookup` và trích xuất `units="fahrenheit"` | `weather(location="Tokyo", units="fahrenheit")` | PASS |
+| `G02_weather_missing_location_trap` | Single-turn trap (`missing_info`, `weather`): hỏi thời tiết không có thành phố | `clarify(response_type="text")` (không đoán vị trí) | PASS |
+| `G03_github_search_stars_limit` | Single-turn (`github_search`): định tuyến tìm repo sang `github_search` với `sort="stars"`, `max_results=3` | `github_search(sort="stars", max_results=3)` | PASS |
+| `G04_weather_vs_news_trap` | Single-turn trap (`wrong_tool`, `weather` vs `lookup`): tin bão/mưa trên báo chí, không gọi `weather` hoặc tool thừa | `lookup(topic="news", timeframe="day")` | FAIL (`extra tool call social_search`) |
+| `G05_unnecessary_tool_capabilities_trap` | Single-turn trap (`unnecessary_tool`): hỏi meta về các công cụ `weather`, `github_search`, `deduplicate`, `citation_audit` | `no_tool: true` (trả lời trực tiếp) | PASS |
+| `G06_mt_weather_clarify_then_fill` | Multi-turn (3 lượt, `missing_info`, `weather`): bổ sung địa điểm `Seoul` và đơn vị độ C | `weather(location="Seoul", units="celsius")` | PASS |
+| `G07_mt_github_correction_sort_limit` | Multi-turn (3 lượt, `wrong_arg_value`, `github_search`): sửa `stars` → `updated` và `5` → `2` | `github_search(sort="updated", max_results=2)` | PASS |
+| `G08_mt_deduplicate_existing_items` | Multi-turn (2 lượt, `wrong_tool`, `deduplicate`): lọc trùng URL trên nguồn có sẵn (`removed_count=1`) | `deduplicate` (không gọi `lookup`/`fetch`/`format`) | PASS |
+| `G09_mt_citation_audit_existing_items` | Multi-turn (2 lượt, `wrong_tool`, `citation_audit`): kiểm tra metadata trích dẫn lỗi (`missing_title`, `missing_source`, `invalid_url`) | `citation_audit` (không gọi `fetch`) | PASS |
+| `G10_mt_switch_weather_to_github` | Multi-turn (2 lượt, `wrong_tool`, `weather` → `github_search`): hủy yêu cầu thời tiết, chuyển sang tìm 2 repo GitHub cập nhật gần nhất về FastMCP | `github_search(sort="updated", max_results=2)` (không gọi `weather`) | PASS |
 
 ## B4. Live Chat Evidence
 
@@ -137,7 +138,7 @@ Transcript ghi nhận các phiên bản thử nghiệm trước v3. papers và h
 | `github_search` — Vũ Đức Tâm | Tìm repository công khai; hội thoại MCP trả năm kết quả. | `tools/github_search/tool.py`, `tools/github_search/TOOL.md`, transcript GitHub ở B4 |
 | `deduplicate` — Nguyễn Trung Duy | Lọc URL trùng, giữ nguồn đầu tiên và không sửa đầu vào. Demo ba nguồn loại được một nguồn trùng. | `tools/deduplicate/tool.py`, `tools/deduplicate/TOOL.md`, transcript nghiên cứu lượt 4 |
 | `citation_audit` — Nguyễn Trung Duy | Kiểm tra trường trích dẫn, URL sai/trùng; demo phát hiện `missing_source`. | `tools/citation_audit/tool.py`, `tools/citation_audit/TOOL.md`, transcript nghiên cứu lượt 3–4 |
-| Kiểm thử offline | Bộ test hiện tại có **109 passed, 17 skipped**, không có test failed. | Kết quả chạy `python -X utf8 -m pytest tests/ -q` |
+|  Tool unit tests (`tests/`) | Hoàn tất toàn bộ 14 stub core/bonus (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`) + 43 test cases cho 4 tool mới của nhóm (`weather`, `github_search`, `deduplicate`, `citation_audit`) = **57 test cases** trong `test_tools_todo.py` | tests/test_tools_todo.py, analysis/pytest_results.txt (pytest tests/ -v: 166 passed, 0 skipped, 0 failed) |
 
 ### Vũ Đức Tâm — Tool thời tiết và tìm repository GitHub
 
