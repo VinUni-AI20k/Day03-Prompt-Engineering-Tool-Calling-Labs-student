@@ -41,13 +41,13 @@
       "metadata": {"skill": "arg_timeframe_month", "difficulty": "easy", "what_it_tests": "'tin tức ... tháng này' → lookup với topic=news, timeframe=month (không dùng default week)."}
     },
     {
-      "id": "G05_out_of_scope_poem",
+      "id": "G05_hn_search_routing",
       "phase": "B",
       "suite": "group",
-      "query": "Viết giúp mình một bài thơ lục bát về mùa thu Hà Nội",
-      "failure_type": "out_of_scope",
-      "expect": {"no_tool": true, "behavior": "answer_without_tool"},
-      "metadata": {"skill": "out_of_scope_creative", "difficulty": "easy", "what_it_tests": "Yêu cầu sáng tác ngoài phạm vi research → không gọi tool nào (không lookup, không send)."}
+      "query": "Trên Hacker News tuần này mọi người đang bàn gì về LLM agents?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "hn_search", "args": {"timeframe": "week"}}]},
+      "metadata": {"skill": "routing_new_tool_hn_search", "difficulty": "medium", "what_it_tests": "Tool mới của nhóm: nhắc tới Hacker News → gọi hn_search (không phải lookup hay social_search), 'tuần này' → timeframe=week."}
     },
     {
       "id": "G06_clarify_then_paper",
