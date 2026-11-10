@@ -214,10 +214,22 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 # ---------------- YOUR NEW TOOL(S) ----------------
 
 def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+    # 1. Happy path: LLM truyền đầu vào chuẩn, tool tính toán đúng
+    result = TOOL_FUNCTIONS["calculate"](expression="1500 + 2500")
+    
+    assert "error" not in result
+    assert result.get("result") == 4000
 
 def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+    # 2. Bad input: LLM bị "ngáo", truyền vào chuỗi rỗng
+    result = TOOL_FUNCTIONS["calculate"](expression="")
+    
+    # Assert: Phải trả về dict chứa key "error" (báo lỗi không được để trống)
+    assert "error" in result
 
 def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+    # 3. Failure path: LLM truyền phép chia cho 0. Code KHÔNG ĐƯỢC crash (không raise Exception)
+    result = TOOL_FUNCTIONS["calculate"](expression="10 / 0")
+    
+    # Assert: Bắt được lỗi toán học và trả về an toàn bằng dict
+    assert "error" in result
