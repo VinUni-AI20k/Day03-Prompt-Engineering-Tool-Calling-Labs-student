@@ -16,13 +16,22 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: >
+      Hỏi lại người dùng. Dùng trong 2 trường hợp:
+      (1) THIẾU thông tin bắt buộc (không có handle, không có URL...) -> response_type="text".
+      (2) TRƯỚC KHI thực hiện hành động ghi/gửi ra ngoài (đăng Telegram, gửi tin...) ->
+      response_type="yes_no" để xác nhận, kể cả khi người dùng đã ra lệnh rõ ràng.
+      KHÔNG dùng khi đã đủ thông tin và chỉ là đọc/tìm kiếm.
     parameters:
       type: object
       properties:
-        question: {type: string, default: "", description: "Câu hỏi"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
-        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
+        question: {type: string, default: "", description: "Câu hỏi ngắn gọn bằng ngôn ngữ của người dùng. Với yes_no: nêu rõ sẽ gửi gì, đi đâu."}
+        response_type:
+          type: string
+          enum: [text, yes_no, choice]
+          default: "text"
+          description: "text = xin dữ liệu còn thiếu; yes_no = xác nhận trước khi gửi/đăng; choice = chọn trong options"
+        options: {type: array, default: [], items: {type: string}, description: "Chỉ dùng với response_type=choice"}
       required: [question]
 
   - name: timeline
@@ -86,12 +95,15 @@ tools:
 
   # ---------------- Bonus tools ----------------
   - name: send
-    description: "Gửi một đoạn văn bản đi."
+    description: >
+      Gửi/đăng văn bản ra ngoài (ví dụ Telegram). Hành động KHÔNG hoàn tác được.
+      Luôn gọi clarify(response_type="yes_no") trước và chỉ gọi send khi người dùng đã đồng ý.
+      Không bao giờ tự gửi ngay khi vừa nhận yêu cầu.
     parameters:
       type: object
       properties:
-        text: {type: string, default: "", description: "Nội dung"}
-        confirmed: {type: boolean, default: false, description: "Cờ xác nhận"}
+        text: {type: string, default: "", description: "Nội dung đúng như đã được người dùng xác nhận"}
+        confirmed: {type: boolean, default: false, description: "true CHỈ khi người dùng vừa trả lời đồng ý ở lượt xác nhận; mặc định false"}
       required: [text]
 
   - name: policy
