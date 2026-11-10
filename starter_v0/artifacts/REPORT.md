@@ -54,63 +54,88 @@
 
 ## B1. Version Evidence
 
-Fill from `artifacts/version_log.csv` and `runs/*.json`.
+Số liệu lấy từ `summary` trong run JSON; mỗi run dùng base suite 20 case với provider OpenAI.
 
-| Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
-| ------- | ---------------- | ---------- | ------------: | -----------: | -------- |
-| v0      | baseline         |            |               |              |          |
-| v1      |                  |            |               |              |          |
-| v2      |                  |            |               |              |          |
-| v3      |                  |            |               |              |          |
+| Version | Artifact change | Hypothesis | Case accuracy | Routing | Args | Multiturn | Run |
+| ------- | -------------- | ---------- | ------------: | ------: | ---: | --------: | --- |
+| v0 | Baseline | Đo prompt/tool ban đầu | 0.70 (14/20) | 0.75 | 0.70 | 1.00 | [v0](../runs/v0_B_base_openai_20261110T124508385370.json) |
+| v1 | Prompt/tools v1 | Routing, args và guardrail rõ hơn | 0.80 (16/20) | 0.85 | 0.80 | 0.8333 | [v1](../runs/v1_B_base_openai_20261110T124619855103.json) |
+| v2 | Prompt/tools v2 | Chỉ dùng nguồn được yêu cầu | 0.90 (18/20) | 0.95 | 0.90 | 0.8333 | [v2](../runs/v2_B_base_openai_20261110T124718950146.json) |
+| v3 | Prompt/tools v3 | Ưu tiên source switch multi-turn | 0.90 (18/20) | 0.95 | 0.90 | 0.8333 | [v3](../runs/v3_B_base_openai_20261110T155517891173.json) |
+
+Case accuracy tăng từ 0.70 lên 0.90 ở v2; v3 giữ nguyên so với v2. Mỗi version mới có một lần chạy nên chưa đo độ dao động.
 
 ## B2. Failure Analysis
 
-Use actual failures from `results[*].result.failures`.
+Tổng hợp từ `failures`, `observed_mismatch` và `actual_tool_calls` trong run JSON.
 
-| Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
-| ------- | ------------ | ----------------- | ----------- | --- |
-|         |              |                   |             |     |
+| Case | Quan sát | Phân tích | Hướng sửa / trạng thái |
+| ---- | -------- | --------- | ---------------------- |
+| R08_out_of_scope (v0) | Gọi `send`; unexpected tool call | Gọi tool cho câu hỏi giải tích ngoài phạm vi. | Nêu phạm vi agent, không dùng action tool khi không được yêu cầu. |
+| R10_missing_handle (v0) | Gọi `timeline(screenname="sama")`, không clarify | Tự đoán tài khoản khi thiếu thông tin. | Hỏi lại khi thiếu tài khoản/handle, không suy đoán. |
+| R11_missing_url (v0) | Gọi `fetch(url="https://example.com/article")`, không clarify | Bịa URL thay vì xin link. | Không đoán URL; yêu cầu người dùng cung cấp. |
+| R12_confirm_before_send (v0–v3) | v0 gọi `send`; v1–v3 clarify nhưng `response_type="text"`, kỳ vọng `yes_no` | Guardrail chuyển đúng hướng nhưng tham số xác nhận sai; còn lỗi ở v3. | Làm rõ enum/description của `clarify`; chạy lại eval. |
+| R13_parallel_web_and_tweets (v0) | `lookup(query="AI news")` cùng `social_search`; query/topic sai | Args web không khớp query AI và topic news kỳ vọng. | Nêu rõ cách tách `query`/`topic` và convention args. |
+| R14_out_of_scope_coding (v0) | Gọi `send`; unexpected tool call | Câu hỏi code bị định tuyến nhầm sang Telegram. | Chỉ gọi action tool khi user yêu cầu hành động đó. |
+| M06_switch_tool (v1/v2) | Gọi cả `lookup` và `social_search`; extra call | Không hủy tool thuộc ý định trước sau khi đổi nguồn; không còn trong lỗi v3. | v3 thêm quy tắc source switch; qua case này theo run v3. |
+| M01_clarify_then_fill (v3) | Gọi `social_search(query="Elon Musk")` thay cho `timeline` | Sau khi user nêu tài khoản, chọn tìm theo chủ đề. | Phân biệt “bài đăng của tài khoản” (`timeline`) với “bài đăng về chủ đề” (`social_search`); cần eval lại. |
+
+Số case fail giảm từ 6/20 (v0) xuống 4/20 (v1), rồi 2/20 ở cả v2 và v3. R12 là lỗi boundary còn dai dẳng; M01 là lỗi routing còn lại ở v3.
 
 ## B3. Team Eval Cases
 
-List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn).
+`data/eval_group.json` có 12 case (6 single-turn, 6 multi-turn). Chưa có run suite `group` trong `runs/`, nên không gán pass/fail nếu chưa có log.
 
-| Case ID | What It Tests | Expected Tool/Behavior | Result |
-| ------- | ------------- | ---------------------- | ------ |
-|         |               |                        |        |
+| Case ID | Điều kiểm tra | Kỳ vọng | Kết quả |
+| ------- | ------------- | ------- | ------- |
+| G01_read_text_file_routing | Đọc TXT đã upload | `read_text_file` đúng `file_id` | Chưa có group run |
+| G02_export_report_xlsx_routing | Xuất nguồn Excel | `export_report(file_format="xlsx")` | Chưa có group run |
+| G03_export_report_csv_filename | CSV và tên file | `export_report(csv, ai_sources)` | Chưa có group run |
+| G04_read_text_file_missing_upload | Thiếu file upload | `clarify` xin file | Chưa có group run |
+| G05_read_text_file_paging | Phân trang TXT | `read_text_file(start_line=101, max_lines=50)` | Chưa có group run |
+| G06_out_of_scope_booking | Đặt vé ngoài phạm vi | Không gọi tool | Chưa có group run |
+| GM01_clarify_then_file_id | Nhận file sau khi hỏi, giới hạn đọc 50 dòng | `read_text_file` đúng ID/giới hạn | Chưa có group run |
+| GM02_export_format_correction | Đổi Markdown sang Excel, đặt tên | `export_report(xlsx, llama_report)` | Chưa có group run |
+| GM03_switch_web_to_file | Hủy web, chuyển sang file | Chỉ `read_text_file` đúng ID | Chưa có group run |
+| GM04_social_search_args_carry | Giữ Gemini, chọn Top, limit 5 | `social_search(Gemini, Top, 5)` | Chưa có group run |
+| GM05_confirm_before_send_after_draft | Gửi nhưng chưa xác nhận | `clarify(yes_no)`, không gửi | Chưa có group run |
+| GM06_url_correction | Thay URL cũ bằng URL mới | `fetch` URL mới | Chưa có group run |
 
 ## B4. Live Chat Evidence
 
-Use `transcripts/*.transcript.json`.
+Transcript chính có 3 lượt; model `openai/gpt-4o-mini`.
 
 Transcript file: `transcripts/v2_openrouter_20261110T160350562141.transcript.json`  
 Artifact version: `v2+pfa64d9b3c443+t1801279e5a91`
 
-| Turn | User Request | Tool Calls | Version Evidence | Outcome |
-|---|---|---|---|---|
-| 1 | Tìm trên web tin AI hôm nay có gì mới và tóm tắt lại. | `lookup(query="AI", topic="news", timeframe="day")` | Prompt v2 định tuyến `lookup` đúng `topic=news`, `timeframe=day` | Trả về 3 tin tức AI nổi bật kèm liên kết nguồn và tóm tắt đầy đủ. |
-| 2 | Tóm tắt vài bài đăng mới nhất giúp mình | `lookup(query="AI", topic="news", timeframe="day", max_results=5)` | Kế thừa chủ đề AI từ ngữ cảnh trước và truy xuất cập nhật mới nhất | Tổng hợp bản tin tóm tắt cho các bài viết mới về tác tử AI. |
-| 3 | Lấy bài đăng của Sam Altman (@sama) | `timeline(screenname="sama", limit=5)` | Ánh xạ đúng tên người nổi tiếng sang handle `sama` không có `@` | Liệt kê các tweet gần đây của Sam Altman kèm số lượt like/retweet. |
+| Turn | Yêu cầu | Tool event | Kết quả theo transcript |
+|---|---|---|---|
+| 1 | Tìm tin AI hôm nay trên web, tóm tắt | `lookup(query="AI", topic="news", timeframe="day")` | Tool trả `items`; assistant trình bày 3 mục có liên kết. |
+| 2 | “Tóm tắt vài bài đăng mới nhất” | `lookup(query="AI", topic="news", timeframe="day", max_results=5)` | Tiếp tục lookup theo ngữ cảnh AI. “Bài đăng” có thể mơ hồ giữa web và mạng xã hội. |
+| 3 | Lấy bài đăng của Sam Altman (@sama) | `timeline(screenname="sama", limit=5)` | Tool trả 3 tweet; assistant trình bày 3 bài. |
+
+Transcript [`v0_gemini_20261110T140701459302.transcript.json`](../transcripts/v0_gemini_20261110T140701459302.transcript.json) ghi lỗi `Missing TAVILY_API_KEY`; transcript OpenRouter khác ghi `Missing RAPIDAPI_KEY`. Đây là lỗi cấu hình môi trường, không phải bằng chứng truy xuất thành công. Nội dung kết quả web/X trong transcript chưa được kiểm chứng độc lập.
 
 ## B5. Bonus Evidence
 
-Only fill if your team did bonus.
+Tổng hợp trạng thái từ artifact hiện có; các mục chưa có log chạy được ghi rõ.
 
-| Bonus                        | Evidence File     | What Worked | Risk / Guardrail |
-| ---------------------------- | ----------------- | ----------- | ---------------- |
-| send (Telegram)              |                   |             |                  |
-| arXiv/company policy         |                   |             |                  |
-| UI                           |                   |             |                  |
-| Tool unit tests (`tests/`) | `pytest` output |             |                  |
+| Hạng mục | Artifact | Bằng chứng / trạng thái |
+| --- | --- | --- |
+| Tool đọc TXT | [`TOOL.md`](../tools/read_text_file/TOOL.md), [`test_read_text_file.py`](../tests/test_read_text_file.py) | Có test phân trang, input sai, lỗi quyền/file, encoding, file rỗng và giới hạn dung lượng. |
+| Tool xuất báo cáo | [`TOOL.md`](../tools/export_report/TOOL.md), tests trong [`test_tools_todo.py`](../tests/test_tools_todo.py) | Có test md/csv/xlsx, input xấu, lỗi ghi file, formula injection và tên file duy nhất. |
+| UI | [`app.py`](../app.py), [`run_ui.bat`](../run_ui.bat) | Có Streamlit và launcher; chưa có link deploy hoặc bằng chứng UI chạy được. |
+| Telegram send | `tools/send/` | Có guard `confirmed`; chưa có transcript chứng minh chu trình xác nhận rồi gửi thành công. |
+| pytest | `tests/` | Chưa xác nhận kết quả. `test_tools_todo.py` còn `pytest.skip`; `python` không có trên PATH và `py` báo Access denied trong môi trường rà soát. Chưa thể kết luận suite xanh. |
 
-Tool unit tests: số test đã viết, số bug tìm được trong tool có sẵn (nếu có), và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+`test_read_text_file.py` kiểm thử các nhánh chức năng và lỗi của tool mới. Có test `export_report` trong `test_tools_todo.py`; do chưa chạy được pytest, số test pass và bug hồi quy chưa được xác nhận. Ví dụ lớp lỗi mà unit test có thể bắt nhưng eval routing không bắt: ghi file thất bại hoặc CSV formula injection.
 
 ## B6. Reflection
 
-- Which fixes belonged in `system_prompt.md`?
-- Which fixes belonged in `tools.yaml`?
-- Which failure needed manual review instead of automatic grading?
-- What would you improve next?
+- **System prompt:** routing theo ý định; hỏi lại khi thiếu URL/handle/file; không đoán dữ liệu; source switch hủy tool của ý định trước; chỉ gửi sau xác nhận; xử lý yêu cầu ngoài phạm vi.
+- **tools.yaml:** mô tả khi nào dùng/không dùng tool, convention `topic`, `timeframe`, handle không có `@`, `search_type=Top|Latest`, và `confirmed=true` cho `send`. Schema/description `clarify` cần nêu rõ khi chọn `yes_no`.
+- **Cần review thủ công:** `send` có tác động bên ngoài nên cần kiểm tra transcript và xác nhận người dùng. Chất lượng/tính xác thực nội dung web/X cũng không được metric routing/args xác minh.
+- **Tiếp theo:** sửa và eval lại R12; thêm case phân biệt `timeline`/`social_search` cho M01; chạy suite group bằng v3 và lưu JSON; sửa môi trường Python, xử lý TODO skip rồi chạy pytest; xác nhận UI và bổ sung link demo. Chạy eval nhiều lần để đo độ ổn định.
 
 ## B7. Small Local Model Challenge (bonus)
 
