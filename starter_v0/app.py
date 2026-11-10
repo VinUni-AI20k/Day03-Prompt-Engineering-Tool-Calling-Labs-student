@@ -21,7 +21,7 @@ from tools.send.tool import send_telegram
 from versioning import artifact_version_dict, build_artifact_version
 
 
-PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama"]
+PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama", "groq"]
 HISTORY_WINDOW = 5
 MAX_TOOL_ROUNDS = 4
 TELEGRAM_TOKEN_IN_URL = re.compile(r"bot\d+:[A-Za-z0-9_-]+")
