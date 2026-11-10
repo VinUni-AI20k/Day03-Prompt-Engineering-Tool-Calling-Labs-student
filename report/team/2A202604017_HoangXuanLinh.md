@@ -1,4 +1,4 @@
-# Báo cáo cá nhân — HoVaTen-MSSV
+# Báo cáo cá nhân — HoangXuanLinh-2A202604017
 
 Đổi tên file theo quy tắc `MSSV_HoTen.md`.
 
@@ -33,4 +33,6 @@ UI Streamlit, link dùng thử cho Team showdown, Phần A của báo cáo nhóm
 
 ## 5. Tự đánh giá
 
-...
+- Hoàn thành đúng phần được giao (UI, link dùng thử, Phần A, bảng B4), và qua chat live đã phát hiện được lỗi thật để nhóm sửa ở v3.
+- Có lúc kiểm tra chưa kỹ: chọn câu hỏi mẫu chỉ dựa vào kết quả PASS mà không tự chạy lại, nên dùng nhầm URL đã chết.
+- Học được rằng eval PASS chưa đủ để tin kết quả, cần tự kiểm tra thủ công những phần người dùng thực sự thấy.
