@@ -16,9 +16,9 @@
 
 ## A1. Agent này làm được gì
 
-Research Agent hỗ trợ tìm bài đăng theo tài khoản hoặc chủ đề, tìm tin trên web, đọc URL/paper arXiv, tra cứu chính sách nội bộ, loại kết quả trùng và trình bày digest. Agent có tool gửi Telegram với guardrail xác nhận, nhưng nhóm chưa ghi nhận bằng chứng gửi live hoặc triển khai UI.
+Research Agent hỗ trợ tìm bài đăng theo tài khoản hoặc chủ đề, tìm tin trên web, đọc URL/paper arXiv, tra cứu chính sách nội bộ, loại kết quả trùng và trình bày digest. UI Streamlit có chế độ demo offline để thử luồng chat; các provider thật và gửi Telegram cần cấu hình riêng, và gửi cần xác nhận.
 
-**Link dùng thử (deploy):** Chưa deploy; chưa có URL public.
+**Link dùng thử (local):** Chạy `streamlit run app.py` trong `starter_v0`, sau đó mở `http://localhost:8501`. Chưa deploy public nên link chỉ dùng được trên máy đang chạy app.
 
 ## A2. Tool agent có
 
@@ -116,7 +116,7 @@ Các lỗi dưới đây được trích từ `results[*].result.failures` trong
 |---|---|---|---|
 | send (Telegram) | Group run `runs/v3_B_group_ollama_20261110T113756483008.json`, case G10 | Model chọn `send(confirmed=true)` sau xác nhận trong ngữ cảnh; hàm được mock và trả `dry_run`. | Không gửi Telegram thật; không xem dry-run là bằng chứng gửi thành công. |
 | arXiv/company policy | Group run G01/G02/G06/G09; chat transcript `transcripts/v3_ollama_20261110T113940609289.transcript.json` | Routing tới `papers`/`policy`/`paper_text` được đo; chat policy trả nội dung local nhưng chọn sai area. | G06 `paper_text` lỗi thiếu `pypdf`; G09 `policy` nhận arg sai; routing PASS không đảm bảo execution PASS. |
-| UI | Chưa có UI app hoặc URL deploy trong repo. | Chưa triển khai. | Chưa có link public để team khác thử. |
+| UI | `starter_v0/app.py`; transcript `transcripts/v3-ui_demo_offline_20261110T120641667944.transcript.json`. Chạy bằng `streamlit run app.py`. | App khởi động và health/page trả HTTP 200; Streamlit AppTest render không exception, chọn `demo (offline)` và hoàn tất chat 1 lượt. | Đã xác minh local; demo là scripted/offline, chưa xác minh provider live. Chưa deploy public, nên `localhost:8501` không truy cập từ máy khác. |
 | Tool unit tests (`tests/`) | Full suite: `98 passed, 14 skipped`; deduplicate subset: `30 passed`. | Các test `deduplicate` đạt; không có bug ở tool có sẵn được ghi nhận. | 14 test TODO cho starter tools vẫn skip; chưa kiểm thử đầy đủ các tool đó. |
 
 **Unit-test-only evidence:** 30 trường hợp test tham số hóa cho `deduplicate` kiểm tra xử lý trùng URL/tiêu đề, giữ thứ tự, chuẩn hóa khoảng trắng/hoa thường/dấu `/` cuối, key thiếu/rỗng và input sai. Eval model hiện chủ yếu chấm routing/arguments nên không xác minh logic loại trùng của implementation.
