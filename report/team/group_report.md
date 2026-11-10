@@ -62,10 +62,10 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo lường mức độ lỗi ban đầu khi chưa tối ưu | - | accuracy=0.65 (13/20) | v0_B_base_gemini_20261110T174737486284.json |
+| v1 | system_prompt.md | Bắt buộc gọi clarify khi thiếu account hoặc URL và xin xác nhận trước khi gửi sẽ sửa lỗi thiếu thông tin và ranh giới an toàn | accuracy=0.65 (13/20) | accuracy=0.70 (14/20) | v1_B_base_gemini_20261110T181127878174.json |
+| v2 | system_prompt.md | Cho phép gọi song song lookup và social_search khi yêu cầu đa kênh và ép response_type yes_no cho hành động gửi | accuracy=0.70 (14/20) | accuracy=0.80 (16/20) | v2_B_base_gemini_20261110T182200983550.json |
+| v3 | tools.yaml | Mô tả chi tiết khi nào dùng/không dùng và quy ước query chỉ chứa từ khóa chủ đề (bỏ filler words) giúp sửa toàn bộ lỗi sai giá trị tham số | accuracy=0.80 (16/20) | accuracy=0.9474 (18/19) | v3_B_base_gemini_20261110T182951613132.json |
 
 ### B2. Failure Analysis
 
