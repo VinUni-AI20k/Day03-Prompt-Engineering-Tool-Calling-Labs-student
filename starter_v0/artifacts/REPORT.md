@@ -3,7 +3,7 @@
 ## Thông tin nhóm
 
 - **Nhóm:** DoMinhHoang.
-- **Thành viên:** Phạm Đức Hồng Đức, Đỗ Minh Hoàng, Vũ Đức Tâm, Lê Xuân Hà, Nguyễn Trung Duy.
+- **Thành viên:** Phạm Đức Hồng Đức, Đỗ Minh Hoàng, Vũ Đức Tâm, Lê Xuân Hạ, Nguyễn Trung Duy.
 - **Provider / model đánh giá:** OpenAI / `gpt-4o-mini`.
 - **Repository:** [ResearchAgentToolEval](https://github.com/worryveem/K5-L3-DAY03-DoMinhHoang-2A202603554-ResearchAgentToolEval).
 - **Phân công chi tiết:** [TEAM.md](TEAM.md).
