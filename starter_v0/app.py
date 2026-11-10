@@ -214,8 +214,16 @@ with st.sidebar:
         help="Ghi nhận version đánh giá trong version_log.csv.",
     )
 
-    system_prompt_path = ARTIFACTS_DIR / "system_prompt.md"
-    tools_yaml_path = ARTIFACTS_DIR / "tools.yaml"
+    version_files = {
+        "v0": ("system_prompt.md", "tools.yaml"),
+        "v1": ("system_prompt_v1.md", "tools_v1.yaml"),
+        "v2": ("system_prompt_v2.md", "tools_v2.yaml"),
+        "v3": ("system_prompt_v3.md", "tools_v3.yaml"),
+    }
+
+    prompt_file, tools_file = version_files[version_label]
+    system_prompt_path = ARTIFACTS_DIR / prompt_file
+    tools_yaml_path = ARTIFACTS_DIR / tools_file
 
     col_s1, col_s2 = st.columns(2)
     with col_s1:
