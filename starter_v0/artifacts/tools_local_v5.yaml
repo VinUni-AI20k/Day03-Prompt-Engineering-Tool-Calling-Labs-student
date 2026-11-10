@@ -1,0 +1,68 @@
+# Tool declarations for SMALL LOCAL models (v5-local, Nhom100).
+# Hypothesis: 13 long tool descriptions are noise for 3B-7B models (v4-local llama called
+# papers/dedupe/text_stats/format on out-of-scope requests). Keep only the 7 core tools the
+# research flow needs, with short descriptions that name the allowed values.
+# Names/params are a subset of artifacts/tools.yaml, so the same TOOL_FUNCTIONS registry runs them.
+tools:
+  - name: clarify
+    description: "Ask the user one question. Use when the account or URL is missing (response_type=text), or to confirm before send (response_type=yes_no)."
+    parameters:
+      type: object
+      properties:
+        question: {type: string, description: "Question in the user's language."}
+        response_type: {type: string, enum: [text, yes_no], description: "text = missing info. yes_no = confirm a send."}
+      required: [question, response_type]
+
+  - name: timeline
+    description: "Recent posts FROM one X/Twitter account. Example: timeline(screenname=\"ylecun\", limit=5)."
+    parameters:
+      type: object
+      properties:
+        screenname: {type: string, description: "Handle without @."}
+        limit: {type: integer, description: "Integer number of posts. Default 5."}
+      required: [screenname]
+
+  - name: social_search
+    description: "X/Twitter posts ABOUT a topic from anyone. Example: social_search(query=\"Gemini\", search_type=\"Latest\")."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, description: "Topic keyword only."}
+        search_type: {type: string, enum: [Latest, Top], description: "Top = popular/nổi bật. Latest = newest."}
+      required: [query]
+
+  - name: lookup
+    description: "Search the web for news/articles. Example: lookup(query=\"AI\", topic=\"news\", timeframe=\"day\")."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, description: "Topic keyword only, no words like news/tin tức/hôm nay."}
+        topic: {type: string, enum: [general, news], description: "news for any news request."}
+        timeframe: {type: string, enum: [day, week, month, year], description: "hôm nay=day, tuần này=week, tháng này=month, năm nay=year."}
+      required: [query]
+
+  - name: fetch
+    description: "Read one web page. Only with a real URL from the conversation."
+    parameters:
+      type: object
+      properties:
+        url: {type: string, description: "Exact URL starting with http."}
+      required: [url]
+
+  - name: format
+    description: "Make a markdown digest from items ALREADY returned by other tools. Never call it first."
+    parameters:
+      type: object
+      properties:
+        items: {type: array, items: {type: object}, description: "Items from earlier tool results."}
+        template: {type: string, enum: [brief, sections, bullets], description: "Layout."}
+      required: [items]
+
+  - name: send
+    description: "Post text to the team Telegram channel. Only after the user said yes to a clarify yes_no question."
+    parameters:
+      type: object
+      properties:
+        text: {type: string, description: "Exact approved text."}
+        confirmed: {type: boolean, description: "Boolean true only after the user said yes."}
+      required: [text, confirmed]

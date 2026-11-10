@@ -45,6 +45,11 @@ def _tweets_from(data: dict[str, Any], limit: int) -> list[dict[str, Any]]:
 
 def get_user_tweets(screenname: str = "", limit: int = 5) -> dict[str, Any]:
     try:
+        # Bug fixed (regression test in tests/test_tools_todo.py): models often pass "@handle";
+        # the API expects the bare handle, so strip a leading "@" and spaces.
+        screenname = (screenname or "").strip().lstrip("@")
+        if not screenname:
+            raise ValueError("screenname must be a non-empty handle")
         data = _twitter_get("/timeline.php", {"screenname": screenname})
         return {"tool": "get_user_tweets", "screenname": screenname, "items": _tweets_from(data, limit)}
     except Exception as exc:
