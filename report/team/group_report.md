@@ -1,43 +1,48 @@
 # Báo cáo nhóm — Day 03 Research Agent Tool Eval
 
-> Báo cáo gồm 2 phần có hạn khác nhau:
-> - **Phần A (mục 2)** — giới thiệu agent, ngắn gọn 1 trang. **Xong trước Team showdown (16:30)** để team khác hiểu nhanh agent có tool gì, làm được gì. Có thể làm thêm poster `report/team/poster.html` hoặc `poster.svg`.
-> - **Phần B (mục 3–7)** — chi tiết và bằng chứng, dựa trên log thật. Hoàn thiện trước deadline nộp bài.
->
-> Mỗi bảng phải trỏ được tới file thật: run JSON, transcript, commit. Cách chấm xem [RUBRIC.md](../../RUBRIC.md).
+> CP5 bổ sung ngày 11/11/2026 (GMT+7) trên main GitHub `a557a55`; giữ kết quả và đóng góp CP1–CP4 của nhóm. Không có bằng chứng Phần A xong trước showdown 16:30. Không hồi tố thời gian hoàn thành; việc chấp nhận bài theo deadline/gia hạn do coach quyết định.
 
 ## 1. Thông tin nhóm
 
 - Tên nhóm: Hehehe (theo tên repo; cần nhóm xác nhận).
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model: v0 dùng `openai` / `gpt-4o-mini`; v1–v3 chưa chạy.
-- Trạng thái: đã hoàn thiện bằng chứng CP1, CP3 và bonus ≥ 4 tool tự viết (12 unit test, 1 eval routing); eval nhóm còn 9 case, CP2, UI và live chat chưa hoàn thành.
+- Provider/model: v0–v3 và CP5 dùng `openai` / `gpt-4o-mini`.
+- Trạng thái kỹ thuật: có CP1–CP4 của nhóm, UI 14 tool, 5 lượt CLI thật, run base/group mới và báo cáo cá nhân 4 thành viên. Còn cần nhóm tự review, xác nhận người ngoài nhóm dùng thử và chốt commit nộp bài.
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research desk tìm web, bài đăng, repository GitHub, paper và chính sách nội bộ; đọc nguồn, loại trùng, so sánh và lọc ngày trước khi tạo digest. Agent hỏi khi thiếu dữ liệu và xin xác nhận trước hành động gửi Telegram.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+Từ `starter_v0/`, sau khi cài requirements và cấu hình `.env`:
+
+```powershell
+& ..\venv\Scripts\python.exe -m streamlit run app.py --server.address=127.0.0.1 --server.port=8501 --server.enableAgentApi=false
+```
+
+Dependency `streamlit>=1.67,<2`; đã kiểm tra bản 1.67.0. Có script `starter_v0/scripts/start_ui.ps1`; xem [hướng dẫn đầy đủ](../../docs/UI-GUIDE.md).
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
->
-> URL:
+https://writing-what-vat-dedicated.trycloudflare.com — quick tunnel tới cổng demo 8511, có mã dùng thử do Bình cung cấp riêng. Link đã trả HTTP 200; agent API trên server chia sẻ bị tắt. Link chỉ còn hoạt động khi máy host/UI/tunnel chạy; cập nhật URL khi khởi động lại tunnel. Chưa có xác nhận người ngoài nhóm thử.
 
 ### A2. Tool agent có
-
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
+| timeline | lấy bài đăng của một tài khoản X/Twitter | không |
+| social_search | tìm bài đăng theo chủ đề | không |
+| lookup | tìm web/tin tức theo từ khóa và thời gian | không |
+| fetch | đọc nội dung URL | không |
+| format | trình bày items thành digest Markdown | không |
+| send | gửi Telegram khi đã xác nhận; demo chưa có key gửi thật | không |
+| policy | tra kho chính sách Markdown nội bộ | không |
+| papers | tìm paper arXiv | không |
+| paper_text | tải PDF arXiv và trích text | không |
 | github_search | tìm repository GitHub công khai theo từ khóa, ngôn ngữ và cách sắp xếp | có |
 | deduplicate_sources | loại nguồn trùng theo URL chuẩn hóa hoặc tiêu đề | có |
 | compare_sources | so sánh metadata, độ đầy đủ và điểm giống/khác giữa các nguồn | có |
@@ -45,15 +50,17 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. Tìm 3 repository Python về research agent trên GitHub, sắp theo số sao, kèm URL.
+2. Theo chính sách nội bộ, có được đưa dữ liệu khách hàng vào AI bên ngoài không?
+3. Loại trùng theo URL: `[{"title":"A","url":"https://example.com/a?utm_source=demo"},{"title":"B","url":"https://example.com/a"}]`.
+4. Lấy 2 bài đăng mới nhất giúp tôi. Sau khi agent hỏi lại, trả lời: Tài khoản NASA trên X.
+5. Tôi muốn gửi 'Bản tin demo của nhóm Hehehe' lên Telegram. Hãy hỏi xác nhận trước và chưa gửi. Sau đó trả lời: Không, hủy gửi.
 
 ## 3. Giải pháp
 
-> Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
+- Tiệp tối ưu CP2 qua v1–v3; giữ nguyên các run/metric ở B1. Hà Anh triển khai 4 tool mới ở CP3; Nghĩa hoàn thiện 10 case của CP4 ở B3.
+- CP5: Codex triển khai theo yêu cầu Bình trên main `a557a55`; UI dùng cùng `run_model_tool_loop` của `chat.py`, prompt/declaration/registry 14 tool của nhóm. Không áp dụng lại prompt, dedup hoặc bộ case ở bản local tự thử trước đó.
+- UI tách phiên, lưu/download JSON, hiện lỗi tool/provider, giới hạn lượt/input/vòng và có mã demo tùy chọn.
 
 - Thêm `github_search` để tìm implementation, thư viện và dự án mã nguồn trên GitHub; agent chỉ nên gọi tool này cho yêu cầu về repository/code, không dùng thay web search, arXiv hoặc social search.
 - Thêm ba tool xử lý cục bộ: `deduplicate_sources` loại kết quả trùng, `compare_sources` tạo bảng so sánh metadata minh bạch, và `filter_by_date` lọc nguồn theo khoảng ngày. Cả ba không gọi mạng và không có side effect.
@@ -70,6 +77,9 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | v1 | system_prompt.md | Prompt baseline bảo model đoán và gửi ngay, nên model không clarify khi thiếu thông tin và không xin xác nhận trước khi send | case_accuracy=0.70 | case_accuracy=0.90 | [Run v1](../../starter_v0/runs/v1_B_base_openai_20261110T184506774099.json) |
 | v2 | system_prompt.md | Prompt v1 thiếu rule routing, nên model dùng social_search cho tin tức (M02) và clarify(text) thay vì yes_no khi được yêu cầu gửi (R12) | case_accuracy=0.90 | case_accuracy=0.95 | [Run v2](../../starter_v0/runs/v2_B_base_openai_20261110T185439904664.json) |
 | v3 | tools.yaml | Declaration mơ hồ nên model không biết yes_no là bước xác nhận bắt buộc trước send (R12) và không rõ convention args | case_accuracy=0.95 | case_accuracy=0.85 | [Run v3](../../starter_v0/runs/v3_B_base_openai_20261110T190328305130.json) |
+| cp5-team | UI/support; giữ prompt và 14 tool từ main | Kiểm tra bàn giao đúng cấu hình nhóm; không phải vòng tối ưu prompt mới | v3 base=0.85; CP4 group=1.00 | base=0.85; group=1.00; 0 provider errors | [Base](../../starter_v0/runs/cp5-team_B_base_openai_20261111T004229851343.json), [group](../../starter_v0/runs/cp5-team_B_group_openai_20261111T004229756879.json) |
+
+**Bàn giao CP5:** base 17/20, routing 95%, arguments 85%, multi-turn 83.33%; group 10/10. Mỗi suite đo đủ case và không lỗi provider. `prompt_hash=0d8d6477582f…`, `tools_hash=835122e42569…`, khớp cấu hình CP4 trên Windows. Snapshot đúng byte ở [artifacts/versions/cp5-team](../../starter_v0/artifacts/versions/cp5-team/README.md). Pytest mới **102 passed, 14 skipped, 0 failed**; [output](../../starter_v0/analysis/cp5_team_pytest.txt). Chưa lặp thống kê; không diễn giải group 100% là độ đúng tổng quát.
 
 **Chi tiết v0:** 20/20 case được đo, 0 lỗi provider, 14/20 pass; `tool_routing_accuracy=0.75`, `argument_accuracy=0.70`, `multiturn_accuracy=1.00`. Multi-turn 100% chỉ phản ánh các case multi-turn trong suite này.
 
@@ -136,7 +146,7 @@ Lấy từ `results[*].result.failures` trong run JSON.
 | R13_parallel_web_and_tweets | wrong_tool (nhãn case); thực tế wrong_arg_value | `lookup(query="AI news", timeframe="day", max_results=5)` và `social_search(query="AI", search_type="Latest", limit=5)` | Chọn đúng hai tool nhưng lookup thiếu topic=news và query không khớp giá trị AI mà eval yêu cầu. Giả thuyết: convention arguments chưa rõ. | Đề xuất: làm rõ topic=news, timeframe=day và quy ước query trong declaration; review mức chặt của kỳ vọng query. |
 | R14_out_of_scope_coding | out_of_scope | `send(text=code Fibonacci)` | Kỳ vọng không gọi tool; model dùng send cho yêu cầu coding ngoài phạm vi. | Đề xuất: làm rõ phạm vi và send chỉ dành cho gửi Telegram sau xác nhận. |
 
-Nguồn cho toàn bộ bảng: [run v0](../../starter_v0/runs/v0_B_base_openai_20261110T180441850646.json), `results[*].result`. Mọi mục Fix ở trên là **đề xuất, chưa áp dụng và chưa đo hiệu quả**.
+Nguồn cho bảng: [run v0](../../starter_v0/runs/v0_B_base_openai_20261110T180441850646.json), `results[*].result`. Cột Fix ghi đề xuất tại thời điểm baseline; các thay đổi đã thực hiện và đo ở v1–v3 xem B1. Kiểm tra CP5 vẫn còn R10 (`social_search(query="")`), R12 (`clarify(text)` thay `yes_no`) và M03 (`andrejkarpathy` thay `karpathy`).
 
 Lưu ý khi đọc kết quả:
 
@@ -172,11 +182,17 @@ Ghi chú khi đọc run:
 
 ### B4. Live Chat Evidence
 
-Lấy từ `starter_v0/transcripts/*.transcript.json`.
+Nguồn: [transcript CLI CP5](../../starter_v0/transcripts/cp5-team-live_openai_20261111T004205700741.transcript.json), [output](../../starter_v0/analysis/cp5_team_cli_live.txt). Codex tự động nhập kịch bản vào `chat.py`; model/API/tool chạy thật, không phải mock và không phải bằng chứng người ngoài nhóm đã dùng thử. Cùng prompt/tools hash với run cp5-team.
 
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| 1 | Tìm 2 repo Python về research agent | github_search | cp5-team-live+p0d8d6477582f+t835122e42569 | GitHub API trả repo, URL và số sao |
+| 2 | Lấy bài nhưng chưa chọn tài khoản | clarify(text) | như trên | waiting_for_user, hỏi tài khoản |
+| 3 | Bổ sung NASA, 2 bài | timeline | như trên | API thật trả 2 bài kèm URL |
+| 4 | Xin gửi bản demo, yêu cầu xác nhận | clarify(yes_no) | như trên | hỏi xác nhận, chưa send |
+| 5 | Từ chối, hủy gửi | không gọi tool | như trên | thông báo không gửi |
+
+**UI runtime:** [transcript](../../starter_v0/transcripts/cp5-team-ui_5133d9521b474828bbe6b38e8acc442f.transcript.json) chứng minh `deduplicate_sources(strategy="url")` chạy thật trên main: 2 nguồn còn 1. Đã kiểm tra đăng nhập mã demo, danh sách 14 tool, JSON download và reset; chi tiết ở [QA](../../starter_v0/analysis/cp5_team_qa.md).
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
 
@@ -184,54 +200,32 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 |---|---|---|---|
 | Tool mới (`tools/<tên>/`) | `starter_v0/tools/{github_search,deduplicate_sources,compare_sources,filter_by_date}/`; registry và `artifacts/tools.yaml` | 1 tool tìm repository và 3 tool xử lý nguồn cục bộ | Validate kiểu/range/enum; mọi lỗi trả error dict; không có write side effect |
 | Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`; `starter_v0/analysis/cp3_pytest.txt` | 12 test function cho happy path, input xấu và failure path của 4 tool | HTTP GitHub được mock offline; local tools không gọi mạng |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| UI (lệnh chạy + link dùng thử) | [app.py](../../starter_v0/app.py), [ui_support.py](../../starter_v0/ui_support.py), [hướng dẫn](../../docs/UI-GUIDE.md), A1 | 14 tool, nhiều lượt, hiện lỗi, lưu/download transcript, reset, mã demo | 20 lượt/phiên, 6000 ký tự, 4 vòng tool; không chia sẻ credential; tunnel tạm |
 
 Tool unit tests: đã viết 12 test function cho 4 tool tự thêm. Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: GitHub trả HTTP 503, item không phải object, khoảng ngày đảo ngược; tool phải trả error dict thay vì làm agent crash.
 
 ### B5. Bonus Evidence
 
-Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool có sẵn (`send`, `policy`, `papers`, `paper_text`) không tự được bonus.
+Bonus ghi riêng theo rubric; chỉ claim phần có bằng chứng thực tế.
 
-| Bonus | Evidence File | What Worked | Risk / Guardrail |
-|---|---|---|---|
-| Small Local Model | xem B7 |  |  |
-| Hơn 3 tool mới (≥ 4) | `tools/github_search`, `tools/deduplicate_sources`, `tools/compare_sources`, `tools/filter_by_date`; `tests/test_tools_todo.py` | Đủ 4 tool tự viết, mỗi tool có `TOOL.md`, registry, declaration và ≥ 3 test | Ba tool xử lý nguồn chạy local; GitHub chỉ đọc public API; mọi tool validate input |
-| `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
-| Test challenge (0 skipped / regression test) | `pytest` output |  |  |
-
-Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách sửa, và test regression tương ứng.
+| Bonus | Bằng chứng | Trạng thái |
+|---|---|---|
+| Hơn 3 tool mới (≥4) | 4 folder tool của Hà Anh, TOOL.md, registry/declaration, ≥3 test/tool và group cases G01/G02/G06/G07/G08 | Có bằng chứng; giữ nguyên phần nhóm đã làm |
+| Small Local Model | Không có run ≥2 model local | Không thực hiện |
+| Telegram gửi thật | CLI kiểm tra xác nhận/hủy; group G09 trả lỗi thiếu key | Không claim gửi thành công |
+| Test challenge | 102 passed, 14 skipped; chưa có regression bug starter được chứng minh | Không claim bonus này |
 
 ### B7. Small Local Model Challenge (bonus)
 
-Chỉ điền nếu nhóm làm bonus này.
-
-| Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
-|---|---|---|---|---|---|---|---|
-| v3 | (cloud) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v4-local |  |  |  |  |  |  |  |
-| v5-local |  |  |  |  |  |  |  |
-
-Lỗi đặc thù của model nhỏ (đếm từ run JSON):
-
-| Failure Pattern | Count | Example Case | Fix Tried | Helped? |
-|---|---|---|---|---|
-| wrong / hallucinated tool |  |  |  |  |
-| invalid JSON args (`_invalid_json_arguments`) |  |  |  |  |
-| no tool call / answered directly |  |  |  |  |
-| missed `clarify` |  |  |  |  |
-| repeated / unnecessary calls |  |  |  |  |
-
-- Cái gì giúp model nhỏ gọi tool đúng hơn nhất? Bằng chứng?
-- Bản prompt tối ưu cho local chạy trên model cloud thì sao?
-- Khi nào nhóm sẽ chọn model local thay vì cloud cho agent này?
+Không thực hiện, không có run local hoặc so sánh cloud/local để báo cáo.
 
 ## 5. Khó khăn và cách xử lý
 
-> Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
-
--
+- Bản local của Bình ở commit CP1, chậm 18 commit so với main GitHub; đã stash bản tự thử, fetch và fast-forward main trước khi làm CP5. Không lấy các run/local edits thay đóng góp của nhóm.
+- Main có 14 tool còn bản tự thử có 11 tool và dedup signature khác. UI mới đọc declaration/registry của main; test xác nhận tham số strategy, không sửa tool của Hà Anh.
+- AppTest/socket localhost bị hạn chế bởi sandbox Windows; kiểm thử được chạy với quyền socket nội bộ. Tests vẫn offline và fixture chặn HTTP thật.
+- [Run base mới](../../starter_v0/runs/cp5-team_B_base_openai_20261111T004229851343.json) xác nhận R10/R12/M03 chưa đạt; giữ nguyên prompt nhóm trong CP5, ghi lỗi và hướng sửa thay vì dùng metric bản local.
+- UI gọi model thật có lúc đổi sang tiếng Anh hoặc tự xử lý thay gọi filter_by_date; [transcript UI](../../starter_v0/transcripts/cp5-team-ui_5133d9521b474828bbe6b38e8acc442f.transcript.json) ghi hành vi thực tế. Quick tunnel có hạn uptime; xem [QA](../../starter_v0/analysis/cp5_team_qa.md).
 
 ### Ghi nhận xử lý môi trường tại CP1
 
@@ -241,23 +235,18 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 ## 6. Tổng hợp đóng góp
 
-Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEAM.md) và các báo cáo cá nhân `report/team/MSSV_HoTen.md`.
+Bình phụ trách CP1 và CP5 với hỗ trợ Codex; Tiệp phụ trách CP2; Hà Anh phụ trách CP3 và 4 tool mới; Nghĩa phụ trách CP4. Codex trực tiếp triển khai/chạy kiểm tra CP5 theo yêu cầu Bình. Chi tiết và commit nằm trong [TEAM.md](../../TEAM.md) và báo cáo cá nhân của 4 thành viên; không ghi các thao tác AI làm là thao tác mỗi người tự làm.
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
-- Fix nào thuộc `system_prompt.md`?
-- Fix nào thuộc `tools.yaml`?
-- Failure nào cần review thủ công thay vì chấm tự động?
-- Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?
-
-### Nhận xét sau baseline v0
-
-- Thay đổi thuộc system prompt: bỏ hành vi đoán account/URL; hỏi lại khi thiếu dữ liệu; đặt phạm vi research và quy tắc xác nhận.
-- Thay đổi thuộc tools.yaml: mô tả khi dùng/không dùng tool, convention arguments, ý nghĩa send và confirmed.
-- Cần review thủ công: chênh lệch nhãn lỗi R13; tính hợp lý của query tương đương; chất lượng dữ liệu tool; việc code chặn send dù model đã chọn sai hành động.
-- Giả thuyết dự kiến v1: thay riêng quy tắc thiếu thông tin trong prompt bằng yêu cầu clarify sẽ giảm lỗi missing_info của R10/R11. Chưa sửa prompt, chưa chạy v1; sẽ đo lại toàn suite để kiểm tra tác động và regression.
+- **Prompt và declaration:** CP2 của Tiệp sửa hành vi clarify/xác nhận/routing trong prompt, rồi làm rõ từng tool/arguments trong declaration. Kết quả v3 giảm so với v2 nên không thể kết luận sửa description luôn tốt hơn; B1 giữ cả regression.
+- **Review thủ công:** R12 hỏi nội dung còn thiếu là hợp lý về hội thoại nhưng không khớp kiểu yes_no của base; chỉ nên xác nhận hành động gắn với nội dung cụ thể. R08/R14 PASS khi không gọi tool không chứng minh model từ chối yêu cầu ngoài phạm vi. Chất lượng nguồn và items đầu vào không được metric routing chấm đầy đủ.
+- **Vòng sau:** thử một giả thuyết nhỏ để tránh social_search(query rỗng) khi thiếu chủ đề/account; đo lại base và group. Kiểm tra cách giữ handle được user sửa ở M03; không sửa case cố định để tăng điểm.
+- **Giới hạn CP5:** UI dùng cùng cấu hình main để bảo toàn tính đối chiếu; chưa sửa các regression R10/R12/M03 hoặc rule ngôn ngữ. Không dùng 95% của bản local làm kết quả của nhóm.
+- **Độ tin cậy:** mỗi cấu hình/suite mới chỉ một run, chưa lặp thống kê; 100% group không suy ra khả năng tổng quát. Compare_sources so metadata, không xác minh sự thật; dedup theo URL/title có thể gộp hai nội dung khác nhau cùng tiêu đề.
+- **Trước chốt nộp:** cần người ngoài nhóm dùng thử, từng thành viên tự review và giải thích phần việc, gộp CP5 vào main và chốt commit, từng người nộp LMS. Không có bằng chứng mốc Phần A 16:30 hoặc Telegram gửi thật.
 
 ## 8. Tài liệu tham khảo
 
 - [Quy định bài lab](../../RULES.md), [checkpoints](../../CHECKPOINTS.md), [rubric](../../RUBRIC.md).
-- [System prompt baseline](../../starter_v0/artifacts/system_prompt.md), [tool declaration](../../starter_v0/artifacts/tools.yaml).
+- [System prompt hiện tại](../../starter_v0/artifacts/system_prompt.md), [tool declaration](../../starter_v0/artifacts/tools.yaml).

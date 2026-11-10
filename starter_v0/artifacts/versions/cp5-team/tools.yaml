@@ -1,0 +1,205 @@
+# starter_v0 — tool declarations (v3: rewritten descriptions + argument conventions).
+#
+# If you rename a tool, keep the name in sync across:
+#   this file  ->  tools/__init__.py (TOOL_FUNCTIONS)  ->  data/eval_base.json + data/eval_research_extension.json
+# `pytest tests/test_tool_contract.py` checks this sync for you.
+tools:
+  # ---------------- Core tools ----------------
+  - name: clarify
+    description: >-
+      Ask the user ONE question and wait for their reply. Use it in two situations:
+      (1) required info is missing (which account, which URL, which topic) -> response_type="text";
+      (2) BEFORE any send/post/publish action -> response_type="yes_no", even if the content is not ready yet.
+      Do NOT use it when the request is already clear enough to call a tool.
+    parameters:
+      type: object
+      properties:
+        question: {type: string, default: "", description: "The question to show the user, in the user's language."}
+        response_type:
+          type: string
+          enum: [text, yes_no, choice]
+          default: "text"
+          description: >-
+            yes_no = ask the user to confirm an action before doing it (REQUIRED before any send/post,
+            even if the content is still missing); text = ask for missing information (account, URL, topic);
+            choice = let the user pick from `options`.
+        options: {type: array, default: [], items: {type: string}, description: "Only for response_type=choice: the list of choices."}
+      required: [question]
+
+  - name: timeline
+    description: >-
+      Get the recent posts of ONE specific X/Twitter account. Use only when the user names the account
+      (person or handle). Do NOT use for searching posts by topic (use social_search).
+      If no account is given, call clarify instead of guessing.
+    parameters:
+      type: object
+      properties:
+        screenname: {type: string, default: "", description: "Account handle WITHOUT '@', e.g. sama (not @sama). Never guess a handle the user did not give."}
+        limit: {type: integer, default: 5, description: "Number of posts to return; use the number the user asked for (e.g. '10 tweet' -> 10)."}
+      required: [screenname]
+
+  - name: social_search
+    description: >-
+      Search X/Twitter posts by keyword or topic (not by account). Use when the user asks for
+      tweets/posts ABOUT something. Do NOT use for news articles or web info (use lookup).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Topic keyword only, e.g. AI. Do not add words like 'tweet', 'latest', 'today'."}
+        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Latest = newest posts (default; 'mới nhất', 'hôm nay'). Top = most popular/engaging posts ('nổi bật', 'hot', 'nhiều tương tác')."}
+        limit: {type: integer, default: 5, description: "Number of posts to return; use the number the user asked for."}
+      required: [query]
+
+  - name: lookup
+    description: >-
+      Search the web. Use for news ("tin", "tin tức", "news") and general web information.
+      Do NOT use for tweets/posts (use social_search) and do NOT use to read a URL the user already gave (use fetch).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Topic keyword only, e.g. AI or robotics. Do NOT add words like 'news', 'tin', 'today', 'latest' - put those in topic/timeframe."}
+        topic: {type: string, enum: [general, news], default: "general", description: "news when the user asks for news/tin tức; otherwise general."}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "day = today/hôm nay; week = this week/tuần này; month = this month; year = this year."}
+        max_results: {type: integer, default: 5, description: "Number of results; use the number the user asked for."}
+      required: [query]
+
+  - name: fetch
+    description: >-
+      Read the content of ONE web page from a URL the user gave. Never invent or guess a URL;
+      if the user refers to "this article" without a URL, call clarify instead.
+    parameters:
+      type: object
+      properties:
+        url: {type: string, default: "", description: "Full URL starting with http:// or https://, exactly as the user gave it."}
+      required: [url]
+
+  - name: format
+    description: >-
+      Turn items that were ALREADY retrieved by other tools into a markdown digest.
+      Do NOT use to answer questions or to fetch new information.
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Items already retrieved, each with title, url, source, summary (and optional section)."
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+              section: {type: string}
+        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Layout: brief = short summary; sections = grouped by section; bullets = bullet list; thread = social thread; daily_ai_vn = Vietnamese daily AI digest."}
+        headline: {type: string, default: "", description: "Optional title of the digest."}
+      required: [items, template]
+
+  # ---------------- Bonus tools ----------------
+  - name: send
+    description: >-
+      Send text to the team's Telegram channel. ONLY call this after the user explicitly confirmed
+      via clarify(response_type="yes_no"). Never call it to answer the user, and never for out-of-scope requests
+      (math, coding, chit-chat).
+    parameters:
+      type: object
+      properties:
+        text: {type: string, default: "", description: "The exact text to publish."}
+        confirmed: {type: boolean, default: false, description: "true ONLY when the user has explicitly confirmed sending; otherwise false."}
+      required: [text]
+
+  - name: policy
+    description: >-
+      Search the internal company policy documents (AI research, source citation, data privacy,
+      external publishing, tool usage). Use when the user asks about company rules or policy. Not for web info.
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "What to look up in the policy, e.g. citation rules."}
+        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Narrow to one policy area if the user's question clearly belongs to it; otherwise all."}
+        top_k: {type: integer, default: 3, description: "Number of policy passages to return."}
+      required: [query]
+
+  - name: papers
+    description: >-
+      Search scientific papers on arXiv. Use when the user asks for papers/research articles/"bài báo khoa học".
+      Not for news (use lookup).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Research topic keywords, e.g. retrieval augmented generation."}
+        max_results: {type: integer, default: 5, description: "Number of papers; use the number the user asked for."}
+        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "relevance by default; submittedDate for newest papers."}
+      required: [query]
+
+  - name: paper_text
+    description: >-
+      Download ONE arXiv paper PDF and extract its text. Use when the user wants to read/summarize
+      a specific arXiv paper (ID or URL). Do not use for normal web pages (use fetch).
+    parameters:
+      type: object
+      properties:
+        arxiv_url: {type: string, default: "", description: "arXiv ID (e.g. 2401.01234) or arXiv URL."}
+        max_pages: {type: integer, default: 5, description: "Maximum number of PDF pages to read."}
+        max_chars: {type: integer, default: 8000, description: "Maximum number of characters to return."}
+      required: [arxiv_url]
+
+  # ---------------- Team tools ----------------
+  - name: github_search
+    description: "Search public GitHub repositories when the user asks for source-code projects, libraries, implementations, or repository comparisons. Do not use for general web news, academic papers, reading a known URL, or searching social posts. Add language only when the user specifies one; use best_match unless the user asks for most-starred, most-forked, most-help-wanted, or recently updated results."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, description: "Non-empty repository topic or keywords; do not include a language: qualifier here."}
+        language: {type: string, default: "", description: "Optional programming language such as Python or Rust; empty when unspecified."}
+        sort: {type: string, enum: [best_match, stars, forks, help_wanted_issues, updated], default: best_match, description: "Repository ordering requested by the user."}
+        limit: {type: integer, minimum: 1, maximum: 10, default: 5, description: "Number of repositories to return, from 1 to 10."}
+      required: [query]
+
+  - name: deduplicate_sources
+    description: "Remove duplicate sources from an existing result list while preserving first-seen order. Use after search/fetch tools return repeated URLs or titles. Do not use to search for new information, compare source content, or filter by time."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Existing source objects to deduplicate; each item may contain title and url."
+          items: {type: object}
+        strategy: {type: string, enum: [url, title, url_or_title], default: url_or_title, description: "Duplicate key: canonical URL, normalized title, or either."}
+        case_sensitive: {type: boolean, default: false, description: "Whether title comparison distinguishes uppercase and lowercase."}
+      required: [items]
+
+  - name: compare_sources
+    description: "Compare metadata from two or more sources already collected. Use when the user asks for a side-by-side source comparison or wants to see metadata completeness/agreement. Do not use to discover sources, deduplicate them, judge truth automatically, or summarize article content."
+    parameters:
+      type: object
+      properties:
+        sources:
+          type: array
+          minItems: 2
+          description: "Two or more existing source objects to compare."
+          items: {type: object}
+        fields:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          default: [title, url, source, published, summary]
+          description: "Metadata fields to compare; omit to use the default set."
+          items: {type: string, enum: [title, url, source, summary, author, authors, published, updated_at]}
+      required: [sources]
+
+  - name: filter_by_date
+    description: "Filter an existing list of sources to an inclusive date range. Use only after sources with date metadata have been collected and the user requests a time window. Do not use for web discovery, topic filtering, deduplication, or when no date boundary is known."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Existing source objects containing the selected date field."
+          items: {type: object}
+        start_date: {type: string, default: "", description: "Optional inclusive lower boundary in YYYY-MM-DD format."}
+        end_date: {type: string, default: "", description: "Optional inclusive upper boundary in YYYY-MM-DD format."}
+        date_field: {type: string, enum: [published, updated, created_at, updated_at], default: published, description: "Source field containing an ISO date or datetime."}
+        include_undated: {type: boolean, default: false, description: "Keep items whose selected date field is missing."}
+      required: [items]

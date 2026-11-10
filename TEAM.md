@@ -6,25 +6,26 @@
 - Lớp: L3B.
 - Repo nhóm: `K5-L3B-DAY03-Hehehe-ResearchAgentToolEval`.
 - URL repo: https://github.com/trongnghia2304/K5-L3B-DAY03-Hehehe-ResearchAgentToolEval
-- Nhánh hiện tại: `main`; nhánh nộp và commit chốt: chưa chốt.
+- Nền tích hợp: main GitHub `a557a55`; CP5 bổ sung trên nhánh `codex/complete-team-main`. Commit chốt bài nộp sẽ là commit sau khi nhóm review và gộp CP5 vào main.
 
 ## Thành viên
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-| 1 | Vũ Văn Bình | Chưa cung cấp | Chưa cung cấp | Chưa cung cấp | Setup, chạy baseline v0, tổng hợp bằng chứng CP1 |
+| 1 | Vũ Văn Bình | 2A202603831 | binhvuvan2004@gmail.com | hnib1908 | CP1: setup/baseline; CP5: UI, live chat, báo cáo và kiểm tra tích hợp với hỗ trợ Codex |
 | 2 | Nguyễn Nghiêm Khánh Tiệp | 2A202603863 | tiepnnk04@gmail.com | tiepnnk01-10 | CP2: tối ưu system prompt và tool declaration (v1–v3), version log, bảng B1 |
 | 3 | Trần Thị Hà Anh | 2A202603887 | anhtth.it.work@gmail.com | hnha02 | CP3: phát triển 4 tool mới, unit test, eval routing |
 | 4 | Nguyễn Trọng Nghĩa | 2A202603835 | nghiatrongnguyen2304@gmail.com | trongnghia2304 | CP4: viết 10 eval case nhóm, chạy suite group, bảng B3 |
 
-Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin thực tế. Không suy ra tài khoản GitHub cá nhân từ chủ sở hữu repo.
+Thông tin Bình đã được Bình xác nhận trong phiên hoàn thiện CP5; các thành viên khác giữ theo main GitHub.
 
-## Vũ Văn Bình — MSSV chưa cung cấp
+## Vũ Văn Bình — 2A202603831
 
 ### Phần việc phụ trách
 
 - Cấu hình provider OpenAI, kiểm tra môi trường và chạy baseline v0.
 - Tổng hợp version log, phân tích lỗi và báo cáo CP1 với hỗ trợ của Codex.
+- CP5: yêu cầu Codex lấy main GitHub làm nền và hoàn thiện UI/live chat, hướng dẫn, hồ sơ và báo cáo tích hợp.
 
 ### Đóng góp cụ thể
 
@@ -32,6 +33,9 @@ Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin
 - Chạy pytest: 62 passed, 17 skipped, 0 failed.
 - Chạy base eval v0: 20 case được đo, 14 pass, không có lỗi provider.
 - Nhờ Codex đối chiếu run JSON, ghi version log và soạn phân tích 6 case lỗi. Codex chạy lại pytest offline và lưu output; chưa áp dụng thay đổi v1.
+- Trong CP5, Codex trực tiếp triển khai UI trên main `a557a55`, dùng đủ 14 tool và giữ các phần CP2–CP4 của nhóm. Bản local tự thử trước đó được giữ riêng trong stash, không dùng thay bài nhóm.
+- Kiểm tra mới: pytest 102 passed, 14 skipped, 0 failed; base 17/20 và group 10/10, đều 0 provider errors. Transcript CLI mới có 5 lượt qua API/tool thật, gồm hỏi thiếu tài khoản, bổ sung và hủy gửi.
+- Bình cần tự review, giải thích code/bằng chứng và nhờ người ngoài nhóm dùng thử; không ghi các thao tác Codex thực hiện là thao tác cá nhân tự làm.
 
 ### Bằng chứng
 
@@ -39,8 +43,9 @@ Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin
 - [Version log](starter_v0/artifacts/version_log.csv).
 - [Output pytest được Codex chạy lại](starter_v0/analysis/cp1_pytest.txt).
 - [Báo cáo nhóm](report/team/group_report.md), mục B1 và B2.
-- [Báo cáo cá nhân tạm](report/team/CHUA_CO_MSSV_VuVanBinh.md); cần đổi tiền tố sang MSSV thật trước khi nộp.
-- Commit kỹ thuật của cá nhân: chưa ghi nhận trong phần việc này; cần bổ sung sau khi commit thực tế.
+- [Báo cáo cá nhân](report/team/2A202603831_VuVanBinh.md).
+- [UI](starter_v0/app.py), [hướng dẫn](docs/UI-GUIDE.md), [QA CP5](starter_v0/analysis/cp5_team_qa.md).
+- Commit CP1: `fcbfc64` (author `hnib1908`). CP5: lịch sử nhánh `codex/complete-team-main`; cần nhóm review trước khi chốt nộp.
 
 ## Nguyễn Nghiêm Khánh Tiệp — 2A202603863
 

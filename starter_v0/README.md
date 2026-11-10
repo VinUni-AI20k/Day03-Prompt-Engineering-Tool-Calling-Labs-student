@@ -9,3 +9,8 @@ Toàn bộ source code của lab nằm trong folder này. Chạy mọi lệnh t�
 - File học viên được sửa: `artifacts/system_prompt.md`, `artifacts/tools.yaml`, `artifacts/version_log.csv`, `data/eval_group.json`, `tools/` (thêm tool mới và đăng ký trong `tools/__init__.py`), `tests/test_tools_todo.py`, code UI và `requirements.txt`. Không sửa nội dung case trong `data/eval_base.json`.
 
 Chi tiết từng bước xem [README.md](../README.md) ở root; cấu hình API key xem [docs/TOOL-SETUP.md](../docs/TOOL-SETUP.md).
+# UI CP5 của nhóm
+
+Chạy từ thư mục này: `..\venv\Scripts\python.exe -m streamlit run app.py`.
+UI dùng trực tiếp cấu hình 14 tool trên main, hỗ trợ nhiều lượt, hiện lỗi tool và tải transcript JSON.
+Xem [hướng dẫn UI](../docs/UI-GUIDE.md) để cài, chia sẻ link và tái lập kiểm tra.
