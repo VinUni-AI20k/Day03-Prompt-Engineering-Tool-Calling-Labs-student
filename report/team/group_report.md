@@ -10,7 +10,7 @@
 
 - Tên nhóm:
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: OpenRouter / `openai/gpt-4o-mini`
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -62,7 +62,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
+| v0 | baseline (starter chưa sửa) | Đo hành vi chưa tối ưu trước khi sửa | – | case 0.65 · routing 0.75 · args 0.65 · multiturn 1.00 | [v0_B_base_openrouter_20261110T174226406183.json](../../starter_v0/runs/v0_B_base_openrouter_20261110T174226406183.json) |
 | v1 |  |  |  |  |  |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
@@ -71,9 +71,23 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
+Run v0: [`v0_B_base_openrouter_20261110T174226406183.json`](../../starter_v0/runs/v0_B_base_openrouter_20261110T174226406183.json) · artifact `v0+peb1c8179815b+te69bc53ed884` · 20/20 case đo được, `provider_error_cases = 0` → run hợp lệ. 13/20 PASS, 7 FAIL.
+
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | `wrong_tool` (observed: `wrong_arg_value`) | `lookup(query="AI news", topic="news", timeframe="day")` | Chọn đúng tool và đúng `topic`/`timeframe`, nhưng nhét chữ "news" vào `query` (expected `"AI"`). Description của `lookup` không nói `query` chỉ chứa từ khoá cốt lõi. | `tools.yaml`: mô tả `query` = chủ đề cốt lõi, không thêm "news/tin tức" vì đã có `topic=news`. |
+| R08_out_of_scope | `out_of_scope` (observed: `unexpected_tool_call`) | `send(text="Nguyên hàm của x^2 là x³/3 + C ...")` | Câu toán ngoài phạm vi research nhưng agent vẫn gọi tool, lại còn gọi `send` không có xác nhận. Nguyên nhân: prompt ép "Always finish in a single step. Pick one tool". | `system_prompt.md`: bỏ câu ép gọi tool; thêm rule: yêu cầu ngoài phạm vi research → từ chối lịch sự, không gọi tool. |
+| R10_missing_handle | `missing_info` (observed: `missing_tool_call`) | `timeline(screenname="sama")` | Không rõ tài khoản nào nhưng agent tự đoán Sam Altman thay vì hỏi lại. Nguyên nhân: prompt dặn "pick a well-known account like Sam Altman". | `system_prompt.md`: bỏ chỉ dẫn đoán account; thêm rule: thiếu handle → `clarify(response_type="text")`. |
+| R11_missing_url | `missing_info` (observed: `missing_tool_call`) | `fetch(url="https://example.com/article")` | "Bài viết này" không có URL nhưng agent bịa URL. Nguyên nhân: prompt dặn "assume a likely URL and read it". | `system_prompt.md`: bỏ chỉ dẫn đoán URL; thêm rule: thiếu URL → `clarify`. |
+| R12_confirm_before_send | `wrong_boundary` (observed: `missing_tool_call`) | `send(text="Bản tin này")` | Gửi lên Telegram ngay, không xin xác nhận, nội dung còn rỗng nghĩa. Nguyên nhân: prompt dặn "just go ahead and do it"; description `send` không nêu boundary `confirmed`. | `system_prompt.md`: trước khi gửi phải `clarify(response_type="yes_no")`; `tools.yaml`: `send` chỉ gọi với `confirmed=true` sau khi user đồng ý. |
+| R13_parallel_web_and_tweets | `wrong_tool` (observed: `wrong_arg_value`) | `lookup(query="AI news", timeframe="day")` + `social_search(query="AI", search_type="Latest")` | Routing đúng cả 2 tool, nhưng `lookup` thiếu `topic="news"` và `query` thừa "news". Không có convention "tin/tin tức/hôm nay → `topic=news`". | `tools.yaml`: nêu rõ convention `topic=news` cho tin tức, `timeframe=day` cho "hôm nay"; cùng fix `query` như R03. |
+| R14_out_of_scope_coding | `out_of_scope` (observed: `unexpected_tool_call`) | `send(text="...def fibonacci(n)...")` | Viết code ngoài phạm vi và dùng `send` để trả lời. Cùng nguyên nhân với R08. | Cùng fix với R08. |
+
+**Gom nhóm nguyên nhân (định hướng cho v1–v3):**
+
+1. **5/7 case FAIL** (R08, R10, R11, R12, R14) do các chỉ dẫn xấu cố ý trong `system_prompt.md`: đoán thay vì hỏi, gửi không cần xác nhận, ép gọi đúng một tool. Đây là giả thuyết mạnh nhất cho **v1**: sửa `system_prompt.md`.
+2. **2/7 case FAIL** (R03, R13) là lỗi convention args của `lookup` (`query` thừa "news", thiếu `topic=news`). Giả thuyết cho **v2**: sửa description trong `tools.yaml`.
+3. `multiturn_accuracy = 1.0`: cả 6 case multi-turn (M01–M06) đều PASS ở v0. Cần theo dõi để v1–v3 không làm tụt chỉ số này (regression).
 
 ### B3. Team Eval Cases
 
