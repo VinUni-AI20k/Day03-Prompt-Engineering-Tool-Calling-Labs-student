@@ -19,6 +19,8 @@ from .send.tool import send_telegram
 from .lookup.tool import web_search
 from .deduplicate.tool import deduplicate_sources
 from .citation_audit.tool import audit_citations
+from .weather.tool import get_weather
+from .github_search.tool import search_github
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -39,6 +41,8 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
+    "weather": get_weather,
+    "github_search": search_github,
     # TODO(student): register your new tool here, e.g. "my_tool": my_tool_function,
     # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
 }
