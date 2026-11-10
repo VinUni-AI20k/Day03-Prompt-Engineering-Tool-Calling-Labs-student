@@ -135,3 +135,50 @@ tools:
         sort: {type: string, enum: [best_match, stars, forks, help_wanted_issues, updated], default: best_match, description: "Repository ordering requested by the user."}
         limit: {type: integer, minimum: 1, maximum: 10, default: 5, description: "Number of repositories to return, from 1 to 10."}
       required: [query]
+
+  - name: deduplicate_sources
+    description: "Remove duplicate sources from an existing result list while preserving first-seen order. Use after search/fetch tools return repeated URLs or titles. Do not use to search for new information, compare source content, or filter by time."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Existing source objects to deduplicate; each item may contain title and url."
+          items: {type: object}
+        strategy: {type: string, enum: [url, title, url_or_title], default: url_or_title, description: "Duplicate key: canonical URL, normalized title, or either."}
+        case_sensitive: {type: boolean, default: false, description: "Whether title comparison distinguishes uppercase and lowercase."}
+      required: [items]
+
+  - name: compare_sources
+    description: "Compare metadata from two or more sources already collected. Use when the user asks for a side-by-side source comparison or wants to see metadata completeness/agreement. Do not use to discover sources, deduplicate them, judge truth automatically, or summarize article content."
+    parameters:
+      type: object
+      properties:
+        sources:
+          type: array
+          minItems: 2
+          description: "Two or more existing source objects to compare."
+          items: {type: object}
+        fields:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          default: [title, url, source, published, summary]
+          description: "Metadata fields to compare; omit to use the default set."
+          items: {type: string, enum: [title, url, source, summary, author, authors, published, updated_at]}
+      required: [sources]
+
+  - name: filter_by_date
+    description: "Filter an existing list of sources to an inclusive date range. Use only after sources with date metadata have been collected and the user requests a time window. Do not use for web discovery, topic filtering, deduplication, or when no date boundary is known."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Existing source objects containing the selected date field."
+          items: {type: object}
+        start_date: {type: string, default: "", description: "Optional inclusive lower boundary in YYYY-MM-DD format."}
+        end_date: {type: string, default: "", description: "Optional inclusive upper boundary in YYYY-MM-DD format."}
+        date_field: {type: string, enum: [published, updated, created_at, updated_at], default: published, description: "Source field containing an ISO date or datetime."}
+        include_undated: {type: boolean, default: false, description: "Keep items whose selected date field is missing."}
+      required: [items]
