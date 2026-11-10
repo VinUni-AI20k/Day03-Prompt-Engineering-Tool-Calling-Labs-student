@@ -124,7 +124,7 @@ tools:
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
 
-  # ---------------- Team tools ----------------
+  # ---------------- Team tools (CP3) ----------------
   - name: redact
     description: "Ẩn thông tin nhạy cảm (email, số điện thoại, API key, bearer token, mật khẩu, credentials trong URL) khỏi một đoạn text. DÙNG khi user dán nội dung có PII/secret và nội dung đó sắp được đưa vào tool live khác (lookup, fetch, social_search, timeline) hoặc đăng lên kênh — gọi redact TRƯỚC khi dùng tool khác. KHÔNG dùng để tóm tắt, tìm kiếm, hay render digest. Kết quả chỉ báo loại và số lượng đã ẩn, không trả lại giá trị gốc."
     parameters:
@@ -133,3 +133,12 @@ tools:
         text: {type: string, default: "", description: "Nội dung cần ẩn PII/secret"}
         extra_patterns: {type: array, default: [], items: {type: string}, description: "Regex tùy chọn để ẩn thêm loại dữ liệu riêng của nhóm"}
       required: [text]
+
+  - name: weather
+    description: "Tra cứu thông tin dự báo thời tiết, nhiệt độ, khả năng mưa tại một địa điểm (thành phố, quốc gia). DÙNG KHI: người dùng hỏi về thời tiết, nhiệt độ, dự báo khí hậu của một vùng. KHÔNG DÙNG KHI: tìm kiếm tin tức tổng hợp hoặc bài đăng mạng xã hội."
+    parameters:
+      type: object
+      properties:
+        location: {type: string, default: "", description: "Tên địa điểm, thành phố hoặc quốc gia cần tra cứu thời tiết"}
+        timeframe: {type: string, enum: [today, tomorrow, week], default: "today", description: "Khoảng thời gian dự báo: today, tomorrow, hoặc week"}
+      required: [location]
