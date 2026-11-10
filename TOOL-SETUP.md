@@ -7,38 +7,15 @@ Pricing and quotas can change. The classroom target below is current for this la
 Smoke tests below call tools through the registry (`TOOL_FUNCTIONS`) so they only
 verify that your API key works — they are not routing hints. Run them from `starter_v0/`.
 
-## 1. Model Provider
+## 1. Model Provider — OpenAI
 
-Recommended provider:
-
-```bash
-OPENROUTER_API_KEY=...
-```
-
-Alternatives:
-
-```bash
-OPENAI_API_KEY=...
-ANTHROPIC_API_KEY=...
-GEMINI_API_KEY=...
-```
-
-Preflight:
+Đặt `OPENAI_API_KEY` trong `starter_v0/.env`. Có thể đặt thêm `OPENAI_MODEL`; nếu bỏ trống, ứng dụng dùng `gpt-4o-mini`. Không ghi giá trị key vào tài liệu hoặc `requirements.txt`.
 
 ```bash
 cd starter_v0
-python scripts/preflight_provider.py --provider openrouter
+python scripts/preflight_provider.py
+python -m streamlit run app.py
 ```
-
-Local model (bonus Small Local Model Challenge, không cần API key):
-
-```bash
-# Cài Ollama: https://ollama.com/download
-ollama pull qwen2.5:7b
-python scripts/preflight_provider.py --provider ollama --model qwen2.5:7b
-```
-
-Tuỳ chọn trong `.env`: `OLLAMA_BASE_URL` (mặc định `http://localhost:11434/v1`), `OLLAMA_MODEL` (mặc định `qwen2.5:7b`).
 
 ## 2. Tavily — `lookup`
 
@@ -214,10 +191,10 @@ python -c "from tools import TOOL_FUNCTIONS as T; print(T['send']('AI20k test me
 
 Before class, at least one person per group should have:
 
-- `OPENROUTER_API_KEY`
+- `OPENAI_API_KEY`
 - `TAVILY_API_KEY`
 - `FIRECRAWL_API_KEY`
 - `RAPIDAPI_KEY`
 - optional `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
 - optional `ARXIV_USER_AGENT`
-- `python scripts/preflight_provider.py --provider openrouter` passes
+- `python scripts/preflight_provider.py` passes
