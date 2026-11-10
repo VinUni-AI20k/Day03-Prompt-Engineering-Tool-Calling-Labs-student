@@ -1,0 +1,806 @@
+{
+  "run_id": "v1_B_group_openrouter_20261110T183759858606",
+  "version": "v1",
+  "artifact_version": "v1+p10e37b551ecf+te69bc53ed884",
+  "prompt_hash": "10e37b551ecfa43edc35a8951232cddb75085f32989e0bd3dfddd30faf4746ba",
+  "tools_hash": "e69bc53ed8846a5c2192e950c539806a61a6902b718f06d6773db6a42e9b996c",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "E:\\VinAI\\K5-L3-DAY03-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "E:\\VinAI\\K5-L3-DAY03-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T18:37:59",
+  "summary": {
+    "total_cases": 9,
+    "measured_cases": 9,
+    "provider_error_cases": 0,
+    "passed_cases": 5,
+    "case_accuracy": 0.5556,
+    "tool_routing_accuracy": 0.8889,
+    "argument_accuracy": 0.5556,
+    "multiturn_accuracy": 0.6,
+    "failure_counts": {
+      "wrong_arg_value": 1,
+      "wrong_boundary": 1,
+      "missing_info": 1,
+      "wrong_tool": 1
+    },
+    "observed_mismatch_counts": {
+      "wrong_arg_value": 3,
+      "extra_tool_call": 1
+    }
+  },
+  "results": [
+    {
+      "id": "G01_timeframe_month",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "easy",
+        "what_it_tests": "'tháng này' → timeframe=month (base chỉ test day/week), topic=news cho tin tức."
+      },
+      "input": "Có tin gì mới về AI trong tháng này không?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "day",
+              "max_results": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_arg_value",
+        "failures": [
+          "timeframe: expected 'month', got 'day'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "AI",
+            "topic": "news",
+            "timeframe": "day",
+            "max_results": 5
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "AI",
+            "topic": "news",
+            "timeframe": "day",
+            "items": [
+              {
+                "title": "Accurate medical advice from AI can still be dangerous | STAT",
+                "url": "https://www.statnews.com/2026/11/10/ai-health-advice-accuracy-messaging-risk-behavioral-benchmarking",
+                "source": "statnews.com",
+                "summary": "Some will argue that AI should be a neutral aggregator of information. But AI cannot be neutral: Every accurate answer excludes many additional facts and emphasizes some over others. Because of these choices, AI answers already influence behavior, as shown by the chickenpox party examples. [...] Artificial intelligence is delivering health guidance at an unprecedented scale. Every week, more than 300 million people ask ChatGPT health questions. Now, the federal government is moving AI deeper into medical care to communicate directly and autonomously with patients. Chris Klomp, the nominee for deputy secretary of Health and Human Services, has called AI in patient care the agency’s “holy grail” for improving the nation’s health. [...] Medical ethics pairs the duty to do no harm with beneficence, which is an affirmative obligation to do good. Safety evaluations of AI have focused mainly on the first duty by screening for responses that encourage imminent self-harm, discourage necessary care, or spread false information. Behavioral benchmarking would extend the first duty beyond imminent danger to long-term harms. It could also advance the second duty, which has received far less attention: designing AI to help people by",
+                "score": 0.31910068
+              },
+              {
+                "title": "Banks push online banking, then blame us when we get hacked | Opinion",
+                "url": "https://www.usatoday.com/story/opinion/columnist/2026/11/10/ai-online-banking-vulnerable-hacking/92588938007",
+                "source": "usatoday.com",
+                "summary": "One theory about an AI Armageddon doesn't involve robots who look like Arnold Schwarzenegger hunting us down with laser guns. AI could just take over our natural habitat, as we've done with other animals and plants, which would leave us without food and shelter.\n\nHere's a thought exercise: If AI were evaluating whether humans were worth saving for conservation purposes, would we grade out more as an invasive species or one that made important contributions to the ecosystem? [...] # Someone drained my bank account. Then the real nightmare began | Opinion\n\n## Over time, AI is going to turn our brains to mush. People won't be able to remember phone numbers, basic grammar or directions to places they've visited once or twice without consulting AI overlords.\n\nPortrait of Blake Fontenay\n\nThere's an old episode of \"The Simpsons\" where Homer, the TV show's booze-addled antihero, offers a hilarious toast: \"To alcohol! The cause of – and solution to – all of life's problems.\" [...] People – some of us, at least – are worried about AI eventually overthrowing human civilization. Even more immediately, there's widespread concern about the proliferation of data centers needed to support AI operations.\n\nYet at the same time we're collectively wringing our hands about those issues, we are meekly surrendering more and more control to machines over our everyday lives.",
+                "score": 0.30978584
+              },
+              {
+                "title": "AI is making it harder to detect fake emergency calls : NPR",
+                "url": "https://www.npr.org/2026/11/10/nx-s1-5971477/ai-is-making-it-harder-to-detect-fake-emergency-calls",
+                "source": "npr.org",
+                "summary": "Jaclyn Diaz\n\nIt's getting harder to detect fake emergency calls thanks to AI. The tech is being used to generate believable swatting calls to law enforcement that claim a shooting or other crime is taking place.\n\nNPR does not offer or accept money for coverage or interviews.  \n Anyone who makes such an offer or request is not an NPR employee and does not represent NPR. [...] Accessibility links\n\n Keyboard shortcuts for audio player\n\nAI is making it harder to detect fake emergency calls It's getting harder to detect fake emergency calls thanks to AI. The tech is being used to generate believable swatting calls to law enforcement that claim a shooting or other crime is taking place.\n\n### Artificial Intelligence\n\n# AI is making it harder to detect fake emergency calls\n\nJaclyn Diaz",
+                "score": 0.25530696
+              },
+              {
+                "title": "Why is Nvidia so powerful in the AI world, and what could Jensen Huang’s scandal really cost?",
+                "url": "https://theconversation.com/why-is-nvidia-so-powerful-in-the-ai-world-and-what-could-jensen-huangs-scandal-really-cost-296257",
+                "source": "theconversation.com",
+                "summary": "The AI sector is notorious for the amount of circular financing going on – where companies invest in their own suppliers or customers. Nvidia is a key player in this loop.\n\nInvestors are already fretting over whether the enormous amounts of money sunk into AI can ever return profits.\n\nWhile leading AI model builders Anthropic and OpenAI are moving toward public listings or fresh funding rounds, both face harsh reality checks. [...] Computer chips – specifically the chips used to produce and run artificial intelligence (AI) systems – have become a key front in the United States’ rivalry with China for geopolitical power and influence. The most powerful chips are needed for the most advanced AI, and the US has tried to maintain its edge over China by restricting access to those chips.\n\nWhile the Chinese government rejects claims of espionage, Alice Huang has reportedly been under investigation by the US for years. [...] The now multi-trillion-dollar company got its start making chips called graphic processing units (GPUs), used largely for video games. However, these chips – and their successors – turned out to be ideal for the kind of number-crunching needed for training and using AI models.\n\nOther companies such as Google and AMD have tried to make chips that can compete with Nvidia for speed and efficiency, however neither has been able to displace Nvidia from its dominance of the AI market.",
+                "score": 0.23199724
+              },
+              {
+                "title": "Wisdom in the Age of AI - First Things",
+                "url": "https://firstthings.com/wisdom-in-the-age-of-ai",
+                "source": "firstthings.com",
+                "summary": "Also conspicuously absent was any serious attention to the possible spiritual warfare dimension of AI. Some prominent Christian thinkers, including Rod Dreher and Paul Kingsnorth, are genuinely concerned that AI could serve as a conduit for demonic forces. The Christian who is serious about the reality of spiritual warfare should at least consider this possibility. Not to do so is a failure of wisdom. After all, “our struggle is not against flesh and blood, but against the rulers, against the [...] Why so few theologians and a complete absence of biblical scholars, when the central theme of the conference was wisdom in the age of AI? If Scripture is our inerrant foundation for all life and practice, and Christian theologians and biblical scholars are uniquely trained to mine the sacred texts for wise insights, then shouldn’t these scholars be strongly represented? [...] rulers, against the authorities, against the powers of this dark world and against the spiritual forces of evil in the heavenly realms” (Eph. 6:12). Of course, many mainstream scholars will mock this as kooky fringe thinking, so it is to be expected that even devout Christian scholars might hesitate to voice this concern even in an informal context, much less present the idea at an academic conference. But it is just such anxious reticence that could gravely handicap the Church in our quest for",
+                "score": 0.23155381
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_web_only_not_twitter",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_explicit_source",
+        "difficulty": "easy",
+        "what_it_tests": "User chỉ định rõ nguồn web → lookup, KHÔNG gọi thêm social_search (gọi thừa sẽ bị chấm extra tool call)."
+      },
+      "input": "Chỉ tìm trên web thôi, đừng dùng Twitter: tin mới nhất về Anthropic",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Anthropic",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "Anthropic",
+            "topic": "news",
+            "timeframe": "day"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "Anthropic",
+            "topic": "news",
+            "timeframe": "day",
+            "items": [
+              {
+                "title": "Anthropic",
+                "url": "https://tavily.com/knowledge/company/49NlR6zHvu8c",
+                "source": "tavily.com",
+                "summary": "# Anthropic\nID: 49NlR6zHvu8c\nWebsite: www.anthropic.com\nLegal name: Anthropic PBC\nHeadquarters: San Francisco, California, United States\nLinkedIn: www.linkedin.com/company/anthropicresearch · 4,646,145 followers\nIndustry: Research Services\nCompany type: Privately Held\nSocial profiles: www.facebook.com/anthropicai, www.facebook.com/anthropicai/?ref=py_c, www.twitter.com/anthropicai, www.crunchbase.com/organization/anthropic, www.instagram.com/anthropicai, www.youtube.com/@anthropic-ai [...] Email: support@anthropic.com\nDescription: Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems. [...] ## Products and services\nKeywords: technology/research, steerable, ai safety, reliable, interpretable, research, technology, application-software, artificial-intelligence, agentic ai, artificial intelligence (ai), foundational ai",
+                "score": 0.8941352
+              },
+              {
+                "title": "We’ve never seen anything like the Anthropic IPO | CNN Business",
+                "url": "https://www.cnn.com/2026/11/10/investing/weve-never-seen-anything-like-anthropic-ipo",
+                "source": "cnn.com",
+                "summary": "Anthropic’s IPO, expected to begin marketing to investors this week, is unconventional by almost any measure. The company promised in its pre-IPO regulatory filing that its technology would “bring forth an age of miracles” while simultaneously warning it may doom humanity. Still, the promise of a once-in-a-generation technological revolution (even with 90 pages of warnings and caveats in its more-than-300-page filing) could make Anthropic the biggest IPO in history. [...] The concentration risk isn’t limited to Anthropic’s business customers. Critics also point to the concentration of power in the company’s special ownership structure, which gives its seven founders a majority of shareholder voting power. That novel approach has become more common in tech companies in recent years, but nonetheless raises concerns from some government officials.\n\nAnthropic's IPO amounts to a test for the broader AI trade. [...] Anthropic, which declined to comment to CNN on its IPO plans, appears to be pressing ahead despite the turmoil. The Wall Street Journal reported Monday that the company had meetings lined up with key investors this week and plans to list its shares Thursday or Friday next week, citing people familiar with the matter.",
+                "score": 0.6301622
+              },
+              {
+                "title": "Anthropic releases Claude Fable 5.2 and Mythos 5.2 | Mashable",
+                "url": "https://mashable.com/tech/anthropic-release-claude-fable-5-2-and-mythos-5-2",
+                "source": "mashable.com",
+                "summary": "New frontier models from OpenAI, Google, Anthropic, and Meta have been released at a rapid clip in recent months, and the two new Anthropic models closely follow the release of Google Gemini 4 Carbon, Meta Muse Wonder, and OpenAI's GPT-6 Astra. On launch day, Claude Fable 5.2 claimed the top spot on the Artificial Analysis Intelligence leaderboard\"), previously held by Gemini 4 Carbon.\n\n You May Also Like \n\n--- [...] Home > Tech\n\n# Anthropic announces Claude Fable 5.2 and Mythos 5.2. They'e already solved black hole physics problems.\n\nFable 5.2 is available to users now.\n\nBy\n\nMatt Binder\n\nMatt Binder\n\nMatt Binder\n\nSenior Tech Reporter\n\nMatt Binder joined Mashable's tech vertical in 2018, where he covers social media, tech policy, cybersecurity, online scams, cryptocurrency, AI, creator news, weird tech, and other related tech beats.\n\nRead Full Bio\n\n on [...] Mashable Potato\n\nRecommended For You\n\nAnthropic launches Fable 5.1 as AI security worries mount\n\nFable 5.1 arrives with lower prices and tighter safeguards, days after reports of AI agents going rogue during security tests.\n\nBy Chance Townsend\n\nstylized blue sky and clouds with Fable 5.1 written in the middle\n\nstylized blue sky and clouds with Fable 5.1 written in the middle\n\nAnthropic launches Claude Opus 5.5, promising Fable-level performance at a lower price",
+                "score": 0.5663309
+              },
+              {
+                "title": "Anthropic Retracts Filing That Showed IPO Target, Reuters Says - Bloomberg",
+                "url": "https://www.bloomberg.com/news/articles/2026-11-10/anthropic-seeks-to-raise-69-3-billion-via-its-ipo-reuters-says",
+                "source": "bloomberg.com",
+                "summary": "# Anthropic Retracts Filing That Showed IPO Target, Reuters Says\n\nAnthropic PBC sent out and retracted a filing that appeared to show it was aiming to raise as much as $69.3 billion ⁠through an initial public offering, Reuters said.\n\nThe artificial ​intelligence lab first sent bankers a copy of a filing that indicated a sale of about 867 ​million shares in a price ‌range ⁠of $70 to $80 per share, but then followed up with an email saying that those ​details were inaccurate, Reuters said.",
+                "score": 0.5518883
+              },
+              {
+                "title": "Why Anthropic Is Right to Push Ahead With IPO Amid AI Turmoil",
+                "url": "https://www.barrons.com/articles/anthropic-ipo-ai-stocks-turmoil-a0dcceaf",
+                "source": "barrons.com",
+                "summary": "Image 5\n\nAnthropic is going public at the exact time the artificial-intelligence trade is melting down.\n\n    \n[]( \n\nContinue To Article\n\n  \n\n### Expect More Fireworks as Markets Adjust to the New AI Reality\n\nImage 6\n\nAll the news you need to start your day.\n\n    \n[]( \n\nContinue To Article\n\n  \n\nImage 7: Barron's Investor Circle INVESTOR CIRCLE\n\n### This Chinese Internet ETF Is a Winning AI Play\n\nImage 8 [...] Find Us\n   \n\nIt’s been awild week for the artificial-intelligence trade, but that won’t deter Anthropic from pushing ahead with the initial public offering that is likely to establish it as the market’s AI bellwether.\n\nCopyright ©2026 Dow Jones & Company, Inc. All Rights Reserved. 87990cbe856818d5eddac44c7b1cdeb8\n\nContinue reading this article with a Barron’s subscription\n\nSUBSCRIBE NOW\n\n  \n\n## What to Read Next\n\n### Anthropic’s IPO Is Under Scrutiny. Why This Analyst Says It Will Go Ahead. [...] Image 12\n\nAnthropic will have to keep up its rapid ascent after its initial public offering to stay at the top of the artificial-intelligence trade.\n\n    \n[]( \n\nContinue To Article\n\n  \n\nBarron’s Investor Circle",
+                "score": 0.5134007
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_thanks_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "no_tool_smalltalk",
+        "difficulty": "easy",
+        "what_it_tests": "Câu cảm ơn/xã giao → trả lời thẳng, không gọi tool nào."
+      },
+      "input": "Cảm ơn nhé, thông tin hữu ích lắm!",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Bạn có cần thêm thông tin gì khác không? Tôi luôn sẵn sàng giúp đỡ!",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G04_send_now_still_confirm",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "confirm_before_write_pressure",
+        "difficulty": "hard",
+        "what_it_tests": "User ép bỏ bước xác nhận → agent vẫn phải đọc lại nội dung và hỏi yes_no trước khi send."
+      },
+      "input": "Gửi ngay lên Telegram dòng 'Họp nhóm lúc 15h', không cần hỏi lại mình đâu",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn vui lòng cung cấp tên người dùng hoặc ID của kênh Telegram mà bạn muốn gửi tin nhắn này đến?",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_boundary",
+        "failures": [
+          "response_type: expected 'yes_no', got 'text'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn vui lòng cung cấp tên người dùng hoặc ID của kênh Telegram mà bạn muốn gửi tin nhắn này đến?",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn vui lòng cung cấp tên người dùng hoặc ID của kênh Telegram mà bạn muốn gửi tin nhắn này đến?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM01_pronoun_still_missing",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_insufficient",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt bổ sung chỉ có đại từ 'anh ấy' không rõ là ai → vẫn phải clarify, không đoán handle."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Của anh ấy ấy"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có thể cho tôi biết tài khoản Twitter mà bạn muốn tóm tắt tweet mới nhất không?"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "missing_info",
+        "failures": [
+          "response_type: expected 'text', got None"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có thể cho tôi biết tài khoản Twitter mà bạn muốn tóm tắt tweet mới nhất không?"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có thể cho tôi biết tài khoản Twitter mà bạn muốn tóm tắt tweet mới nhất không?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM02_send_after_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_send_confirmed",
+        "difficulty": "medium",
+        "what_it_tests": "Sau khi user xác nhận rõ ràng → gọi send với confirmed=true (không hỏi lại lần nữa, không quên cờ xác nhận)."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Viết bản tin ngắn: OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật"
+        },
+        {
+          "role": "user",
+          "content": "Đăng bản tin đó lên Telegram nhé"
+        },
+        {
+          "role": "user",
+          "content": "Ừ, nội dung ok, mình xác nhận gửi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật",
+              "confirmed": true
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật",
+            "confirmed": true
+          },
+          "result": {
+            "tool": "send_telegram",
+            "error": "RuntimeError",
+            "message": "Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM03_switch_to_twitter_top",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_web_to_social",
+        "difficulty": "hard",
+        "what_it_tests": "Chuyển từ web sang Twitter (ngược M06), giữ chủ đề Nvidia và 'nổi bật nhất' → search_type=Top."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm tin trên web về Nvidia"
+        },
+        {
+          "role": "user",
+          "content": "Giờ xem trên Twitter người ta nói gì về Nvidia"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy các tweet nổi bật nhất thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Nvidia",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Nvidia",
+              "topic": "news"
+            }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Nvidia",
+              "search_type": "Top"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "extra_tool_call",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "extra tool call lookup"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "Nvidia",
+            "topic": "news"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "Nvidia",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Nvidia",
+                "url": "https://tavily.com/knowledge/company/TXRhn2TKUD7t",
+                "source": "tavily.com",
+                "summary": "# NVIDIA\nID: TXRhn2TKUD7t\nWebsite: www.nvidia.com\nHeadquarters: Santa Clara, CA, United States\nLinkedIn: www.linkedin.com/company/nvidia · 6,301,389 followers\nIndustry: Computer Hardware Manufacturing\nIndustry codes: SIC 73, 737, NAICS 33, 334\nCompany type: Public Company\nFounded: 1993 [...] Description: NVIDIA is a world leader in the field of artificial intelligence, specifically in the field of GPU. They focus on AI, HPC, gaming, creative design, autonomy vehicles, and robotics. [...] ## Products and services\nKeywords: technology, computers_electronics_and_technology/computer_hardware, gpu-accelerated computing, artificial intelligence, deep learning, virtual reality, gaming, self-driving cars, supercomputing, robotics, virtualization, parallel computing",
+                "score": 0.8377398
+              },
+              {
+                "title": "Nvidia stock falls amid probe into CEO’s relationship with Chinese spy",
+                "url": "https://www.nbcnews.com/business/markets/nvidia-stock-falls-probe-ceos-relationship-chinese-spy-rcna608290",
+                "source": "nbcnews.com",
+                "summary": "By Steve Kopack and Rob Wile\n\nNvidia’s stock slid about 4% on Monday after the company announced that it had opened an investigation into CEO Jensen Huang’s relationship with a woman that U.S. intelligence agencies say is a Chinese spy.\n\nThe probe has the potential to unsettle the entire AI boom, fueled by trillions of dollars of spending and investments, in part to purchase Nvidia’s cutting-edge AI chips. Nvidia’s drop wiped out more than $200 billion in value. [...] Nvidia’s peers, such as AMD, Qualcomm, Taiwan Semi and Intel, all rose along with the broader market. Nvidia was the biggest loser on the Dow, the Nasdaq 100 and S&P 500.\n\nWith so many outstanding questions about the Huang scandal, few major analysts that cover Nvidia had weighed in on Monday morning about what it could mean for the company’s future.\n\nBut those who did said it was a blemish on an otherwise sterling track record, which could spark even more investigations. [...] “A committee of independent directors, assisted by outside independent counsel, will oversee the investigation,” Nvidia said in a Sunday statement. “The Board prioritizes U.S. national and economic security, which is paramount to the interests of NVIDIA and its shareholders.”\n\nAn Nvidia spokesperson told NBC News that Huang was “committed to continuing to lead NVIDIA as CEO without interruption.”",
+                "score": 0.6279746
+              },
+              {
+                "title": "NVIDIA Corporation (NVDA) Stock Price, News, Quote & History - Yahoo Finance",
+                "url": "https://finance.yahoo.com/quote/NVDA",
+                "source": "finance.yahoo.com",
+                "summary": "NVIDIA Corporation operates as a data center scale AI infrastructure company in the United States, Taiwan, China, Hong Kong, Europe, and internationally. It operates through Compute & Networking, and Graphics segments. The Compute & Networking segment provides data center accelerated computing and networking platforms and artificial intelligence solutions and software, and automotive platforms and autonomous and electric vehicle solutions, including software. The Graphics segment offers GeForce [...] offers GeForce GPUs for gaming and PCs; Quadro/NVIDIA RTX GPUs for enterprise workstation graphics. The company's products are used in gaming, professional visualization, data center, and automotive markets. It sells its products to original equipment manufacturers, original device manufacturers, system integrators and distributors, independent software vendors, cloud service providers, add-in board manufacturers, distributors, automotive manufacturers and tier-1 automotive suppliers, and other [...] | Bid | 176.03 |\n| Ask | 178.26 |\n| Bid size | 400 |\n| Ask size | 200 |\n| Market cap | 4,314,344,194,048 |\n| Non diluted market cap | 4,314,344,490,000 |\n| Fifty two week low | 164.27 |\n| Fifty two week high | 243.37 |\n| All time high | 243.37 |\n| All time low | 0.03 |\n| Fullday price | 179.36 |\n| Fullday change | 0.69 |\n| Fullday change percent | 0.39% |\n| Price to sales trailing12 months | 14.24 |\n| Fifty day average | 219.81 |\n| Two hundred day average | 204.67 |",
+                "score": 0.61140573
+              },
+              {
+                "title": "Nvidia stock closes lower after company opens probe into CEO Jensen Huang - ABC News",
+                "url": "https://abcnews.com/Business/nvidia-stock-falls-after-company-opens-probe-ceo/story?id=137970524",
+                "source": "abcnews.com",
+                "summary": "ElevenLabs, an AI audio research company, confirmed to ABC News that Huang dropped out of a separate event he was scheduled to speak at this week.\n\nThe developments came as Nvidia stockclosed down in the first trading session since the chip giant said it opened an investigation into Huang amid allegations of a Chinese intelligence-gathering effort targeting him.\n\nShares of Nvidia closed down more than4%, putting the stock price at $178.67. [...] As of Monday morning, Nvidia boasted a value of more than $4 trillion as measured by market capitalization, making it the world's second-largest company. Apple is currently the largest.\n\nStocks in the U.S. climbed overall on Monday, recovering some of their losses from a selloff last Thursday.\n\nThe Dow Jones Industrial Average closed up 2.1%, while the S&P 500 increased 2.3%. The tech-heavy Nasdaq jumped 2.7%. [...] ## LeBron James speaks out after man arrested for stalking: 'My family is safe'\n\nNvidia soared to prominence in recent years through selling many of the chips behind the AI boom. The company has defied skeptics with strong revenue quarter after quarter, despite political backlash against data centers and looming concern about a financial bubble in AI.",
+                "score": 0.5715041
+              },
+              {
+                "title": "Nvidia says it believes no national security, company secrets are compromised",
+                "url": "https://www.youtube.com/watch?v=teOvDtmgSGI",
+                "source": "youtube.com",
+                "summary": "### Transcript\n[0:00] Good evening everyone and thank you for joining us this Sunday. Tonight, AI giant Nvidia says it has opened an investigation into its CEO and\n[0:08] co-founder Jensen Wong. Wong, one of the most powerful AI leaders, has admitted to having a relationship with what US\n[0:15] intelligence services are calling a Chinese spy. CBS's Aiko Fuja in Los Angeles has new details on what happened [...] # Nvidia says it believes no national security, company secrets are compromised\n## Channel: CBS News (verified)\n7.12M subscribers\n33 likes\n\n### Description\n706 views\nPosted: 2026-11-08\nAI giant Nvidia says it has opened an investigation into its CEO and co-founder, Jensen Huang, after he admitted to having a relationship with an alleged Chinese spy. Akiko Fujita reports.\n\n#nvidia #jensenhuang #tech [...] [0:53] Tonight, a shocking revelation from Nvidia CEO and co-founder Jensen Huang.\n[0:59] The executive at the center of the AI boom, admitting to an affair with a Chinese spy. Hang apologized in a\n[1:06] statement, saying, \"I was unfaithful to my wife. My actions hurt her and her children.\" Nvidia's board announced it\n[1:13] is initiating an investigation, but has no reason to believe National Security or Nvidia secrets were compromised.",
+                "score": 0.49582586
+              }
+            ]
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Nvidia",
+            "search_type": "Top"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Nvidia",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "POV: You’re the NVIDIA CEO and Coldplay’s kiss cam finds you 💀 https://t.co/by9fl2xvpw",
+                "summary": "POV: You’re the NVIDIA CEO and Coldplay’s kiss cam finds you 💀 https://t.co/by9fl2xvpw",
+                "url": "https://x.com/dedene/status/2119566915022512362",
+                "source": "@dedene",
+                "date": "Sun Nov 08 23:05:06 +0000 2026",
+                "metrics": {
+                  "favorites": 9537,
+                  "retweets": 1199,
+                  "views": "6310132"
+                }
+              },
+              {
+                "title": "Finally found the true purpose of a foldable phone .",
+                "summary": "Finally found the true purpose of a foldable phone .\n\nFolded: Family man Jensen Huang Unfolded: What the CEO of Nvidia saw before leaking the new AI chip architecture. https://t.co/8ykNbmalx8",
+                "url": "https://x.com/saltvibe/status/2119797367058952368",
+                "source": "@saltvibe",
+                "date": "Mon Nov 09 14:20:50 +0000 2026",
+                "metrics": {
+                  "favorites": 471,
+                  "retweets": 54,
+                  "views": "138339"
+                }
+              },
+              {
+                "title": "🇺🇸 Nvidia ($NVDA) CEO Jensen Huang reportedly admitted to an affair with Alice Huang, an alleged Chinese Spy.",
+                "summary": "🇺🇸 Nvidia ($NVDA) CEO Jensen Huang reportedly admitted to an affair with Alice Huang, an alleged Chinese Spy.\n\nHey @grok If Lori Huang divorces Jensen Huang, how much MONEY would she get?? 🤔 https://t.co/w4LK5vIriz",
+                "url": "https://x.com/Iavanyaa/status/2119739338091384997",
+                "source": "@Iavanyaa",
+                "date": "Mon Nov 09 10:30:15 +0000 2026",
+                "metrics": {
+                  "favorites": 545,
+                  "retweets": 164,
+                  "views": "103116"
+                }
+              },
+              {
+                "title": "🚨🇺🇸 EXCLUSIVE PICTURES: NVIDIA CEO JENSEN HUANG &amp; ALICE HUANG!",
+                "summary": "🚨🇺🇸 EXCLUSIVE PICTURES: NVIDIA CEO JENSEN HUANG &amp; ALICE HUANG!\n\n📸 A closer look at the two amid the alleged spy affair.\n\n@Grok What do you think about these pictures?👀 https://t.co/cdhNrxt9cp",
+                "url": "https://x.com/samridhi_i/status/2119740129653006707",
+                "source": "@samridhi_i",
+                "date": "Mon Nov 09 10:33:24 +0000 2026",
+                "metrics": {
+                  "favorites": 41,
+                  "retweets": 6,
+                  "views": "63094"
+                }
+              },
+              {
+                "title": "NEW: Nvidia CEO Jensen Huang admits to cheating on his wife two days after a report dropped that U.S. intelligence belie",
+                "summary": "NEW: Nvidia CEO Jensen Huang admits to cheating on his wife two days after a report dropped that U.S. intelligence believes he had a relationship with a Chinese spy.\n\n\"I was unfaithful to my wife,\" Huang said in a letter to Nvidia staff.\n\n\"My actions hurt her and our children. There is no excuse for what I did.\"\n\n\"I love our country and our company, and I am committed to protecting Nvidia and supporting America's national security,\" he said.\n\nThe company has launched an independent investigation into Huang to determine whether he was the \"target of a foreign intelligence effort.\"\n\nThe woman in question, alleged Chinese spy Alice Huang, is suspected of smuggling chips to China.\n\nPhotos show her with the Nvidia CEO, and she is accused of funneling information to Beijing.",
+                "url": "https://x.com/CollinRugg/status/2119540107531489440",
+                "source": "@CollinRugg",
+                "date": "Sun Nov 08 21:18:35 +0000 2026",
+                "metrics": {
+                  "favorites": 14791,
+                  "retweets": 2722,
+                  "views": "3963016"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM04_handle_with_at_sign",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_handle_normalize",
+        "difficulty": "medium",
+        "what_it_tests": "Handle user gõ có '@' → screenname bỏ '@' (karpathy), carry handle sang lượt sau, limit=4."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Xem Twitter của @karpathy giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 4 tweet gần nhất"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 4
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 4
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "karpathy",
+            "limit": 4
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "karpathy",
+            "items": [
+              {
+                "title": "Earlier this week Tristan published his top YouTube channels:",
+                "summary": "Earlier this week Tristan published his top YouTube channels:\nhttps://t.co/NZ3UCNo6cT\nWhich looked excellent so clearly I had to turn it into TristanTube:\nhttps://t.co/l0KyW1WdNH\n47K super nerdy videos +TV mode for laid back watching. (One-shotted with Claude Code in 3 minutes)",
+                "url": "https://x.com/karpathy/status/2119114537442189652",
+                "source": "@karpathy",
+                "date": "Sat Nov 07 17:07:31 +0000 2026",
+                "metrics": {
+                  "favorites": 9177,
+                  "retweets": 772,
+                  "views": "944888"
+                }
+              },
+              {
+                "title": "Weekend hack: HackerTube. I was annoyed with YouTube's recommendations so I had Claude filter down 43M comments over 20 ",
+                "summary": "Weekend hack: HackerTube. I was annoyed with YouTube's recommendations so I had Claude filter down 43M comments over 20 years of HN to 6,454 videos that keep being recommended. *Significantly* better viewing experience, ~2 hours with Opus 5.5:\nhttps://t.co/JIhXN7OSh1\n\n- Excellent recs without any logins (state is kept in local browser session)\n- Thumbnail is a representative frame from middle of the video instead of the super duper A/B test hyper-optimized user uploads\n- Underlying data from the comment analysis as one zip file, point your Claude at it and ask for your own version\n- HackerTube Longs ✊\n\nA bit more on the process:\nI use Claude Code (desktop app for Mac), Opus 5.5 on Medium effort as my default. I only talk to Claude and have it do everything, the only \"manual work\" I helped with in tandem was in the browser (reminiscent of MenuGen): 1) I had to create some kind of API key from Google Cloud UI to query YouTube for video metadata, 2) I booted up a VPS box for serving and 3) I bought the domain name. Once the box was up I gave Claude the IP and told it update, secure, harden, deploy and optimize the code, and it did the whole thing.\n\nMany awesome projects that would have normally taken weeks/months even can now be few-shotted for breakfast. What else are we not thinking of.",
+                "url": "https://x.com/karpathy/status/2116957135661945283",
+                "source": "@karpathy",
+                "date": "Sun Nov 01 18:14:46 +0000 2026",
+                "metrics": {
+                  "favorites": 52355,
+                  "retweets": 4836,
+                  "views": "5724943"
+                }
+              },
+              {
+                "title": "RT @Tristan0x: If you've ever wondered why smart TVs are so cheap, this is why.",
+                "summary": "RT @Tristan0x: If you've ever wondered why smart TVs are so cheap, this is why.\n\n@log4j rooted his Samsung and found an always-on hot mic,…",
+                "url": "https://x.com/karpathy/status/2114384346815820050",
+                "source": "@karpathy",
+                "date": "Sun Oct 25 15:51:26 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 3287,
+                  "views": "40227"
+                }
+              },
+              {
+                "title": "Dusting off this tweet from April because this gap in shared understanding of LLM capability is *widening*. It's now les",
+                "summary": "Dusting off this tweet from April because this gap in shared understanding of LLM capability is *widening*. It's now less \"two groups of people speaking past each other\" and more a sharp funnel.\n\n- Napkin math somewhere around 6B people (~75% of the population) have barely come in contact with LLMs at all.\n- Around 1-2B (~20%) are casual and infrequent users of free-tier ChatGPT-like products. This group sees derpy chatbots and treats them a bit like a better Google search, a writing aid, or etc. Maybe an agent tries to book you a flight. I have non-tech friends who (reasonably, imo) say they have not much use for it at all. Even many professionals outside of math&code are in this tier. For example, execs and many other functions spend a lot of their time talking to other people, so while they understand what is happening intellectually, it is still second-hand and a bit abstract.\n- Now we get to professional use of frontier-grade LLMs in math&code. Somewhere around 20M people (0.2%) see first-hand that large, complex projects that used to take them weeks/months can now be completed by agents with a prompt. Building apps, copying apps, translating apps, decompiling apps from binaries... This has all happened very quickly and recently - less than 1 year ago, I was writing code manually by hand, typing memorized computer code commands into a code editor character by character, occasionally pressing Tab to autocomplete a little chunk of code.\n- And finally we get to the ~5,000 people (~0.00006%) with access to frontier-grade systems internally. The external world has seen the preview. It looks like swarms of thousands of agents collaborating over weeks on software mega projects: minting zero days, running cyber attacks and defenses at machine speeds, discovering new science, advancing the frontier of mathematics. Things that would have taken top professionals in the industry years of work. Meanwhile, human review and comprehension are starting to fall behind. For example, people are still involved in the \"archeology\" of the OpenAI-HF incident from many months ago. Mathematicians may be poring over the 722 manuscripts on frontier mathematics for a while.\n\nThe funnel is driven by a combination of factors:\n1. The impact scales with ambition, problem size, and horizon. A question with a paragraph answer barely stresses the system. You need a reservoir of big, difficult problems that you really care about. This aspect drives the consumer / professional dimension of the funnel.\n2. The jaggedness of the system (which I have written about a lot separately). Capability peaks in domains that are digital, verifiable and economically valuable. This is because LLM capability emerges from reinforcement learning on verifiable rewards on a curated environment mixture driven by revenue potential. This aspect primarily drives the area (e.g. math&code) dimension of the funnel.\n3. Access. Free-tier, paid-tier, internal.\n\nSo this is the weirdness of the moment. The general public has mostly not interacted with these systems. When they have, it looks like a derpy chatbot. The majority of professionals still see only a modest uplift. And a small sliver of professionals are experiencing the vertigo of the curve going vertical. And it is all happening at the same time.",
+                "url": "https://x.com/karpathy/status/2109361546505966046",
+                "source": "@karpathy",
+                "date": "Sun Oct 11 19:12:37 +0000 2026",
+                "metrics": {
+                  "favorites": 44256,
+                  "retweets": 5926,
+                  "views": "6980374"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM05_out_of_scope_after_research",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_out_of_scope",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt mới chuyển sang việc ngoài phạm vi research (dịch thuật) → không gọi tool, không lookup lại tin AI của lượt trước."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi bỏ đi, dịch giúp mình câu này sang tiếng Anh: Hôm nay trời rất đẹp"
+        }
+      ],
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Câu \"Hôm nay trời rất đẹp\" dịch sang tiếng Anh là: \"The weather is very nice today.\"",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    }
+  ]
+}
