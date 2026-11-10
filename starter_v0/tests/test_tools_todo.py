@@ -14,6 +14,7 @@ import pytest
 
 from conftest import FakeResponse  # noqa: F401  (you will need it)
 from tools import TOOL_FUNCTIONS  # noqa: F401
+from tools._shared import TIMEOUT
 
 TODO = "TODO CP3 (student): implement this test"
 clarify_tool = TOOL_FUNCTIONS["clarify"]
@@ -316,13 +317,78 @@ Citations must include the author and publication date.
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_happy_path(fake_http) -> None:
+    from tools.github_repo.tool import get_github_repo
+
+    payload = {
+        "full_name": "psf/requests",
+        "html_url": "https://github.com/psf/requests",
+        "description": "Python HTTP library",
+        "stargazers_count": 100,
+        "forks_count": 20,
+        "language": "Python",
+        "updated_at": "2026-11-10T10:00:00Z",
+    }
+
+    calls = fake_http(FakeResponse(payload))
+    result = get_github_repo("psf/requests")
+
+    assert result["tool"] == "github_repo"
+    assert len(result["items"]) == 1
+
+    item = result["items"][0]
+    assert item == {
+        "title": "psf/requests",
+        "url": "https://github.com/psf/requests",
+        "source": "github.com",
+        "summary": "Python HTTP library",
+        "stars": 100,
+        "forks": 20,
+        "language": "Python",
+        "updated_at": "2026-11-10T10:00:00Z",
+    }
+
+    assert len(calls) == 1
+    assert calls[0]["method"] == "GET"
+    assert calls[0]["url"] == "https://api.github.com/repos/psf/requests"
+    assert calls[0]["headers"]["Accept"] == "application/vnd.github+json"
+    assert calls[0]["headers"]["User-Agent"] == "Day03-Research-Agent"
+    assert calls[0]["timeout"] == TIMEOUT
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+@pytest.mark.parametrize(
+    "repo",
+    [
+        "psf",
+        "https://github.com/psf/requests",
+        "psf/requests.git",
+        "psf/requests/extra",
+        123,
+    ],
+)
+def test_my_new_tool_bad_input_from_model(fake_http, repo) -> None:
+    from tools.github_repo.tool import get_github_repo
+
+    calls = fake_http(FakeResponse({}))
+    result = get_github_repo(repo)
+
+    assert result["tool"] == "github_repo"
+    assert "error" in result
+    assert len(calls) == 0
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_failure_returns_error_dict(fake_http) -> None:
+    from tools.github_repo.tool import get_github_repo
+
+    calls = fake_http(FakeResponse(
+        payload={"message": "Not Found"},
+        status_code=404,
+    ))
+
+    result = get_github_repo("psf/nonexistent-repo")
+
+    assert len(calls) == 1
+    assert result["tool"] == "github_repo"
+    assert "error" in result
+    assert "message" in result
+    assert result["items"] == [] if "items" in result else True
