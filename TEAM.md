@@ -48,7 +48,4 @@ Sao chép mục dưới đây cho từng thành viên.
 - `starter_v0/tools/deduplicate_sources/`
 - `starter_v0/tests/test_tools_todo.py`
 - `starter_v0/artifacts/system_prompt.md`
-- `starter_v0/runs/v0_B_base_gemini_20261110T183708553548.json`
-- `starter_v0/runs/v1_B_base_gemini_20261110T184719240561.json`
-- `starter_v0/runs/v2_B_base_gemini_20261110T185133380730.json`
-- `starter_v0/runs/v3_B_base_gemini_20261110T215643805698.json`
+- `starter_v0/artifacts/version_log.csv`
