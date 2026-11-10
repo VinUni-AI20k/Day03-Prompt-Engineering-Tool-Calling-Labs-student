@@ -2,7 +2,14 @@
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
   "cases": [
     {
       "id": "G01_dat_format_thread",
@@ -10,7 +17,16 @@
       "suite": "group",
       "query": "Mình đã có sẵn 3 tin, không cần tìm kiếm hay kiểm chứng: OpenAI ra GPT-5, Google ra Gemini 3, Meta mở mã nguồn Llama 4. Hãy soạn thành thread, chỉ trình bày nội dung thôi chứ không đăng lên đâu cả.",
       "failure_type": "wrong_tool",
-      "expect": {"tool_calls": [{"name": "format", "args": {"template": "thread"}}]},
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "format",
+            "args": {
+              "template": "thread"
+            }
+          }
+        ]
+      },
       "metadata": {
         "author": "PhamNguyenTatDat",
         "difficulty": "easy",
@@ -22,34 +38,41 @@
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Mình có 2 tin: Anthropic ra Claude 4, OpenAI hạ giá API."},
-        {"role": "user", "content": "Tổng hợp thành digest dạng sections giúp mình."},
-        {"role": "user", "content": "Đổi sang dạng bullet cho gọn."}
+        {
+          "role": "user",
+          "content": "Mình có 2 tin: Anthropic ra Claude 4, OpenAI hạ giá API."
+        },
+        {
+          "role": "user",
+          "content": "Tổng hợp thành digest dạng sections giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang dạng bullet cho gọn."
+        }
       ],
       "failure_type": "wrong_arg_value",
-      "expect": {"tool_calls": [{"name": "format", "args": {"template": "bullets"}}]},
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "format",
+            "args": {
+              "template": "bullets"
+            }
+          }
+        ]
+      },
       "metadata": {
         "author": "PhamNguyenTatDat",
         "difficulty": "medium",
         "what_it_tests": "Multi-turn correction: template sections ở lượt 2 bị đổi thành bullets ở lượt 3; chỉ chấm template của lượt cuối."
-  "allowed_failure_types": [
-    "wrong_tool",
-    "wrong_arg_value",
-    "wrong_boundary",
-    "unnecessary_tool",
-    "out_of_scope",
-    "missing_info"
-  ],
-  "cases": [
+      }
+    },
     {
       "id": "G03_newest_papers_sort",
       "phase": "B",
       "suite": "group",
       "query": "Tìm 3 paper arXiv mới được đăng gần đây nhất về multimodal agents",
-      "id": "G01_web_search_month_timeframe",
-      "phase": "B",
-      "suite": "group",
-      "query": "Tin tức nổi bật về DeepSeek trong tháng này có gì?",
       "failure_type": "wrong_arg_value",
       "expect": {
         "tool_calls": [
@@ -58,11 +81,6 @@
             "args": {
               "max_results": 3,
               "sort_by": "submittedDate"
-            "name": "lookup",
-            "args": {
-              "query": "DeepSeek",
-              "topic": "news",
-              "timeframe": "month"
             }
           }
         ]
@@ -75,13 +93,6 @@
     },
     {
       "id": "G04_papers_then_read_text",
-        "skill": "arg_timeframe_month",
-        "difficulty": "medium",
-        "what_it_tests": "'trong tháng này' -> timeframe=month, tin tức -> topic=news, query ngắn gọn DeepSeek."
-      }
-    },
-    {
-      "id": "G02_multiturn_research_then_export",
       "phase": "B",
       "suite": "group",
       "turns": [
@@ -96,6 +107,56 @@
         {
           "role": "user",
           "content": "Đọc giúp mình 3 trang đầu của paper đó"
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "paper_text",
+            "args": {
+              "max_pages": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_papers_to_paper_text",
+        "difficulty": "hard",
+        "what_it_tests": "Lượt cuối muốn ĐỌC nội dung paper đã tìm ở lượt trước → paper_text, max_pages=3; không gọi lại papers, không dùng fetch. Không chấm arxiv_url vì tool nhận cả ID '1706.03762' lẫn URL arxiv.org/abs/... (eval so khớp chính xác nên ghi 1 dạng sẽ đánh trượt dạng còn lại)."
+      }
+    },
+    {
+      "id": "G05_web_search_month_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tin tức nổi bật về DeepSeek trong tháng này có gì?",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "DeepSeek",
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "medium",
+        "what_it_tests": "'trong tháng này' -> timeframe=month, tin tức -> topic=news, query ngắn gọn DeepSeek."
+      }
+    },
+    {
+      "id": "G06_multiturn_research_then_export",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
           "content": "Tìm kiếm các tin tức mới nhất về OpenAI trong tuần này."
         },
         {
@@ -111,9 +172,6 @@
       "expect": {
         "tool_calls": [
           {
-            "name": "paper_text",
-            "args": {
-              "max_pages": 3
             "name": "export_md",
             "args": {
               "filename": "openai_report.md"
@@ -122,9 +180,6 @@
         ]
       },
       "metadata": {
-        "skill": "multiturn_papers_to_paper_text",
-        "difficulty": "hard",
-        "what_it_tests": "Lượt cuối muốn ĐỌC nội dung paper đã tìm ở lượt trước → paper_text, max_pages=3; không gọi lại papers, không dùng fetch. Không chấm arxiv_url vì tool nhận cả ID '1706.03762' lẫn URL arxiv.org/abs/... (eval so khớp chính xác nên ghi 1 dạng sẽ đánh trượt dạng còn lại)."
         "skill": "multiturn_export_report",
         "difficulty": "medium",
         "what_it_tests": "Sau khi nghiên cứu ở các lượt trước, ở lượt cuối yêu cầu lưu file md -> model phải route đúng tool mới export_md với filename='openai_report.md'."
