@@ -52,4 +52,18 @@ Người 3 của nhóm anbatocom: bộ eval nhóm (C5), UI và live chat (C6), b
 
 ## 5. Tự đánh giá
 
-[TỰ VIẾT]
+- **Làm tốt:**
+  - Kiểm tra trước khi push: nạp `eval_group.json` bằng loader của runner (9 case, 5 single + 4 multi, không trùng ID, không chép từ `eval_base.json`) và chạy `pytest` (62 passed, 17 skipped, 0 failed ở bản clone ban đầu).
+  - UI hiện từng tool call và lỗi tool trong expander, nên lỗi tool không bị che.
+  - Case nhóm phủ boundary gửi Telegram ở 3 dạng: chưa xác nhận (G05), đã xác nhận (GM03), hủy (GM04).
+- **Chưa tốt:**
+  - `app.py` của mình gán cứng provider `openrouter`, nên UI không chạy được với key OpenAI của nhóm cho đến khi Người 1 sửa ở `5ff50ee`. Lúc push mình mới thử khi chưa có API key.
+  - Cả 10 case đều PASS ở v3, nên chưa case nào bắt được lỗi còn lại. R10 ở base (model tự chọn chủ đề "AI" khi yêu cầu tweet không có tài khoản/chủ đề) không có case tương ứng trong bộ nhóm.
+  - Bằng chứng nhóm chỉ có 1 run group (v3), không có run group trên v0–v2, nên chưa biết case nào phân biệt được các version.
+  - Live chat và Part B do Người 1 làm; case GM05 cũng do Người 1 viết.
+- **Bài học:** case `no_tool` (G03, GM04) chỉ chứng minh model không gọi tool, không chứng minh câu trả lời text đúng. Bộ eval toàn PASS xác nhận hành vi đã sửa, chứ không đo được lỗi còn sót.
+- **Nếu làm lại:**
+  - Đổi một case trong bộ 10 (phải đúng 10) thành "Tóm tắt 5 tweet mới nhất" không kèm tài khoản/chủ đề, kỳ vọng `clarify`, để đo đúng lỗi R10.
+  - Chạy suite group trên cả v0–v3.
+  - Hỏi Người 2 tên và args tool mới từ sớm để tự viết case route tới tool mới.
+  - Đọc provider từ biến môi trường ngay từ bản đầu của `app.py`.
