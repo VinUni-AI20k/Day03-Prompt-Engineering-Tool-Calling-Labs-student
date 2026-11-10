@@ -40,5 +40,5 @@ Tổng hợp B3 từ 10 case eval của nhóm và kết quả chạy.
 
 
 ## 5. Tự đánh giá
-
+Nhìn chung, tôi nhận thấy mình đã tương đối tròn vai với những nhiệm vụ được giao trong bài lab nhóm này. Tuy nhiên, điểm yếu dễ thấy của tôi là nền tảng tech skill khá lép vế so với các đồng đội, và điều này, hẳn nhiên, ít nhiều khiến cho việc vận hành đội chưa được như kì vọng của tôi.
 ...
