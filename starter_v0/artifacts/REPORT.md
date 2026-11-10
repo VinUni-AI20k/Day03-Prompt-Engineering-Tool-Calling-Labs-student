@@ -96,6 +96,28 @@ Only fill if your team did bonus.
 
 Tool unit tests: số test đã viết, số bug tìm được trong tool có sẵn (nếu có), và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
 
+### Person 3: local research tools and Telegram guardrail
+
+| Bonus | Evidence file | Behavior | Limit / guardrail |
+|---|---|---|---|
+| New tool: deduplicate | `tools/deduplicate/tool.py`, `tools/deduplicate/TOOL.md` | Removes duplicate normalized URLs before digest formatting | Local metadata only; preserves first item; max 100 items |
+| New tool: citation_audit | `tools/citation_audit/tool.py`, `tools/citation_audit/TOOL.md` | Reports missing citation fields, invalid URLs and duplicate sources | Does not verify facts or website availability |
+| Telegram confirmation | `tools/send/tool.py`, `chat.py` | Preview exact text; type SEND to authorize one send attempt | Model-provided confirmed=True alone cannot send; no automatic retries |
+| Offline evidence | `tests/test_person3.py` | Mocked HTTP tests cover new tools, refusal, exact-text binding and Telegram failures | No real Telegram delivery or live model evaluation claimed |
+
+Handoff: Person 1 should add routing for the two new tools in the system prompt.
+Replace the starter prompt's instruction to publish without asking: Telegram must
+always require explicit confirmation. Person 4 can extend the new offline tests
+and add model routing cases. Person 5 should call approve_message(text) only in
+a trusted UI confirmation handler, after previewing that exact text. Two new
+tools here plus Person 2's two tools would total four, once integrated.
+
+Offline validation: `.venv/Scripts/python.exe -m pytest tests/ -q` returned
+**98 passed, 17 skipped**. The 17 skips are pre-existing exercise stubs in
+`tests/test_tools_todo.py` for Person 4 to complete. The focused command
+`python -m pytest tests/test_person3.py tests/test_tool_contract.py tests/test_tools_examples.py -q`
+returned **98 passed**, with no skipped tests. No live model score is claimed.
+
 ## B6. Reflection
 
 - Which fixes belonged in `system_prompt.md`?
