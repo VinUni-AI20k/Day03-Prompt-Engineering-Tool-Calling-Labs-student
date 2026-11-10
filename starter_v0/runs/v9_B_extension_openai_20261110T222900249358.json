@@ -1,0 +1,415 @@
+{
+  "run_id": "v9_B_extension_openai_20261110T222900249358",
+  "version": "v9",
+  "artifact_version": "v9+p275dc89d936c+t121f53ee709c",
+  "prompt_hash": "275dc89d936cb4703977f95ab99ac2e9377d180cdc5de3eb2ae8c2e230d195b6",
+  "tools_hash": "121f53ee709c32c819480b74b17bc624ec3dc06647aeadebb91ad2aa08f45196",
+  "phase": "B",
+  "suite": "extension",
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "system_prompt": "D:\\NAM_CUOI\\Vin\\VinLab03\\K5-L3B-DAY03-NguyenHoangGiaAn-2A202603799-PromptEngineeringToolCalling\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\NAM_CUOI\\Vin\\VinLab03\\K5-L3B-DAY03-NguyenHoangGiaAn-2A202603799-PromptEngineeringToolCalling\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_new_tool_hn_search.json",
+  "dataset_id": "day03_v2_new_tool_hn_search",
+  "dataset_role": "extension",
+  "description": "Case bổ sung kiểm tra routing tới tool mới hn_search (tool thứ 2 của nhóm). Không thay thế 10 case trong eval_group.json.",
+  "generated_at": "2026-11-10T22:29:00",
+  "summary": {
+    "total_cases": 3,
+    "measured_cases": 3,
+    "provider_error_cases": 0,
+    "passed_cases": 2,
+    "case_accuracy": 0.6667,
+    "tool_routing_accuracy": 0.6667,
+    "argument_accuracy": 0.6667,
+    "multiturn_accuracy": 0.0,
+    "failure_counts": {
+      "wrong_tool": 1
+    },
+    "observed_mismatch_counts": {
+      "extra_tool_call": 1
+    }
+  },
+  "results": [
+    {
+      "id": "N01_hn_routing",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_new_tool",
+        "difficulty": "easy",
+        "what_it_tests": "Nhắc rõ Hacker News → tool mới hn_search, không phải lookup hay social_search; query chỉ chứa chủ đề."
+      },
+      "input": "Dân dev trên Hacker News đang bàn gì về Rust?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "Rust"
+          },
+          "result": {
+            "tool": "hn_search",
+            "query": "Rust",
+            "sort": "relevance",
+            "items": [
+              {
+                "title": "Why Discord is switching from Go to Rust",
+                "url": "https://blog.discordapp.com/why-discord-is-switching-from-go-to-rust-a190bbca2b1f",
+                "discussion_url": "https://news.ycombinator.com/item?id=22238335",
+                "source": "news.ycombinator.com",
+                "points": 1582,
+                "num_comments": 642,
+                "published_at": "2020-02-04T17:30:40Z"
+              },
+              {
+                "title": "Leaving Rust gamedev after 3 years",
+                "url": "https://loglog.games/blog/leaving-rust-gamedev/",
+                "discussion_url": "https://news.ycombinator.com/item?id=40172033",
+                "source": "news.ycombinator.com",
+                "points": 1484,
+                "num_comments": 972,
+                "published_at": "2024-04-26T17:33:56Z"
+              },
+              {
+                "title": "A half-hour to learn Rust",
+                "url": "https://fasterthanli.me/articles/a-half-hour-to-learn-rust",
+                "discussion_url": "https://news.ycombinator.com/item?id=25610741",
+                "source": "news.ycombinator.com",
+                "points": 1444,
+                "num_comments": 330,
+                "published_at": "2021-01-02T05:50:39Z"
+              },
+              {
+                "title": "Announcing Rust 1.0",
+                "url": "http://blog.rust-lang.org/2015/05/15/Rust-1.0.html",
+                "discussion_url": "https://news.ycombinator.com/item?id=9551937",
+                "source": "news.ycombinator.com",
+                "points": 1363,
+                "num_comments": 306,
+                "published_at": "2015-05-15T17:02:09Z"
+              },
+              {
+                "title": "CityBound – An open source city simulation game in Rust",
+                "url": "https://github.com/citybound/citybound",
+                "discussion_url": "https://news.ycombinator.com/item?id=19583384",
+                "source": "news.ycombinator.com",
+                "points": 1340,
+                "num_comments": 264,
+                "published_at": "2019-04-05T15:18:45Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "N02_hn_sort_date_limit",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "args_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "Viết tắt HN vẫn route hn_search; 'mới nhất' → sort=date; '3 bài' → limit=3."
+      },
+      "input": "Cho mình 3 bài mới nhất trên HN về LLM agents",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM agents",
+              "sort": "date",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM agents",
+              "sort": "date",
+              "limit": 3
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "LLM agents",
+            "sort": "date",
+            "limit": 3
+          },
+          "result": {
+            "tool": "hn_search",
+            "query": "LLM agents",
+            "sort": "date",
+            "items": [
+              {
+                "title": "MemoryDojo: Benchmarking Poisoning Through LLM Agent Memory",
+                "url": "https://arxiv.org/abs/2611.09721",
+                "discussion_url": "https://news.ycombinator.com/item?id=50437547",
+                "source": "news.ycombinator.com",
+                "points": 1,
+                "num_comments": 0,
+                "published_at": "2026-11-10T08:28:09Z"
+              },
+              {
+                "title": "Socratic-tutor – turns an LLM into a strict personal tutor",
+                "url": "https://github.com/janestreet/agent_skills",
+                "discussion_url": "https://news.ycombinator.com/item?id=50436087",
+                "source": "news.ycombinator.com",
+                "points": 1,
+                "num_comments": 0,
+                "published_at": "2026-11-10T04:31:59Z"
+              },
+              {
+                "title": "FlashStates Unlocking Flexible Hybrid State Management for Agentic LLM Inference",
+                "url": "https://flashstates.ai/",
+                "discussion_url": "https://news.ycombinator.com/item?id=50436074",
+                "source": "news.ycombinator.com",
+                "points": 1,
+                "num_comments": 0,
+                "published_at": "2026-11-10T04:29:35Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "N03_mt_hn_switch_to_twitter_top",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_from_new_tool",
+        "difficulty": "hard",
+        "what_it_tests": "Chuyển nguồn từ tool mới hn_search sang Twitter: chỉ gọi social_search, giữ chủ đề Bun từ lượt 1, 'hot nhất' → Top."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Trên Hacker News người ta nói gì về Bun?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi chuyển qua Twitter đi, lấy mấy bài hot nhất"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Bun",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Bun",
+              "search_type": "Top",
+              "limit": 5
+            }
+          },
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Bun",
+              "topic": "news"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "extra_tool_call",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "extra tool call lookup"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Bun",
+            "search_type": "Top",
+            "limit": 5
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Bun",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "Bun creator Jarred Sumner rewrote a million lines of code with Claude in 11 days, and every line was checked by two agen",
+                "summary": "Bun creator Jarred Sumner rewrote a million lines of code with Claude in 11 days, and every line was checked by two agents that didn't write it\n\nI broke down his setup, added one more layer of control on top, and packed it all into one prompt for Opus 5.5\n\n→ one agent writes the code\n→ two others, each in its own context, see only the diff and have to prove it doesn't work\n→ a fourth agent checks the checkers, drops false alarms and looks for what they missed\n→ whoever writes doesn't review, and whoever reviews doesn't write\n→ reviewers reject stubs, weakened tests and \"explanatory\" comments instead of real fixes\n→ if a bug repeats, the agent doesn't patch the code, it adds a rule so it never happens again\n→ it's done only when every test passes and none are skipped\n\nThrow it at Opus 5.5 with the task you're scared to hand to an agent, and see how many bugs it catches on its own.\n\nThe full prompt is in the comments.\n\nHow to tune it for your own work is in the article below. Save it before it gets lost ↓",
+                "url": "https://x.com/HoodieFade_/status/2119097898180735028",
+                "source": "@HoodieFade_",
+                "date": "Sat Nov 07 16:01:24 +0000 2026",
+                "metrics": {
+                  "favorites": 166,
+                  "retweets": 20,
+                  "views": "14798"
+                }
+              },
+              {
+                "title": "WHAT THE FUCK GROKBOT DID???",
+                "summary": "WHAT THE FUCK GROKBOT DID???\n\nGrokBot just built a 2048 game inside my pumpfun to help me with the down payment for a new Tesla Model 3, because it just dropped to 1.99% APR\n\nme: my dream car just got approved for financing. I'm $12,000 short on the down payment. help\n\nGrokBot: on it. I built you a trading bot that plays 2048 with pumpfun coins. every coin is a tile. clean coins merge into your stack, rugs get swiped off the board. target: $12,000. all I need from you is a deposit\n\nevery new coin spawns as a tile with 4 lights:\n> DEV: dev holds under 5%\n> LP: liquidity burned\n> BUN: bundles under 10%\n> X: real posts, not bots\n4 green = it merges. 1 red = swiped off\n\n$BEANS · +$118.80\n$WIGGLE · dev held 44% · swiped off · rugged 3s later\n$HONK · +$401.16\n$BLINK · 3/4 · small tile, stop at −6% · −$4.32\n$NOODLE · +$1,212.40\n$PUDGE · 44K posts on X · +$10,288.48\n\n$120 → $12,136.52\n\nGrokBot: sent $12,016.52 to your wallet\nGrokBot: go make the down payment on your car\n\nanyone else need help buying a Model 3?\n\nillustrative build, numbers simulated",
+                "url": "https://x.com/0xGull/status/2118019057148395705",
+                "source": "@0xGull",
+                "date": "Wed Nov 04 16:34:28 +0000 2026",
+                "metrics": {
+                  "favorites": 82,
+                  "retweets": 13,
+                  "views": "7938"
+                }
+              },
+              {
+                "title": "Bun to RCE!!",
+                "summary": "Bun to RCE!!\n@jarredsumner @bunjavascript \nFuck you and your bun project.\n\nYou marked my report INVALID. Told me bin linking \"has nothing to do with trustedDep\" and waved it off as \"not a bun issue.\"\n\n1.4.4 patched it but I Bypassed anyway in empty folder.\nhttps://t.co/EnGnZD9Svm https://t.co/YL8D8gKGn9",
+                "url": "https://x.com/X3r0DaySec/status/2118721688955490645",
+                "source": "@X3r0DaySec",
+                "date": "Fri Nov 06 15:06:29 +0000 2026",
+                "metrics": {
+                  "favorites": 749,
+                  "retweets": 38,
+                  "views": "59513"
+                }
+              },
+              {
+                "title": "In the next version of Bun",
+                "summary": "In the next version of Bun\n\nBun's frontend dev server gets \"automatic workspaces\" support in Chrome DevTools, so you can edit files in the browser. https://t.co/5wZ05ihlOX",
+                "url": "https://x.com/jarredsumner/status/1927599856798867792",
+                "source": "@jarredsumner",
+                "date": "Wed May 28 05:36:33 +0000 2025",
+                "metrics": {
+                  "favorites": 2338,
+                  "retweets": 127,
+                  "views": "130654"
+                }
+              },
+              {
+                "title": "It's pretty wild that people still run Claude Code bare when these 7 repos have over 1,000,000 GitHub stars combined",
+                "summary": "It's pretty wild that people still run Claude Code bare when these 7 repos have over 1,000,000 GitHub stars combined\n\n1. Load 4 coding rules drawn from Karpathy's post (230K): /plugin marketplace add forrestchang/andrej-karpathy-skills\n\n2. Make Claude write the least code that works (186K): /plugin marketplace add DietrichGebert/ponytail\n\n3. Add 7 design skills with 192 palettes (146K): /plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill\n\n4. Run Garry Tan's own setup, /office-hours to /ship (141K): paste the install line from https://t.co/3D3dMVt5hg, needs Bun\n\n5. Cut Claude's replies to caveman length, code stays exact (118K): /plugin marketplace add JuliusBrussee/caveman\n\n6. Add Addy Osmani's 25 skills, spec to ship (114K): /plugin marketplace add addyosmani/agent-skills\n\n7. Shrink the shell output Claude reads (86K): brew install rtk, then rtk init -g\n\nAfter each marketplace add, run /plugin and install it from the Discover tab\n\ngstack adds a Stop hook and Codex reviews of your diffs, rtk patches settings.json: read both READMEs first\n\nFull guide in the article below",
+                "url": "https://x.com/plusxbt/status/2119058330647708147",
+                "source": "@plusxbt",
+                "date": "Sat Nov 07 13:24:10 +0000 2026",
+                "metrics": {
+                  "favorites": 114,
+                  "retweets": 7,
+                  "views": "6271"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "Bun",
+            "topic": "news"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "Bun",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Bun",
+                "url": "https://linkedin.com/in/eng-bun-4b928188",
+                "source": "linkedin.com",
+                "summary": "# Bun\n\nHeadline: Asst to H.E. Personal Advisor to Cambodia Prime Minister\nCurrent role: Asst To H.E. Personal Advisor To Cambodia Prime Minister\nSeniority: Specialist, Administrative\nLocation: Cambodia\nExperience: 10 years 8 months\nLinkedIn: www.linkedin.com/in/eng-bun-4b928188 · 139 followers\n\n## Experience\n- Asst to H.E. Personal Advisor to Cambodia Prime Minister at Council of Minister (Jan 2016 to present)\n\n## Education\n- Cambodian Mekong University, Bachelor's degree, Japanese Studies, B [...] ## Skills\nprime, advisory, personal advisor, minister",
+                "score": 0.47636098
+              },
+              {
+                "title": "Bun EK",
+                "url": "https://linkedin.com/in/bun-ek-7baa0a11",
+                "source": "linkedin.com",
+                "summary": "# Bun EK\nDesjardins\nGreater Montreal Metropolitan Area, CA  \n274 connections, 274 followers\n\n## About\nNone\n\n## Experience\nN/A\n\n## Education\n### Université Paris-Est Marne-la-Vallée  \nN/A  \n2006 - 2007  \nNone\n\n## Publications\nN/A\n\n## Honors & Awards\nN/A\n\n## Certifications\nN/A\n\n## Volunteering\nN/A\n\n## Languages\nN/A\n\n## Organizations\nN/A [...] - Venez donc rejoindre une super équipe !  \nBun EK shared this  \nView Post  \n\n- On embauche !  \nBun EK shared this  \nView Post  \nActivity Image\n\n- 1000 fois mérité !  \nBun EK commented on a post 5mo  \nView Post  \n\n- 1000 bravos !  \nBun EK commented on a post 4y  \nView Post [...] Patrick Desmarais Samuel Tremblay",
+                "score": 0.28376698
+              },
+              {
+                "title": "Bun Air Corp. owners step down - Altoona Mirror",
+                "url": "https://www.altoonamirror.com/news/local-news/2026/11/bedford-countyairport-bunaircorp-owners-step-down",
+                "source": "altoonamirror.com",
+                "summary": "According to Tom McInroy, chair of the county's Airport Authority Board of Directors, an Arkansas-based company bought Bun Air Corp. from former owners Jim and Jennifer DeLong.\n\nThe company kept the Bun Air Corp. name and took over operations Sept. 1 with Jordan Looney as the new general manager. [...] Local News\n\n# Bun Air Corp. owners step down\n\n## Arkansas-based firm buys Bedford County Airport’s fixed-based operator\n\nBy  Colette Costlow  4 min read\n\nMetro\n\n## Trending\n\nBEDFORD -- Bun Air Corp. has a new owner, as the fixed-base operator's longtime owners have stepped down from their role at the Bedford County Airport. [...] Breaking News\n\n  website logo  \n\nMenu",
+                "score": 0.24417868
+              },
+              {
+                "title": "Bun Mee brings a Vietnamese classic to NYC for National Sandwich Day | amNewYork",
+                "url": "https://www.amny.com/lifestyle/eat-and-drink/bun-mee-vietnamese-classic-national-sandwich-day",
+                "source": "amny.com",
+                "summary": "In a world dominated by ham and cheese, turkey clubs, and traditional deli sandwiches, bánh mì offers something completely different. It’s a uniquely Asian sandwich with a flavor profile and personality all its own, yet it’s still a relatively untapped niche within America’s enormous sandwich category. The sandwich combines French and Vietnamese culinary influences, layering crusty bread with savory proteins, sauces, pickled vegetables, fresh herbs, and heat. [...] “My vision when I started Bun Mee was to make bánh mì as common as burgers and tacos,” Tran said. “I believe it has all the ingredients to become one of America’s great everyday sandwiches.” [...] By Bridgette Leahy\n\n… Comments\n\nPosted on\n\nfood spread from Bun Mee\n\nBun Mee is celebrating a Vietnamese classic to National Sandwich Day.\n\nPhoto courtesy of Bun Mee\n\nNew York knows a thing or two about sandwiches. From famous deli classics to classic Italian heroes, nearly every neighborhood has a go-to spot. Still, on National Sandwich Day, Bun Mee debuted as another classic sandwich spot in the lineup: the Vietnamese bánh mì.",
+                "score": 0.23270264
+              },
+              {
+                "title": "Kate Middleton's “Cinnamon Bun” Chignon Is Her Most Regal Style Yet",
+                "url": "https://www.harpersbazaar.com/beauty/hair/a74375550/kate-middleton-cinnamon-bun-chignon-remembrance-sunday-photos",
+                "source": "harpersbazaar.com",
+                "summary": "Every product on this page was chosen by a Harper's BAZAAR editor. We may earn commission on some of the items you choose to buy.\n\nIt’s no surprise that many beauty lovers look to the royal family for quiet-luxury and glam inspiration. Yesterday, during the United Kingdom’s National Service of Remembrance ceremony at the Cenotaph in London, Princess Kate provided another reference point worth bookmarking: an oversized, off-center chignon. [...] Kate’s voluminous updo peeked out from under a wide-brimmed hat, gathered at the nape of her neck and pinned on the left-hand side. Paired with minimal makeup, including rosy cheeks, a coral lip, and her signature subtle smoky eye, Kate’s beauty styling exuded pure understated elegance. To get the look at home and minimize frizz, a few generous spritzes of hairspray, like L'Oréal Paris’ Elnett Extra Strong Hold, are key in locking the chignon in place. [...] Skip to Content\n\nThe 2026 National Service Of Remembrance At The Cenotaph\n\nMax Mumby/Indigo//Getty Images\n\n1. Beauty\n2. Hairstyles, Cuts & Color Trends\n3. Kate Middleton's “Cinnamon Bun” Chignon Is Her Most Regal Style Yet\n\n# Kate Middleton's “Cinnamon Bun” Chignon Is Her Most Regal Style Yet\n\nThe royal’s updo for the National Service of Remembrance ceremony was timeless and sophisticated\n\nBy Tiffany Dodson Davis",
+                "score": 0.1554502
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

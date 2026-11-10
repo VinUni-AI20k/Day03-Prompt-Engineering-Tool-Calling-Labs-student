@@ -1,0 +1,90 @@
+{
+  "dataset_id": "day03_v2_new_tool_hn_search",
+  "dataset_role": "extension",
+  "description": "Case bổ sung kiểm tra routing tới tool mới hn_search (tool thứ 2 của nhóm). Không thay thế 10 case trong eval_group.json.",
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "N01_hn_routing",
+      "phase": "B",
+      "query": "Dân dev trên Hacker News đang bàn gì về Rust?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_new_tool",
+        "difficulty": "easy",
+        "what_it_tests": "Nhắc rõ Hacker News → tool mới hn_search, không phải lookup hay social_search; query chỉ chứa chủ đề."
+      }
+    },
+    {
+      "id": "N02_hn_sort_date_limit",
+      "phase": "B",
+      "query": "Cho mình 3 bài mới nhất trên HN về LLM agents",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM agents",
+              "sort": "date",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "args_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "Viết tắt HN vẫn route hn_search; 'mới nhất' → sort=date; '3 bài' → limit=3."
+      }
+    },
+    {
+      "id": "N03_mt_hn_switch_to_twitter_top",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Trên Hacker News người ta nói gì về Bun?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi chuyển qua Twitter đi, lấy mấy bài hot nhất"
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Bun",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_switch_from_new_tool",
+        "difficulty": "hard",
+        "what_it_tests": "Chuyển nguồn từ tool mới hn_search sang Twitter: chỉ gọi social_search, giữ chủ đề Bun từ lượt 1, 'hot nhất' → Top."
+      }
+    }
+  ]
+}

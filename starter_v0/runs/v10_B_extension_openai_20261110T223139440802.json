@@ -1,0 +1,354 @@
+{
+  "run_id": "v10_B_extension_openai_20261110T223139440802",
+  "version": "v10",
+  "artifact_version": "v10+p06636ca279a1+t121f53ee709c",
+  "prompt_hash": "06636ca279a1bffd6097ada76bbbc3517ec0cfb57f8ac07ad2fd8dddcf5e5790",
+  "tools_hash": "121f53ee709c32c819480b74b17bc624ec3dc06647aeadebb91ad2aa08f45196",
+  "phase": "B",
+  "suite": "extension",
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "system_prompt": "D:\\NAM_CUOI\\Vin\\VinLab03\\K5-L3B-DAY03-NguyenHoangGiaAn-2A202603799-PromptEngineeringToolCalling\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\NAM_CUOI\\Vin\\VinLab03\\K5-L3B-DAY03-NguyenHoangGiaAn-2A202603799-PromptEngineeringToolCalling\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_new_tool_hn_search.json",
+  "dataset_id": "day03_v2_new_tool_hn_search",
+  "dataset_role": "extension",
+  "description": "Case bổ sung kiểm tra routing tới tool mới hn_search (tool thứ 2 của nhóm). Không thay thế 10 case trong eval_group.json.",
+  "generated_at": "2026-11-10T22:31:39",
+  "summary": {
+    "total_cases": 3,
+    "measured_cases": 3,
+    "provider_error_cases": 0,
+    "passed_cases": 3,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": 1.0,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "N01_hn_routing",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_new_tool",
+        "difficulty": "easy",
+        "what_it_tests": "Nhắc rõ Hacker News → tool mới hn_search, không phải lookup hay social_search; query chỉ chứa chủ đề."
+      },
+      "input": "Dân dev trên Hacker News đang bàn gì về Rust?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust",
+              "sort": "relevance",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "Rust",
+            "sort": "relevance",
+            "limit": 5
+          },
+          "result": {
+            "tool": "hn_search",
+            "query": "Rust",
+            "sort": "relevance",
+            "items": [
+              {
+                "title": "Why Discord is switching from Go to Rust",
+                "url": "https://blog.discordapp.com/why-discord-is-switching-from-go-to-rust-a190bbca2b1f",
+                "discussion_url": "https://news.ycombinator.com/item?id=22238335",
+                "source": "news.ycombinator.com",
+                "points": 1582,
+                "num_comments": 642,
+                "published_at": "2020-02-04T17:30:40Z"
+              },
+              {
+                "title": "Leaving Rust gamedev after 3 years",
+                "url": "https://loglog.games/blog/leaving-rust-gamedev/",
+                "discussion_url": "https://news.ycombinator.com/item?id=40172033",
+                "source": "news.ycombinator.com",
+                "points": 1484,
+                "num_comments": 972,
+                "published_at": "2024-04-26T17:33:56Z"
+              },
+              {
+                "title": "A half-hour to learn Rust",
+                "url": "https://fasterthanli.me/articles/a-half-hour-to-learn-rust",
+                "discussion_url": "https://news.ycombinator.com/item?id=25610741",
+                "source": "news.ycombinator.com",
+                "points": 1444,
+                "num_comments": 330,
+                "published_at": "2021-01-02T05:50:39Z"
+              },
+              {
+                "title": "Announcing Rust 1.0",
+                "url": "http://blog.rust-lang.org/2015/05/15/Rust-1.0.html",
+                "discussion_url": "https://news.ycombinator.com/item?id=9551937",
+                "source": "news.ycombinator.com",
+                "points": 1363,
+                "num_comments": 306,
+                "published_at": "2015-05-15T17:02:09Z"
+              },
+              {
+                "title": "CityBound – An open source city simulation game in Rust",
+                "url": "https://github.com/citybound/citybound",
+                "discussion_url": "https://news.ycombinator.com/item?id=19583384",
+                "source": "news.ycombinator.com",
+                "points": 1340,
+                "num_comments": 264,
+                "published_at": "2019-04-05T15:18:45Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "N02_hn_sort_date_limit",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "args_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "Viết tắt HN vẫn route hn_search; 'mới nhất' → sort=date; '3 bài' → limit=3."
+      },
+      "input": "Cho mình 3 bài mới nhất trên HN về LLM agents",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM agents",
+              "sort": "date",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM agents",
+              "sort": "date",
+              "limit": 3
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "LLM agents",
+            "sort": "date",
+            "limit": 3
+          },
+          "result": {
+            "tool": "hn_search",
+            "query": "LLM agents",
+            "sort": "date",
+            "items": [
+              {
+                "title": "MemoryDojo: Benchmarking Poisoning Through LLM Agent Memory",
+                "url": "https://arxiv.org/abs/2611.09721",
+                "discussion_url": "https://news.ycombinator.com/item?id=50437547",
+                "source": "news.ycombinator.com",
+                "points": 1,
+                "num_comments": 0,
+                "published_at": "2026-11-10T08:28:09Z"
+              },
+              {
+                "title": "Socratic-tutor – turns an LLM into a strict personal tutor",
+                "url": "https://github.com/janestreet/agent_skills",
+                "discussion_url": "https://news.ycombinator.com/item?id=50436087",
+                "source": "news.ycombinator.com",
+                "points": 1,
+                "num_comments": 0,
+                "published_at": "2026-11-10T04:31:59Z"
+              },
+              {
+                "title": "FlashStates Unlocking Flexible Hybrid State Management for Agentic LLM Inference",
+                "url": "https://flashstates.ai/",
+                "discussion_url": "https://news.ycombinator.com/item?id=50436074",
+                "source": "news.ycombinator.com",
+                "points": 1,
+                "num_comments": 0,
+                "published_at": "2026-11-10T04:29:35Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "N03_mt_hn_switch_to_twitter_top",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_from_new_tool",
+        "difficulty": "hard",
+        "what_it_tests": "Chuyển nguồn từ tool mới hn_search sang Twitter: chỉ gọi social_search, giữ chủ đề Bun từ lượt 1, 'hot nhất' → Top."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Trên Hacker News người ta nói gì về Bun?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi chuyển qua Twitter đi, lấy mấy bài hot nhất"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Bun",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Bun",
+              "search_type": "Top"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Bun",
+            "search_type": "Top"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Bun",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "SHE JUMPED OFF A DAM ONTO A TINY TRAMPOLINE AND BOUNCED ALL THE WAY BACK TO THE TOP",
+                "summary": "SHE JUMPED OFF A DAM ONTO A TINY TRAMPOLINE AND BOUNCED ALL THE WAY BACK TO THE TOP\n\n5.8m views. 111k likes. 15 seconds\n\ngirl with a messy bun and pink sneakers stands at the edge of a huge dam, whole crowd behind her filming lol. she just goes. you watch her shrink all the way down to a green trampoline the size of a coin, she hits it dead center and comes flying back up. two guys grab her at the top and she's laughing\n\nwhy this one hits:\n\n• the first few seconds she just stands there looking down, and you still can't leave\n• the crowd leaning in tells you how to feel about it\n• the trampoline is a dot from up there, that's the whole joke\n• the trip back up is faster than the fall so you have to run it back\n• two guys catching her is the ending, nobody sees that coming\n\nthis format is all over x right now lol. dam, helicopter, mall atrium, everybody's got one. this version is still sitting at 5.8m fr\n\nthe move: pick the highest place you can think of and put the smallest possible landing under it\n\nwanna make one? kling 3.0 inside @Picsart, one still of her at the edge, one shot down, one shot back up\n\nwould you be the one jumping, or one of the guys catching?",
+                "url": "https://x.com/TFiirmzee/status/2119848974266007970",
+                "source": "@TFiirmzee",
+                "date": "Mon Nov 09 17:45:55 +0000 2026",
+                "metrics": {
+                  "favorites": 43,
+                  "retweets": 5,
+                  "views": "64019"
+                }
+              },
+              {
+                "title": "Bun creator Jarred Sumner rewrote a million lines of code with Claude in 11 days, and every line was checked by two agen",
+                "summary": "Bun creator Jarred Sumner rewrote a million lines of code with Claude in 11 days, and every line was checked by two agents that didn't write it\n\nI broke down his setup, added one more layer of control on top, and packed it all into one prompt for Opus 5.5\n\n→ one agent writes the code\n→ two others, each in its own context, see only the diff and have to prove it doesn't work\n→ a fourth agent checks the checkers, drops false alarms and looks for what they missed\n→ whoever writes doesn't review, and whoever reviews doesn't write\n→ reviewers reject stubs, weakened tests and \"explanatory\" comments instead of real fixes\n→ if a bug repeats, the agent doesn't patch the code, it adds a rule so it never happens again\n→ it's done only when every test passes and none are skipped\n\nThrow it at Opus 5.5 with the task you're scared to hand to an agent, and see how many bugs it catches on its own.\n\nThe full prompt is in the comments.\n\nHow to tune it for your own work is in the article below. Save it before it gets lost ↓",
+                "url": "https://x.com/HoodieFade_/status/2119097898180735028",
+                "source": "@HoodieFade_",
+                "date": "Sat Nov 07 16:01:24 +0000 2026",
+                "metrics": {
+                  "favorites": 166,
+                  "retweets": 20,
+                  "views": "14798"
+                }
+              },
+              {
+                "title": "Bun to RCE!!",
+                "summary": "Bun to RCE!!\n@jarredsumner @bunjavascript \nFuck you and your bun project.\n\nYou marked my report INVALID. Told me bin linking \"has nothing to do with trustedDep\" and waved it off as \"not a bun issue.\"\n\n1.4.4 patched it but I Bypassed anyway in empty folder.\nhttps://t.co/EnGnZD9Svm https://t.co/YL8D8gKGn9",
+                "url": "https://x.com/X3r0DaySec/status/2118721688955490645",
+                "source": "@X3r0DaySec",
+                "date": "Fri Nov 06 15:06:29 +0000 2026",
+                "metrics": {
+                  "favorites": 749,
+                  "retweets": 38,
+                  "views": "59514"
+                }
+              },
+              {
+                "title": "In the next version of Bun",
+                "summary": "In the next version of Bun\n\nBun's frontend dev server gets \"automatic workspaces\" support in Chrome DevTools, so you can edit files in the browser. https://t.co/5wZ05ihlOX",
+                "url": "https://x.com/jarredsumner/status/1927599856798867792",
+                "source": "@jarredsumner",
+                "date": "Wed May 28 05:36:33 +0000 2025",
+                "metrics": {
+                  "favorites": 2338,
+                  "retweets": 127,
+                  "views": "130654"
+                }
+              },
+              {
+                "title": "some kitchen buns for you😳 https://t.co/bVpWQASsiV",
+                "summary": "some kitchen buns for you😳 https://t.co/bVpWQASsiV",
+                "url": "https://x.com/Breaking57/status/2118181275139981575",
+                "source": "@Breaking57",
+                "date": "Thu Nov 05 03:19:04 +0000 2026",
+                "metrics": {
+                  "favorites": 122,
+                  "retweets": 1,
+                  "views": "4642"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

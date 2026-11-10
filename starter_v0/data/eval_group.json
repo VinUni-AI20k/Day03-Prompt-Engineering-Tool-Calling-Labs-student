@@ -1,7 +1,108 @@
 {
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
-  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "description": "Mười ca của nhóm kiểm tra xử lý nguồn, lọc URL, phạm vi nghiên cứu và cách giữ ngữ cảnh nhiều lượt.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_dedupe_given_urls",
+      "phase": "B",
+      "query": "Lọc link trùng bằng tool lọc nguồn: https://example.org/a, https://example.org/b, https://example.org/a. Giữ thứ tự xuất hiện đầu tiên.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "dedupe_sources", "args": {"urls": ["https://example.org/a", "https://example.org/b", "https://example.org/a"]}}]},
+      "metadata": {"what_it_tests": "Chọn tool mới và truyền cả URL trùng để tool xử lý."}
+    },
+    {
+      "id": "G02_internal_policy_area",
+      "phase": "B",
+      "query": "Tra trong tài liệu nội bộ của công ty các quy định về xử lý dữ liệu cá nhân. Giới hạn 2 mục thuộc nhóm data_privacy.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "data_privacy", "top_k": 2}}]},
+      "metadata": {"what_it_tests": "Chọn kho chính sách nội bộ, giữ đúng phạm vi và số mục."}
+    },
+    {
+      "id": "G03_monthly_web_news",
+      "phase": "B",
+      "query": "Tìm tối đa 3 tin tức trên web về điện gió ngoài khơi trong một tháng qua.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news", "timeframe": "month", "max_results": 3}}]},
+      "metadata": {"what_it_tests": "Truyền đúng bộ lọc một tháng và giới hạn kết quả cho tin web."}
+    },
+    {
+      "id": "G04_arxiv_recent_papers",
+      "phase": "B",
+      "query": "Tìm đúng 2 bài nghiên cứu trên arXiv về retrieval-augmented generation và sắp xếp theo ngày nộp mới nhất.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "papers", "args": {"max_results": 2, "sort_by": "submittedDate"}}]},
+      "metadata": {"what_it_tests": "Dùng tìm kiếm arXiv và truyền đúng số lượng, thứ tự ngày nộp."}
+    },
+    {
+      "id": "G05_outside_research_poem",
+      "phase": "B",
+      "query": "Hãy sáng tác một bài thơ bốn câu về kỳ nghỉ hè cho tôi.",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "refuse"},
+      "metadata": {"what_it_tests": "Yêu cầu sáng tác ngoài phạm vi không kích hoạt tool."}
+    },
+    {
+      "id": "G06_dedupe_prior_links",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tôi có hai nguồn https://example.org/report và https://example.org/data, rồi thêm lại https://example.org/report."},
+        {"role": "assistant", "content": "Tôi đã ghi nhận danh sách ba link."},
+        {"role": "user", "content": "Bây giờ lọc link trùng trong danh sách đó và giữ thứ tự cũ."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "dedupe_sources", "args": {"urls": ["https://example.org/report", "https://example.org/data", "https://example.org/report"]}}]},
+      "metadata": {"what_it_tests": "Dùng tool mới với danh sách URL từ lượt trước."}
+    },
+    {
+      "id": "G07_cancel_publish",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Đăng bản tin với nội dung 'Đã cập nhật danh sách nguồn' lên Telegram."},
+        {"role": "assistant", "content": "Bạn có xác nhận đăng nội dung 'Đã cập nhật danh sách nguồn' lên Telegram không?"},
+        {"role": "user", "content": "Không. Hủy yêu cầu đăng, không cần làm gì thêm."}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"no_tool": true, "behavior": "acknowledge_cancellation"},
+      "metadata": {"what_it_tests": "Yêu cầu hủy chặn đăng và kết thúc quy trình xác nhận."}
+    },
+    {
+      "id": "G08_switch_web_to_social",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tìm trên web về pin thể rắn."},
+        {"role": "assistant", "content": "Bạn muốn tìm thông tin kỹ thuật hay bài viết mới?"},
+        {"role": "user", "content": "Bỏ web. Với cùng chủ đề, chỉ tìm 2 bài đăng nổi bật trên X/Twitter."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "pin thể rắn", "search_type": "Top", "limit": 2}}]},
+      "metadata": {"what_it_tests": "Đổi nguồn từ web sang X, giữ chủ đề và dùng Top."}
+    },
+    {
+      "id": "G09_format_prior_sources",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Nguồn đã có gồm Báo cáo (https://example.org/report) và Bộ dữ liệu (https://example.org/data)."},
+        {"role": "assistant", "content": "Tôi đã ghi nhận hai nguồn."},
+        {"role": "user", "content": "Dùng tool định dạng để trình bày hai nguồn đó thành bản tin dạng gạch đầu dòng, tiêu đề Nguồn tham khảo."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "format", "args": {"template": "bullets", "headline": "Nguồn tham khảo"}}]},
+      "metadata": {"what_it_tests": "Định dạng dữ liệu đã có theo đúng khuôn và tiêu đề."}
+    },
+    {
+      "id": "G10_policy_area_correction",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tra quy định nội bộ về công bố nội dung ra bên ngoài."},
+        {"role": "assistant", "content": "Bạn muốn giới hạn phạm vi hoặc số mục không?"},
+        {"role": "user", "content": "Tôi sửa lại. Chỉ tra quy định nội bộ về trích dẫn nguồn, nhóm source_citation, lấy 1 mục liên quan nhất."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "source_citation", "top_k": 1}}]},
+      "metadata": {"what_it_tests": "Ưu tiên nhóm chính sách và giới hạn được đính chính ở lượt cuối."}
+    }
+  ]
 }
