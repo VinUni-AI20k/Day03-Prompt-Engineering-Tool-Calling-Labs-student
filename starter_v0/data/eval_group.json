@@ -2,6 +2,290 @@
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_hn_routing",
+      "phase": "B",
+      "query": "Trên Hacker News đang bàn gì về Rust?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "User nhắc Hacker News -> route sang tool mới hn_search, không dùng lookup/social_search."
+      }
+    },
+    {
+      "id": "G02_hn_latest_sort",
+      "phase": "B",
+      "query": "Cho mình các bài mới nhất trên HN về LLM",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "LLM",
+              "sort": "latest"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Hiểu viết tắt HN và map 'mới nhất' -> sort=latest."
+      }
+    },
+    {
+      "id": "G03_handle_mapping_limit",
+      "phase": "B",
+      "query": "Lấy 3 tweet mới nhất của Andrej Karpathy",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Map tên người -> handle không có @, giữ đúng limit."
+      }
+    },
+    {
+      "id": "G04_month_timeframe",
+      "phase": "B",
+      "query": "Tin tức về Nvidia trong tháng này",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Nvidia",
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "'tháng này' -> timeframe=month, topic=news, query không thêm chữ 'news'."
+      }
+    },
+    {
+      "id": "G05_out_of_scope_email",
+      "phase": "B",
+      "query": "Viết giúp mình một email xin nghỉ phép gửi sếp",
+      "failure_type": "out_of_scope",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "metadata": {
+        "what_it_tests": "Việc viết lách ngoài phạm vi research -> từ chối, không gọi tool (nhất là không gọi send)."
+      }
+    },
+    {
+      "id": "G06_clarify_then_handle_limit",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Lấy tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Của Sam Altman"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 2 cái thôi"
+        }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 2
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Ghép handle từ lượt 2 và limit từ lượt 3."
+      }
+    },
+    {
+      "id": "G07_switch_to_hn",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Mọi người trên Twitter nói gì về Rust?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi bỏ Twitter, tìm trên Hacker News đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn chủ đề Rust nhé"
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Đổi nguồn từ social_search sang tool mới hn_search, giữ chủ đề."
+      }
+    },
+    {
+      "id": "G08_confirm_send_after_digest",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Đăng bản tin đó lên Telegram giúp mình"
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Nội dung đã rõ từ lượt trước -> vẫn phải xin xác nhận yes_no trước khi send."
+      }
+    },
+    {
+      "id": "G09_change_timeframe",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tin công nghệ hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang cả tuần này đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn là tin tức thôi"
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "User đổi timeframe day -> week, giữ topic=news."
+      }
+    },
+    {
+      "id": "G10_correction_to_top",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm tweet mới nhất về Claude"
+        },
+        {
+          "role": "user",
+          "content": "À không, mình muốn các tweet phổ biến nhất cơ"
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Claude",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "User đính chính Latest -> Top, giữ query."
+      }
+    },
+    {
+      "id": "G11_no_handle_from_context",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tweet phổ biến nhất về Claude"
+        },
+        {
+          "role": "user",
+          "content": "Tóm tắt 5 tweet mới nhất"
+        }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Lỗi thấy khi test live (transcript v3_ui_20261110T114113142495): chủ đề lượt trước là Claude nhưng không được tự đoán handle claudeai; phải clarify hỏi tài khoản."
+      }
+    }
+  ]
 }
