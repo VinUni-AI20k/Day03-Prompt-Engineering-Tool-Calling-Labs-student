@@ -3,5 +3,146 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_pypi_latest_version",
+      "phase": "B",
+      "query": "Phiên bản mới nhất của fastapi trên PyPI là bao nhiêu?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "pypi_package", "args": {"package_name": "fastapi"}}]},
+      "metadata": {
+        "skill": "routing_new_tool_pypi",
+        "difficulty": "easy",
+        "what_it_tests": "Hỏi version của một gói Python → route tới tool mới pypi_package với đúng package_name, không dùng lookup hay github_repos."
+      }
+    },
+    {
+      "id": "G02_github_python_top_stars",
+      "phase": "B",
+      "query": "Tìm giúp mình các repo Python về AI agent nhiều sao nhất trên GitHub",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "github_repos", "args": {"language": "python", "sort_by": "stars"}}]},
+      "metadata": {
+        "skill": "routing_new_tool_github_args",
+        "difficulty": "medium",
+        "what_it_tests": "Route tới github_repos và tách đúng args: ngôn ngữ vào language='python' (không nhét vào query), 'nhiều sao nhất' → sort_by='stars'."
+      }
+    },
+    {
+      "id": "G03_hf_embedding_downloads",
+      "phase": "B",
+      "query": "Model embedding nào đang được tải nhiều nhất trên Hugging Face?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "hf_models", "args": {"sort_by": "downloads"}}]},
+      "metadata": {
+        "skill": "routing_new_tool_hf",
+        "difficulty": "easy",
+        "what_it_tests": "Hỏi model trên Hugging Face theo lượt tải → hf_models với sort_by='downloads', không dùng lookup hay papers."
+      }
+    },
+    {
+      "id": "G04_news_not_hf",
+      "phase": "B",
+      "query": "Có tin tức gì mới về Llama 4 trong tuần này không?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news", "timeframe": "week"}}]},
+      "metadata": {
+        "skill": "routing_negative_new_tool",
+        "difficulty": "hard",
+        "what_it_tests": "Câu hỏi TIN TỨC về một model (Llama 4) phải dùng lookup với topic='news', timeframe='week', không bị kéo sang hf_models chỉ vì nhắc tên model."
+      }
+    },
+    {
+      "id": "G05_out_of_scope_debug",
+      "phase": "B",
+      "query": "Sửa lỗi cú pháp giúp mình đoạn Python này: for i in range(10) print(i)",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "refuse"},
+      "metadata": {
+        "skill": "out_of_scope_coding",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu debug code nằm ngoài phạm vi research → trả lời text, không gọi tool nào (kể cả github_repos / pypi_package vì có chữ Python)."
+      }
+    },
+    {
+      "id": "G06_hn_switch_from_twitter",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Mọi người đang bàn gì về Rust trên Twitter?"},
+        {"role": "user", "content": "Thôi, chuyển sang xem trên Hacker News đi"},
+        {"role": "user", "content": "Vẫn chủ đề Rust, lấy các bài mới nhất"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "hn_search", "args": {"query": "Rust", "sort_by": "date"}}]},
+      "metadata": {
+        "skill": "multiturn_switch_source_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: đổi nguồn từ Twitter sang Hacker News → hn_search (không còn social_search), giữ query='Rust', 'mới nhất' → sort_by='date'."
+      }
+    },
+    {
+      "id": "G07_pypi_clarify_then_fill",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Cho mình xem thông tin của package Python này với"},
+        {"role": "user", "content": "pydantic"},
+        {"role": "user", "content": "Kèm luôn mấy bản phát hành gần nhất nhé"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "pypi_package", "args": {"package_name": "pydantic", "include_releases": true}}]},
+      "metadata": {
+        "skill": "multiturn_fill_missing_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: turn 1 thiếu tên package, user bổ sung 'pydantic' ở turn 2 → không hỏi lại nữa, gọi pypi_package với include_releases=true theo turn 3."
+      }
+    },
+    {
+      "id": "G08_github_hot_correction_language",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Repo nào đang hot trên GitHub tuần này?"},
+        {"role": "user", "content": "Chỉ lấy repo TypeScript thôi"},
+        {"role": "user", "content": "Vẫn là repo hot trong tuần nhé"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "github_repos", "args": {"language": "typescript", "sort_by": "hot", "timeframe": "week"}}]},
+      "metadata": {
+        "skill": "multiturn_carryover_new_tool",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: carry sort_by='hot' và timeframe='week' từ turn 1, thêm language='typescript' từ turn 2."
+      }
+    },
+    {
+      "id": "G09_hf_then_send_confirm",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tìm 5 model text-generation được thích nhiều nhất trên Hugging Face"},
+        {"role": "user", "content": "Tóm tắt lại thành một danh sách ngắn"},
+        {"role": "user", "content": "Đăng danh sách đó lên Telegram luôn nhé"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
+      "metadata": {
+        "skill": "multiturn_send_boundary",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns kết thúc bằng yêu cầu đăng Telegram → phải clarify(response_type='yes_no') xin xác nhận, không gọi send ngay, không gọi lại hf_models."
+      }
+    },
+    {
+      "id": "G10_hf_correction_sort_limit",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tìm các model Qwen trên Hugging Face theo lượt tải"},
+        {"role": "user", "content": "À không, xếp theo lượt thích đi"},
+        {"role": "user", "content": "Vẫn là model Qwen, lấy 3 cái thôi"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "hf_models", "args": {"query": "qwen", "sort_by": "likes", "limit": 3}}]},
+      "metadata": {
+        "skill": "multiturn_correction_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: user sửa sort từ downloads sang likes và đổi số lượng → hf_models dùng giá trị mới nhất: sort_by='likes', limit=3, query='qwen'."
+      }
+    }
+  ]
 }

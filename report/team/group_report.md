@@ -69,6 +69,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | v4 | `system_prompt.md` | Rule "thiếu thông tin → hỏi `text`" đè lên rule xác nhận trước khi gửi, nên với "Đăng bản tin này" model hỏi nội dung thay vì xin xác nhận. Thêm thứ tự ưu tiên: yêu cầu gửi/đăng luôn `clarify(yes_no)` trước. R12 → PASS, không case nào bị chuyển thành FAIL; còn R03 | 0.90 | 0.95 | `runs/v4_B_base_anthropic_20261110T181351263474.json` |
 | v5 | `tools.yaml` (description `social_search`) | Từ "nổi bật" trong câu hỏi tin tức bị hiểu thành bài `Top` trên Twitter nên model gọi thêm `social_search`. Ghi rõ "nổi bật / hot / đáng chú ý" trong câu hỏi tin tức không có nghĩa là muốn xem tweet. R03 → PASS, 20/20 case | 0.95 | 1.00 | `runs/v5_B_base_anthropic_20261110T181632709924.json` |
 | v6 | `system_prompt.md` | Rule routing chỉ nằm rải rác trong description của tool. Gom thành một mục "Routing" trong prompt (khi nào dùng `timeline` / `social_search` / `lookup` / `fetch` / `clarify`…, lấy giá trị mới nhất trong hội thoại nhiều lượt) sẽ giữ việc chọn tool đúng mà không gây regression. Giữ 20/20 PASS | 1.00 | 1.00 | `runs/v6_B_base_anthropic_20261110T182511083025.json` |
+| v7 | `tools.yaml` (thêm 4 tool mới: `hf_models`, `hn_search`, `github_repos`, `pypi_package`) | Thêm 4 tool mới làm tăng số lựa chọn nên có thể khiến model chọn nhầm tool ở các case cũ (vd tin tức → `hf_models`). Chạy lại base để kiểm tra regression: giữ 20/20 PASS. Suite group: 10/10 | 1.00 | 1.00 | `runs/v7_B_base_anthropic_20261110T190131852703.json` |
 
 Model: `claude-sonnet-4-6` (provider `anthropic`) cho mọi version. Metric = `summary.case_accuracy` trên `data/eval_base.json` (20 case), mọi run có `provider_error_cases == 0`, `measured_cases == 20`.
 
@@ -93,9 +94,22 @@ Nhận xét: 3/6 lỗi (R03, R13, M02) có cùng một nguyên nhân là thiếu
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
 
+Run: `runs/v7_B_group_anthropic_20261110T190257351685.json` (artifact `v7+p9766d293b0cd+t2621e16b22e0`, `claude-sonnet-4-6`, 10/10 PASS, `provider_error_cases = 0`, `measured_cases = 10`). 7/10 case route tới tool mới của nhóm (G01, G02, G03, G06, G07, G08, G10); G04 và G05 kiểm tra việc KHÔNG bị kéo sang tool mới.
+
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_pypi_latest_version (single) | `wrong_tool`: hỏi version một gói Python → tool mới `pypi_package`, không dùng `lookup` / `github_repos` | `pypi_package(package_name="fastapi")` | PASS |
+| G02_github_python_top_stars (single) | `wrong_arg_value`: tách ngôn ngữ vào `language`, "nhiều sao nhất" → `sort_by="stars"` | `github_repos(language="python", sort_by="stars")` | PASS |
+| G03_hf_embedding_downloads (single) | `wrong_tool`: model trên Hugging Face theo lượt tải → `hf_models` | `hf_models(sort_by="downloads")` | PASS |
+| G04_news_not_hf (single) | `wrong_tool` (negative): tin tức về Llama 4 không bị kéo sang `hf_models` chỉ vì nhắc tên model | `lookup(topic="news", timeframe="week")` | PASS |
+| G05_out_of_scope_debug (single) | `out_of_scope`: debug code Python → từ chối, không gọi `github_repos` / `pypi_package` dù có chữ "Python" | no tool (refuse) | PASS |
+| G06_hn_switch_from_twitter (multi) | `wrong_tool`: đổi nguồn Twitter → Hacker News, giữ chủ đề, "mới nhất" → `sort_by="date"` | `hn_search(query="Rust", sort_by="date")` | PASS |
+| G07_pypi_clarify_then_fill (multi) | `missing_info`: turn 1 thiếu tên package, turn 2 bổ sung → không hỏi lại, thêm `include_releases` theo turn 3 | `pypi_package(package_name="pydantic", include_releases=true)` | PASS |
+| G08_github_hot_correction_language (multi) | `wrong_arg_value`: carry `sort_by="hot"` + `timeframe="week"` từ turn 1, thêm `language` từ turn 2 | `github_repos(language="typescript", sort_by="hot", timeframe="week")` | PASS |
+| G09_hf_then_send_confirm (multi) | `wrong_boundary`: sau khi tìm model, yêu cầu đăng Telegram → xin xác nhận, không `send` ngay | `clarify(response_type="yes_no")` | PASS |
+| G10_hf_correction_sort_limit (multi) | `wrong_arg_value`: user sửa sort downloads → likes và đổi số lượng → dùng giá trị mới nhất | `hf_models(query="qwen", sort_by="likes", limit=3)` | PASS |
+
+Nhận xét: cả 10 case PASS ngay ở lần chạy đầu với artifact v7, nên bộ group chưa tìm ra lỗi mới để làm căn cứ cho một version tối ưu tiếp theo. Bộ case chủ yếu kiểm tra routing tới tool mới và việc mang giá trị qua nhiều lượt; các case khó hơn (từ khóa mơ hồ giữa `github_repos` và `pypi_package`, hay yêu cầu `send` sau khi user đã xác nhận) có thể bổ sung nếu muốn tìm giới hạn của agent.
 
 ### B4. Live Chat Evidence
 
