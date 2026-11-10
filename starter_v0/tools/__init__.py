@@ -18,6 +18,7 @@ from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
 from .export_report.tool import export_report
+from .read_text_file.tool import read_text_file
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -26,6 +27,7 @@ from .export_report.tool import export_report
 #   artifacts/tools.yaml  ->  this dict  ->  data/eval_base.json + data/eval_research_extension.json
 # Otherwise the eval raises "not declared in tools.yaml" or scores every call as a name mismatch.
 TOOL_FUNCTIONS = {
+    "read_text_file": read_text_file,
     "export_report": export_report,
     "clarify": ask_user,
     "timeline": get_user_tweets,
