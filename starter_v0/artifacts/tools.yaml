@@ -186,3 +186,24 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang tối đa cần đọc."}
         max_chars: {type: integer, default: 8000, description: "Số ký tự tối đa trả về."}
       required: [arxiv_url]
+
+  # ---------------- Tool mới của nhóm (CP3) ----------------
+  - name: wiki
+    description: >
+      Tra Wikipedia: trả về đoạn tóm tắt mở đầu của bài viết kèm URL. Dùng cho kiến thức nền, ổn định:
+      khái niệm ("Transformer là gì"), tiểu sử người, tổ chức, sự kiện lịch sử. KHÔNG dùng cho tin tức /
+      diễn biến mới (dùng lookup), tweet (social_search/timeline), paper (papers), hay URL user đã đưa (fetch).
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          default: ""
+          description: "Tên khái niệm/người/tổ chức cần tra, ngắn gọn (ví dụ 'Transformer (deep learning)', 'Geoffrey Hinton'). Không thêm 'là gì', 'wikipedia'."
+        lang:
+          type: string
+          enum: [en, vi]
+          default: "en"
+          description: "'vi' khi user muốn nguồn/bài Wikipedia tiếng Việt; còn lại 'en' (nội dung đầy đủ hơn)."
+        max_results: {type: integer, default: 3, description: "Số bài (1–5); dùng đúng con số user nêu."}
+      required: [query]

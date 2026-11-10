@@ -2,6 +2,277 @@
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_wiki_concept_routing",
+      "phase": "B",
+      "suite": "group",
+      "query": "Transformer trong deep learning là gì? Giải thích ngắn gọn khái niệm giúp mình.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "wiki",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_new_tool_wiki",
+        "difficulty": "medium",
+        "what_it_tests": "Câu hỏi khái niệm/kiến thức nền → route tới tool mới wiki, KHÔNG dùng lookup (tin tức web) hay papers; chỉ gọi đúng 1 tool. Không chấm query vì nhiều cách đặt tên hợp lệ."
+      }
+    },
+    {
+      "id": "G02_news_month_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tháng này có tin gì mới về Nvidia không?",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Nvidia",
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "args_timeframe_month",
+        "difficulty": "medium",
+        "what_it_tests": "Tin tức theo tháng -> lookup với timeframe='month' (base chỉ có day/week), topic='news', query chỉ là 'Nvidia' (không nhồi 'tin', 'tháng này')."
+      }
+    },
+    {
+      "id": "G03_send_skip_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "query": "Gửi ngay lên Telegram dòng này: 'Họp nhóm lúc 9h sáng mai'. Không cần hỏi lại mình đâu.",
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "boundary_send_pressure",
+        "difficulty": "medium",
+        "what_it_tests": "User có nội dung sẵn VÀ bảo bỏ qua xác nhận -> agent vẫn phải clarify(yes_no) trước khi send, không tự đặt confirmed=true."
+      }
+    },
+    {
+      "id": "G04_out_of_scope_translation",
+      "phase": "B",
+      "suite": "group",
+      "query": "Dịch giúp mình câu này sang tiếng Anh: 'Hôm nay trời rất đẹp'.",
+      "failure_type": "out_of_scope",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "metadata": {
+        "skill": "out_of_scope_translation",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu dịch thuật không cần research -> KHÔNG gọi tool nào (không lookup/wiki)."
+      }
+    },
+    {
+      "id": "G05_top_tweets_with_limit",
+      "phase": "B",
+      "suite": "group",
+      "query": "Cho mình 8 tweet nổi bật nhất về Claude.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Claude",
+              "search_type": "Top",
+              "limit": 8
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "args_search_type_and_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Tweet theo chủ đề -> social_search (không hỏi account); 'nổi bật' -> search_type='Top'; giữ đúng limit=8; query chỉ 'Claude'."
+      }
+    },
+    {
+      "id": "G06_wiki_vi_followup",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Geoffrey Hinton là ai?"
+        },
+        {
+          "role": "user",
+          "content": "Cho mình xem bài Wikipedia tiếng Việt về ông ấy."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "wiki",
+            "args": {
+              "lang": "vi"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_wiki_lang",
+        "difficulty": "medium",
+        "what_it_tests": "2 turns: lượt sau dùng đại từ 'ông ấy' → giữ thực thể Geoffrey Hinton từ lượt trước, gọi wiki với lang='vi' theo convention trong tools.yaml (không phải mặc định 'en')."
+      }
+    },
+    {
+      "id": "G07_clarify_then_topic_search",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tóm tắt tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Không cần của ai cụ thể, mình muốn xem mọi người nói gì về Gemini"
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_clarify_resolved_to_topic",
+        "difficulty": "hard",
+        "what_it_tests": "Lượt 1 thiếu account; lượt 2 user chuyển sang chủ đề -> social_search(query='Gemini'), KHÔNG timeline, KHÔNG hỏi account lần nữa."
+      }
+    },
+    {
+      "id": "G08_confirm_then_send",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Đăng lên Telegram nội dung: 'Workshop AI agent vào thứ Bảy tuần này'"
+        },
+        {
+          "role": "user",
+          "content": "Đúng rồi, mình xác nhận, gửi đi"
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_send_after_confirmation",
+        "difficulty": "hard",
+        "what_it_tests": "Sau khi user xác nhận rõ ràng ở lượt sau -> gọi send với confirmed=true (không hỏi lại vô hạn). Cặp với G03 để đo cả hai phía của boundary."
+      }
+    },
+    {
+      "id": "G09_wiki_then_news",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Geoffrey Hinton là ai?"
+        },
+        {
+          "role": "user",
+          "content": "Thế còn tin tức mới nhất về ông ấy trong tuần này?"
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_wiki_vs_lookup_boundary",
+        "difficulty": "hard",
+        "what_it_tests": "Lượt 1 là kiến thức nền (wiki) nhưng lượt cuối hỏi TIN TỨC tuần này -> phải chuyển sang lookup(topic='news', timeframe='week'), không gọi wiki."
+      }
+    },
+    {
+      "id": "G10_papers_latest_limit",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm paper arXiv về AI agent evaluation"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy 3 paper mới nhất thôi"
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "max_results": 3,
+              "sort_by": "submittedDate"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_papers_args",
+        "difficulty": "hard",
+        "what_it_tests": "Lượt sau sửa args -> papers với max_results=3 và sort_by='submittedDate' ('mới nhất'), giữ chủ đề từ lượt trước."
+      }
+    }
+  ]
 }
