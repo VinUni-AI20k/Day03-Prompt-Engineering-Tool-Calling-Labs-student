@@ -61,13 +61,15 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 ### Đóng góp cụ thể
 
-- Chạy baseline v0 và v1 (sửa đoạn "đoán thay vì hỏi" trong prompt) trên Gemini `gemini-3.8-flash` — commit `e4827f3`.
-- v2 (hỏi lại khi thiếu thông tin, xác nhận trước khi gửi, cho phép nhiều bước) và v3 (Tool Routing Policy) — commit `d56f348`; case_accuracy 0.70 → 0.85.
-- _(Nguyên tự bổ sung/chỉnh phần này.)_
+- Chạy và tạo baseline v0 trên Gemini `gemini-3.8-flash`.
+- v1: sửa system prompt để không bắt buộc chạy tool lung tung (sửa đoạn "đoán thay vì hỏi"), chạy bản v1 để kiểm định — commit `e4827f3`.
+- v2: sửa system prompt để không tự ý suy đoán khi thiếu thông tin quan trọng, yêu cầu xác nhận trước hành động bên ngoài và cho phép xử lý tác vụ qua nhiều bước khi cần thiết, chạy bản v2 để kiểm định.
+- v3: rút gọn và chuẩn hóa Tool Routing Policy: phân biệt rõ chức năng 10 tools, quy định argument conventions, routing sequences và send confirmation boundary, chạy bản v3 để kiểm định — commit `d56f348` (v2–v3); case_accuracy 0.70 → 0.85.
 
 ### Bằng chứng
 
 - `starter_v0/runs/v0…v3_B_base_gemini_*.json`; dòng v0–v3 trong `starter_v0/artifacts/version_log.csv`; commit `e4827f3`, `d56f348`.
+- AI/công cụ đã dùng và cách tự kiểm tra kết quả: ChatGPT; tự kiểm tra qua log và kết quả xuất ra command line sau khi chạy `run_eval`.
 
 ## MaiXuanNhan-2A202604006
 
