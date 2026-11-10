@@ -163,10 +163,6 @@ with st.sidebar:
         st.caption(f"tools_hash: `{transcript.get('tools_hash', '')}`")
         st.caption(f"model: `{selected_model}`")
         st.caption(f"Transcript: `{st.session_state.transcript_path.relative_to(ROOT)}`")
-    st.divider()
-    st.subheader("🧰 Tools")
-    for decl in tool_declarations:
-        st.markdown(f"- **{decl['name']}** — {decl.get('description', '')[:120]}")
 
 # ---------------- Main: chat ----------------
 st.title("🔎 Research Agent")
