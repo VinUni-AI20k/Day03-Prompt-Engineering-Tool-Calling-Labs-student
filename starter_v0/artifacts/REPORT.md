@@ -53,7 +53,6 @@ Phạm Đức Hồng Đức phụ trách prompt/schema và eval; Lê Xuân Hạ 
 kiểm thử và case nhóm; Đỗ Minh Hoàng phụ trách UI và hội thoại tương tác.
 
 ## A3. Câu hỏi mẫu để thử
-
 1. “Tìm 3 nguồn về AI agent evaluation, lọc URL trùng rồi kiểm tra thông tin trích dẫn trước khi tổng hợp.”
 2. “Thời tiết hiện tại ở Hà Nội như thế nào? Dùng độ C.”
 3. “Tìm 3 repository GitHub về RAG, sắp xếp theo số sao giảm dần.”
