@@ -196,7 +196,7 @@ Output is saved to `runs/*.json`. Read:
 - `results[*].result.failures`
 - `results[*].result.observed_mismatch`
 
-The run JSON also stores `artifact_version`, `prompt_hash`, `tools_hash`, actual tool calls, and actual tool results. That is the evidence for your report.
+The run JSON also stores `artifact_version`, `prompt_hash`, `tools_hash`, actual tool calls, and actual tool results. That is the evidence for your report. A run file is created before evaluation starts and atomically checkpointed after each case; if a run is interrupted, keep the JSON and check its `status` and `completed_cases` before using its partial results.
 
 Optional: parse run JSON into a flat CSV table for analysis:
 

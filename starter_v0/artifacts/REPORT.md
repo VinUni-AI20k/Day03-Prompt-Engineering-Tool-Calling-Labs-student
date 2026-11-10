@@ -54,8 +54,8 @@ Fill from `artifacts/version_log.csv` and `runs/*.json`.
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
+| v0 | baseline | Baseline trước khi tối ưu | — | case_accuracy=0.35; tool_routing_accuracy=0.5; argument_accuracy=0.35; multiturn_accuracy=0.5 | `runs/v0_B_base_ollama_20261110T095915950610.json` |
+| v1 | `artifacts/system_prompt.md` | Quy tắc định tuyến rõ ràng sẽ giảm chọn nhầm tool/args so với v0 | case_accuracy=0.35; tool_routing_accuracy=0.5; argument_accuracy=0.35; multiturn_accuracy=0.5 | case_accuracy=0.6; tool_routing_accuracy=0.65; argument_accuracy=0.6; multiturn_accuracy=0.8333 | `runs/v1_B_base_ollama_20261110T105305856367.json` |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
 
