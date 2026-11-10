@@ -1,0 +1,332 @@
+{
+  "run_id": "v3_B_group_openrouter_20261111T024815671849",
+  "version": "v3",
+  "artifact_version": "v3+p03546c1aa025+t9c8ed08fa925",
+  "prompt_hash": "03546c1aa025aaa6e550f11b4bc2046c5dde44d6858c8eb6056afcf257f9a638",
+  "tools_hash": "9c8ed08fa925c72d406f6ece263b8796120430d7225e9d3e9aac024d170e4db6",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "C:\\Users\\MINH KHAI\\Documents\\VinUni\\Day3\\K5-L3B-DAY03-G2026-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "C:\\Users\\MINH KHAI\\Documents\\VinUni\\Day3\\K5-L3B-DAY03-G2026-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-11T02:48:15",
+  "summary": {
+    "total_cases": 6,
+    "measured_cases": 6,
+    "provider_error_cases": 0,
+    "passed_cases": 6,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": null,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_date_calc_diff_days",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes date difference questions to date_calc and uses the current date."
+      },
+      "input": "Còn bao nhiêu ngày nữa đến 1/1/2027?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "diff_days",
+              "date1": "today",
+              "date2": "2027-01-01"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "diff_days",
+              "date1": "today",
+              "date2": "2027-01-01"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "date_calc",
+          "args": {
+            "op": "diff_days",
+            "date1": "today",
+            "date2": "2027-01-01"
+          },
+          "result": {
+            "result": 51
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_date_calc_add_days",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes date addition questions to date_calc with correct arguments."
+      },
+      "input": "100 ngày sau ngày 15/3/2026 là ngày nào?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "add_days",
+              "date1": "2026-03-15",
+              "days": 100
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "add_days",
+              "date1": "2026-03-15",
+              "days": 100
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "date_calc",
+          "args": {
+            "op": "add_days",
+            "date1": "2026-03-15",
+            "days": 100
+          },
+          "result": {
+            "result": "2026-06-23"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_date_calc_negative",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Does not call date_calc for general cultural questions."
+      },
+      "input": "Tết Nguyên Đán có ý nghĩa gì?",
+      "expect": {
+        "no_tool": true
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Tết Nguyên Đán, hay còn gọi là Tết, là lễ hội quan trọng nhất trong văn hóa Việt Nam, đánh dấu sự khởi đầu của năm mới âm lịch. Ý nghĩa của Tết Nguyên Đán bao gồm:\n\n1. **Tưởng nhớ tổ tiên**: Tết là dịp để người Việt tưởng nhớ và tri ân tổ tiên, ông bà. Các gia đình thường chuẩn bị mâm cỗ cúng để thể hiện lòng biết ơn.\n\n2. **Đoàn tụ gia đình**: Đây là thời điểm mà mọi người trở về quê hương, sum họp bên gia đình, tạo nên không khí ấm cúng và gắn kết.\n\n3. **Khởi đầu mới**: Tết Nguyên Đán tượng trưng cho sự khởi đầu mới, mang theo hy vọng về một năm mới an khang, thịnh vượng và may mắn.\n\n4. **Phong tục tập quán**: Trong Tết, người dân thực hiện nhiều phong tục như dọn dẹp nhà cửa, trang trí, mua sắm, và tổ chức các hoạt động vui chơi, giải trí.\n\n5. **Chúc phúc và lì xì**: Người lớn thường chúc phúc cho trẻ em và lì xì (tặng tiền) để mang lại may mắn cho năm mới.\n\nTết Nguyên Đán không chỉ là một lễ hội mà còn là biểu tượng văn hóa sâu sắc, thể hiện giá trị gia đình và truyền thống của người Việt.",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G04_cite_format_paper",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes explicit APA citation requests to cite_format."
+      },
+      "input": "Trích dẫn APA giúp tôi bài 'Attention Is All You Need' của Vaswani và Shazeer, 2017.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Attention Is All You Need",
+              "authors": [
+                "Vaswani, Ashish",
+                "Shazeer, Noam"
+              ],
+              "year": 2017,
+              "style": "apa"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Attention Is All You Need",
+              "authors": [
+                "Vaswani, Ashish",
+                "Shazeer, Noam"
+              ],
+              "year": 2017,
+              "style": "apa"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "cite_format",
+          "args": {
+            "title": "Attention Is All You Need",
+            "authors": [
+              "Vaswani, Ashish",
+              "Shazeer, Noam"
+            ],
+            "year": 2017,
+            "style": "apa"
+          },
+          "result": {
+            "citation": "Vaswani, A., & Shazeer, N. (2017). Attention Is All You Need."
+          }
+        }
+      ]
+    },
+    {
+      "id": "G05_cite_format_reference",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Extracts publication metadata and formats an explicit APA reference."
+      },
+      "input": "Format reference cho bài báo này theo APA: Deep Learning Basics, tác giả Nguyen An, năm 2024, URL https://example.com/dl.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Deep Learning Basics",
+              "authors": [
+                "Nguyen, An"
+              ],
+              "year": 2024,
+              "url": "https://example.com/dl",
+              "style": "apa"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Deep Learning Basics",
+              "authors": [
+                "Nguyen, An"
+              ],
+              "year": 2024,
+              "url": "https://example.com/dl",
+              "style": "apa"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "cite_format",
+          "args": {
+            "title": "Deep Learning Basics",
+            "authors": [
+              "Nguyen, An"
+            ],
+            "year": 2024,
+            "url": "https://example.com/dl",
+            "style": "apa"
+          },
+          "result": {
+            "citation": "Nguyen, A. (2024). Deep Learning Basics. https://example.com/dl"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G06_cite_format_negative",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Does not call cite_format for a general question about APA."
+      },
+      "input": "APA là viết tắt của gì?",
+      "expect": {
+        "no_tool": true
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "APA là viết tắt của \"American Psychological Association,\" tức là Hiệp hội Tâm lý học Hoa Kỳ. APA cũng nổi tiếng với việc phát triển một phong cách trích dẫn tài liệu được gọi là \"APA Style,\" thường được sử dụng trong các lĩnh vực khoa học xã hội và tâm lý học.",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    }
+  ]
+}

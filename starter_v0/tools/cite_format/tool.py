@@ -53,7 +53,7 @@ def cite_format(title, authors, year=None, url=None, style="apa"):
             if not isinstance(url, str):
                 return {"error": "URL must be a string or None."}
             if url.strip():
-                citation = citation[:-1] + f" {url.strip()}"
+                citation = citation + f" {url.strip()}"
 
         return {"citation": citation}
 

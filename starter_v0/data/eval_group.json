@@ -57,6 +57,64 @@
       "metadata": {
         "what_it_tests": "Does not call date_calc for general cultural questions."
       }
+    },
+
+    {
+      "id": "G04_cite_format_paper",
+      "phase": "B",
+      "query": "Trích dẫn APA giúp tôi bài 'Attention Is All You Need' của Vaswani và Shazeer, 2017.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Attention Is All You Need",
+              "authors": ["Vaswani, Ashish", "Shazeer, Noam"],
+              "year": 2017,
+              "style": "apa"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes explicit APA citation requests to cite_format."
+      }
+    },
+    {
+      "id": "G05_cite_format_reference",
+      "phase": "B",
+      "query": "Format reference cho bài báo này theo APA: Deep Learning Basics, tác giả Nguyen An, năm 2024, URL https://example.com/dl.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Deep Learning Basics",
+              "authors": ["Nguyen, An"],
+              "year": 2024,
+              "url": "https://example.com/dl",
+              "style": "apa"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Extracts publication metadata and formats an explicit APA reference."
+      }
+    },
+    {
+      "id": "G06_cite_format_negative",
+      "phase": "B",
+      "query": "APA là viết tắt của gì?",
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "what_it_tests": "Does not call cite_format for a general question about APA."
+      }
     }
   ]
 }
