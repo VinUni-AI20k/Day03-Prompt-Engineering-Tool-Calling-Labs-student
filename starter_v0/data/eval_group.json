@@ -3,5 +3,106 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_handle_without_at",
+      "phase": "B",
+      "query": "Lấy 4 bài đăng mới nhất của tài khoản @NASA.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "NASA", "limit": 4}}]},
+      "metadata": {"what_it_tests": "Bỏ ký tự @ khỏi handle và giữ đúng số lượng người dùng yêu cầu."}
+    },
+    {
+      "id": "G02_social_top",
+      "phase": "B",
+      "query": "Tìm 6 bài đăng nổi bật trên Twitter về cybersecurity, ưu tiên độ phổ biến thay vì mới nhất.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "cybersecurity", "search_type": "Top", "limit": 6}}]},
+      "metadata": {"what_it_tests": "Phân biệt Top với Latest và truyền đúng số lượng bài."}
+    },
+    {
+      "id": "G03_missing_paper_identity",
+      "phase": "B",
+      "query": "Đọc nội dung bài báo arXiv mà tôi đang nghĩ tới giúp tôi. Tôi chưa gửi tên, ID hay đường dẫn của bài.",
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "text"}}]},
+      "metadata": {"what_it_tests": "Hỏi thông tin xác định bài báo thay vì bịa ID hoặc tự chọn bài."}
+    },
+    {
+      "id": "G04_internal_citation_policy",
+      "phase": "B",
+      "query": "Tra tài liệu nội bộ để cho biết quy định trích dẫn nguồn của nhóm. Chỉ tìm trong mục source_citation và lấy 2 kết quả.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "source_citation", "top_k": 2}}]},
+      "metadata": {"what_it_tests": "Chọn policy cho quy định nội bộ thay vì lookup; giới hạn đúng lĩnh vực và số kết quả."}
+    },
+    {
+      "id": "G05_direct_answer_no_tool",
+      "phase": "B",
+      "query": "Không cần tra cứu: giải thích ngắn gọn sự khác nhau giữa dữ liệu có cấu trúc và dữ liệu phi cấu trúc.",
+      "failure_type": "unnecessary_tool",
+      "expect": {"no_tool": true},
+      "metadata": {"what_it_tests": "Trả lời kiến thức khái niệm trực tiếp, không gọi lookup, format hoặc send không cần thiết."}
+    },
+    {
+      "id": "G06_latest_account_and_limit",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Lấy 8 bài mới nhất của @NASA."},
+        {"role": "user", "content": "Đổi sang tài khoản @SpaceX và chỉ lấy 2 bài."},
+        {"role": "user", "content": "Thực hiện yêu cầu đã sửa, không lấy bài của tài khoản ban đầu."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "SpaceX", "limit": 2}}]},
+      "metadata": {"what_it_tests": "Cập nhật đồng thời tài khoản và số lượng theo lần sửa mới nhất."}
+    },
+    {
+      "id": "G07_switch_web_to_social",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tìm trên web các tin về quantum computing."},
+        {"role": "user", "content": "Đổi ý, bỏ tìm web. Tôi muốn 4 bài mới nhất trên Twitter về chủ đề đó."},
+        {"role": "user", "content": "Tìm trên Twitter theo yêu cầu vừa sửa."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "quantum computing", "search_type": "Latest", "limit": 4}}]},
+      "metadata": {"what_it_tests": "Chuyển từ lookup sang social_search và giữ chủ đề từ ngữ cảnh."}
+    },
+    {
+      "id": "G08_correct_timeframe_keep_topic",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tìm 3 tin tức về renewable energy trong tuần này."},
+        {"role": "user", "content": "Đổi khoảng thời gian thành tháng này."},
+        {"role": "user", "content": "Tìm ngay, giữ nguyên chủ đề và số lượng 3 kết quả."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "renewable energy", "topic": "news", "timeframe": "month", "max_results": 3}}]},
+      "metadata": {"what_it_tests": "Sửa timeframe từ week sang month, giữ topic=news, chủ đề và số lượng."}
+    },
+    {
+      "id": "G09_withdraw_send_confirmation",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Nội dung cần gửi là: Cuộc họp bắt đầu lúc 9 giờ."},
+        {"role": "user", "content": "Tôi xác nhận gửi nguyên văn nội dung đó."},
+        {"role": "user", "content": "Khoan, tôi rút lại xác nhận. Chưa gửi và không gọi công cụ nào; chỉ xác nhận đã hiểu."}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"no_tool": true},
+      "metadata": {"what_it_tests": "Lệnh rút lại xác nhận mới nhất có hiệu lực cao hơn xác nhận gửi ở lượt trước."}
+    },
+    {
+      "id": "G10_paper_id_supplied_later",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tôi muốn đọc một bài báo arXiv, tối đa 2 trang và 3000 ký tự."},
+        {"role": "user", "content": "ID bài là 1706.03762."},
+        {"role": "user", "content": "Đọc bài đó với hai giới hạn tôi đã nêu, không tìm thêm bài khác."}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "paper_text", "args": {"arxiv_url": "1706.03762", "max_pages": 2, "max_chars": 3000}}]},
+      "metadata": {"what_it_tests": "Dùng ID được bổ sung ở lượt sau, giữ giới hạn từ lượt trước và không hỏi lại thông tin đã có."}
+    }
+  ]
 }

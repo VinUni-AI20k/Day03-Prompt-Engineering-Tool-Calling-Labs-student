@@ -16,7 +16,10 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: >-
+      Hỏi lại người dùng khi THIẾU thông tin bắt buộc (tài khoản cần xem tweet, URL cần đọc...) hoặc
+      cần xác nhận trước hành động ghi. Dùng thay vì đoán. response_type="text" khi cần người dùng
+      gõ thông tin (tên/handle, link); "yes_no" khi xin xác nhận.
     parameters:
       type: object
       properties:
@@ -26,11 +29,13 @@ tools:
       required: [question]
 
   - name: timeline
-    description: "Lấy các bài đăng gần đây."
+    description: >-
+      Lấy tweet gần đây CỦA MỘT tài khoản X/Twitter cụ thể. Chỉ gọi khi người dùng đã nêu tên người
+      hoặc handle (ở lượt này hoặc lượt trước). Chưa biết của ai → gọi clarify, KHÔNG tự chọn tài khoản.
     parameters:
       type: object
       properties:
-        screenname: {type: string, default: "", description: "Tên tài khoản"}
+        screenname: {type: string, default: "", description: "Handle X/Twitter không có @ (Sam Altman → sama, Elon Musk → elonmusk). Phải lấy từ lời người dùng, không được tự đoán."}
         limit: {type: integer, default: 5, description: "Số lượng"}
       required: [screenname]
 
@@ -49,18 +54,23 @@ tools:
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
+        query: {type: string, default: "", description: "Chỉ từ khóa chủ đề/thực thể cốt lõi, ngắn gọn, giữ nguyên cách người dùng viết
+            (KHÔNG mở rộng viết tắt: 'AI' giữ là 'AI'). KHÔNG chép nguyên câu hỏi. KHÔNG thêm 'news'/'tin tức' (đã có topic),
+            KHÔNG thêm từ chỉ thời gian (đã có timeframe), KHÔNG thêm 'mới nhất'/'nổi bật'.
+            Ví dụ: 'Tin tức AI hôm nay có gì nổi bật?' → query='AI', topic='news', timeframe='day'." }
         topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
         timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
         max_results: {type: integer, default: 5, description: "Số kết quả"}
       required: [query]
 
   - name: fetch
-    description: "Lấy nội dung từ một địa chỉ."
+    description: >-
+      Đọc nội dung một URL người dùng ĐÃ ĐƯA trong hội thoại. Không có URL → gọi clarify xin link,
+      KHÔNG tự tạo URL, KHÔNG dùng lookup để đoán bài.
     parameters:
       type: object
       properties:
-        url: {type: string, default: "", description: "Địa chỉ"}
+        url: {type: string, default: "", description: "URL đầy đủ (http/https) chép nguyên từ tin nhắn người dùng."}
       required: [url]
 
   - name: format
@@ -86,16 +96,23 @@ tools:
 
   # ---------------- Bonus tools ----------------
   - name: send
-    description: "Gửi một đoạn văn bản đi."
+    description: >-
+      Đăng một BẢN TIN research (đã tổng hợp từ tool khác) lên kênh Telegram. Là hành động ghi ra ngoài.
+      KHÔNG dùng send để trả lời người dùng: câu trả lời thông thường, lời từ chối, lời giải toán,
+      code... phải viết thẳng bằng text, không gọi send.
+      BẮT BUỘC xác nhận trước: khi người dùng yêu cầu đăng/gửi, KHÔNG gọi send ngay mà gọi
+      clarify(response_type="yes_no") xin xác nhận. Chỉ gọi send sau khi người dùng đã trả lời "có".
     parameters:
       type: object
       properties:
-        text: {type: string, default: "", description: "Nội dung"}
-        confirmed: {type: boolean, default: false, description: "Cờ xác nhận"}
+        text: {type: string, default: "", description: "Nội dung bản tin cần đăng (lấy từ người dùng hoặc từ kết quả tool đã có, không bịa)."}
+        confirmed: {type: boolean, default: false, description: "Chỉ đặt true khi người dùng ĐÃ trả lời 'có' cho câu hỏi xác nhận ở lượt trước. Không bao giờ tự đặt true."}
       required: [text]
 
   - name: policy
-    description: "Tìm trong tài liệu nội bộ."
+    description: >-
+      Tìm trong tài liệu QUY ĐỊNH NỘI BỘ của công ty (nghiên cứu AI, trích nguồn, dữ liệu, xuất bản, dùng tool).
+      Chỉ dùng khi người dùng hỏi về quy định/chính sách. KHÔNG dùng cho câu hỏi "bạn là gì / làm được gì".
     parameters:
       type: object
       properties:
@@ -123,3 +140,20 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Tool mới nhóm thêm ----------------
+  - name: web_answer
+    description: >-
+      Tool DỰ PHÒNG: tìm trên web và tự tổng hợp một câu trả lời (kèm nguồn) cho câu hỏi thông tin
+      trong phạm vi research khi KHÔNG có tool chuyên biệt nào khớp. Ví dụ: "RAG là gì?",
+      "GPU H200 khác H100 thế nào?", "Ai sáng lập Mistral AI?".
+      KHÔNG dùng khi đã có tool phù hợp: tin tức theo thời gian (hôm nay/tuần này) → lookup;
+      tweet → timeline/social_search; URL đã cho → fetch; bài báo arXiv → papers; quy định nội bộ → policy.
+      KHÔNG dùng cho câu ngoài phạm vi (giải toán, viết code, dịch, sáng tác) và câu hỏi về bản thân agent:
+      khi đó trả lời thẳng bằng text, không gọi tool. Thiếu thông tin bắt buộc → clarify, không đoán.
+    parameters:
+      type: object
+      properties:
+        question: {type: string, default: "", description: "Câu hỏi đầy đủ, rõ nghĩa của người dùng (giữ nguyên ngôn ngữ người dùng). Có thể ghép ngữ cảnh từ lượt trước để câu hỏi tự đứng được."}
+        max_results: {type: integer, default: 5, description: "Số nguồn web dùng để tổng hợp (1–10)."}
+      required: [question]
