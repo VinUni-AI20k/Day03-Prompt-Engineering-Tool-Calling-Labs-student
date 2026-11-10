@@ -92,27 +92,26 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 |  |  |  |  |  |
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
+|Item|Evidence File|What Worked|Risk / Guardrail|
+|-|-|-|-|
+|Tool mới (`tools/<tên>/`)|[`github_search`](../../starter_v0/tools/github_search/tool.py), [`hf_search`](../../starter_v0/tools/hf_search/tool.py); đăng ký trong [`tools/__init__.py`](../../starter_v0/tools/__init__.py) và khai báo trong `artifacts/tools.yaml`|Bổ sung tìm repository GitHub và model/dataset Hugging Face; chuẩn hóa kết quả về `title`, `url`, `source`, `summary` cùng metadata riêng của từng nguồn. Eval nhóm có case dùng cả hai tool (G01–G03, G06–G10); run có 10/10 case được đo.|GitHub Search API bị HTTP 403 rate limit trong cả 7 lần gọi ở run nhóm; kết quả PASS của eval chỉ xác nhận routing/arguments, không đảm bảo API trả dữ liệu. Có thể cấu hình `GITHUB_TOKEN`/`HF_TOKEN`; lỗi API được trả về dưới dạng error dict.|
+|Unit test tool mới (≥ 3 test/tool)|[`tests/test_tools_todo.py`](../../starter_v0/tests/test_tools_todo.py); `pytest -q` từ `starter_v0/` → **93 passed, 0 failed, 0 skipped**|Đã viết **7 test** cho hai tool mới: 4 cho `github_search` và 3 cho `hf_search`, bao gồm request/response mapping, input không hợp lệ, lỗi HTTP/timeout. Test dùng HTTP giả lập, không cần gọi API thật.|Eval không kiểm tra phần triển khai HTTP hay chuẩn hóa payload. Ví dụ, nếu `github_search` lấy sai `html_url`/`full_name` từ payload thì unit test `test_github_search_sends_expected_request_and_maps_repos` bắt được, trong khi eval chỉ chấm tool và arguments do model chọn.|
+|UI (lệnh chạy + link dùng thử)|Chạy từ `starter_v0/`: `streamlit run app.py`; local: [http://localhost:8501](http://localhost:8501)|App Streamlit cho phép chọn provider/model, nhãn phiên bản, chat và xem tool events.|Đây là link local, chỉ truy cập được khi app đang chạy trên máy người dùng; chưa có link deploy/public để báo cáo. Cần cấu hình API key phù hợp trong `.env` hoặc qua UI.|
 
-| Item | Evidence File | What Worked | Risk / Guardrail |
-|---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
-
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+**Tool unit tests:** 7 test cho tool mới (4 `github_search`, 3 `hf_search`). Ví dụ lỗi implementation mà eval không bắt được: API response có repository nhưng mapping trả sai URL hoặc tên; unit test kiểm tra request và object đã chuẩn hóa, còn eval chỉ chấm lựa chọn tool/arguments.
 
 ### B5. Bonus Evidence
 
-Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool có sẵn (`send`, `policy`, `papers`, `paper_text`) không tự được bonus.
+Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool có sẵn (`send`, `policy`, `papers`, `paper\_text`) không tự được bonus.
 
-| Bonus | Evidence File | What Worked | Risk / Guardrail |
-|---|---|---|---|
-| Small Local Model | xem B7 |  |  |
-| Hơn 3 tool mới (≥ 4) |  |  |  |
-| `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
-| Test challenge (0 skipped / regression test) | `pytest` output |  |  |
+|Bonus|Evidence File|What Worked|Risk / Guardrail|
+|-|-|-|-|
+|Small Local Model|Chưa có run Ollama/local model được lưu; xem B7.|Chưa có kết quả local để báo cáo.|Không tuyên bố đã đạt bonus khi chưa có run JSON làm bằng chứng.|
+|Hơn 3 tool mới (≥ 4)|Chưa áp dụng: có 2 tool mới (`github_search`, `hf_search`).||Không đạt ngưỡng 4 tool mới; không tính tool có sẵn.|
+|`send` gửi thật lên Telegram sau xác nhận|Chưa có transcript gửi Telegram thật được lưu trong workspace.||Không khẳng định đã gửi thật; unit test chỉ giả lập HTTP và không gửi Telegram.|
+|Test challenge (0 skipped / regression test)|`pytest -q` từ `starter_v0/` → **93 passed, 0 skipped**; [`tests/test_tools_todo.py`](../../starter_v0/tests/test_tools_todo.py)|Các test challenge hiện chạy hết; có test kiểm tra policy đưa nội dung giống chỉ dẫn vào `untrusted_text`, không coi nội dung đó là facts.|Chưa có bằng chứng về bug tool có sẵn đã được xác định, sửa và gắn regression test cụ thể; vì vậy không tuyên bố đã đạt bonus bug-fix/regression.|
 
-Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách sửa, và test regression tương ứng.
+Test challenge: chưa ghi nhận bug tool có sẵn nào đã được xác nhận và sửa trong bằng chứng hiện có (0 bug-fix/regression được báo cáo). `test_policy_instruction_like_lines_go_to_untrusted_text` là kiểm tra guardrail hiện có, không được trình bày như regression test cho một bug đã sửa.
 
 ### B7. Small Local Model Challenge (bonus)
 
