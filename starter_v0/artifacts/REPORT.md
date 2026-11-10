@@ -20,19 +20,21 @@ Research Agent hỗ trợ tìm tin trên web và mạng xã hội, xem bài đă
 
 ## A2. Tool agent có
 
-| Tên tool | Làm được gì | Tool mới nhóm thêm? |
+Các tool dưới đây được khai báo trong `artifacts/tools.yaml` và đăng ký trong `tools/__init__.py` (`TOOL_FUNCTIONS`); “có sẵn” nghĩa là không phải tool mới nhóm thêm trong repo, không có nghĩa là thiếu implementation.
+
+| Tên tool | Làm được gì | Phân loại / evidence |
 |---|---|---|
-| `clarify` | Hỏi người dùng để bổ sung thông tin còn thiếu hoặc xác nhận hành động. | Không |
-| `timeline` | Lấy bài đăng gần đây theo tài khoản; cần handle/tên tài khoản. | Không |
-| `social_search` | Tìm bài đăng mạng xã hội theo từ khóa, sắp xếp `Latest` hoặc `Top`. | Không |
-| `lookup` | Tìm kiếm web; hỗ trợ chủ đề chung/tin tức và khoảng thời gian. | Không |
-| `fetch` | Đọc nội dung từ URL người dùng cung cấp. | Không |
-| `format` | Định dạng các nguồn đã thu thập thành digest/bullets/thread. | Không |
-| `send` | Gửi nội dung lên Telegram; chỉ thực hiện sau xác nhận rõ ràng (`confirmed=true`). | Không (bonus) |
-| `policy` | Tìm kiếm tài liệu policy nội bộ trong knowledge base của lab. | Không (bonus) |
-| `papers` | Tìm paper khoa học trên arXiv. | Không (bonus) |
-| `paper_text` | Trích xuất nội dung văn bản từ paper arXiv. | Không (bonus) |
-| `deduplicate_sources` | Loại URL trùng đã chuẩn hóa, giữ thứ tự và metadata của nguồn đầu tiên. | Có — tool được thêm trong repo |
+| `clarify` | Hỏi người dùng để bổ sung thông tin còn thiếu hoặc xác nhận hành động. | Có sẵn · `tools/clarify/` |
+| `timeline` | Lấy bài đăng gần đây theo tài khoản; cần handle/tên tài khoản. | Có sẵn · `tools/timeline/` |
+| `social_search` | Tìm bài đăng mạng xã hội theo từ khóa, sắp xếp `Latest` hoặc `Top`. | Có sẵn · `tools/social_search/` |
+| `lookup` | Tìm kiếm web; hỗ trợ chủ đề chung/tin tức và khoảng thời gian. | Có sẵn · `tools/lookup/` |
+| `fetch` | Đọc nội dung từ URL người dùng cung cấp. | Có sẵn · `tools/fetch/` |
+| `format` | Định dạng các nguồn đã thu thập thành digest/bullets/thread. | Có sẵn · `tools/format/` |
+| `send` | Gửi nội dung lên Telegram; chỉ thực hiện sau xác nhận rõ ràng (`confirmed=true`). | Có sẵn (bonus) · `tools/send/` |
+| `policy` | Tìm kiếm tài liệu policy nội bộ trong knowledge base của lab. | Có sẵn (bonus) · `tools/policy/` |
+| `papers` | Tìm paper khoa học trên arXiv. | Có sẵn (bonus) · `tools/papers/` |
+| `paper_text` | Trích xuất nội dung văn bản từ paper arXiv. | Có sẵn (bonus) · `tools/paper_text/` |
+| `deduplicate_sources` | Loại URL trùng đã chuẩn hóa, giữ thứ tự và metadata của nguồn đầu tiên. | Tool mới nhóm thêm · `tools/deduplicate_sources/` |
 
 ## A3. Câu hỏi mẫu để thử
 
@@ -91,12 +93,12 @@ Không tìm thấy transcript live trong `transcripts/`; chỉ có transcript m�
 
 ## B5. Bonus Evidence
 
-Có khai báo các tool bonus `send`, `policy`, `papers`, `paper_text`; chưa có transcript xác nhận Telegram, run/evidence riêng cho policy/arXiv hoặc link UI được deploy. Unit tests cho tool mới nằm trong `tests/test_deduplicate_sources.py`; file có các test về URL trùng/chuẩn hóa, URL không hợp lệ, bảo toàn dữ liệu và tích hợp dispatch/format. Chưa có kết quả `pytest` được lưu nên không khẳng định số test pass hoặc bug đã tìm thấy.
+**Các tool bonus đều có trong repository**: `send`, `policy`, `papers`, `paper_text` được khai báo trong `artifacts/tools.yaml`, đăng ký trong `tools/__init__.py` và có thư mục implementation tương ứng. Chưa có transcript xác nhận Telegram hoặc run riêng chứng minh các tool bonus đã được thực thi; thiếu run evidence không đồng nghĩa là thiếu tool. Unit tests cho tool mới nằm trong `tests/test_deduplicate_sources.py`; file có các test về URL trùng/chuẩn hóa, URL không hợp lệ, bảo toàn dữ liệu và tích hợp dispatch/format. Chưa có kết quả `pytest` được lưu nên không khẳng định số test pass hoặc bug đã tìm thấy.
 
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| send (Telegram) | Tool implementation/configuration; chưa có transcript gửi thật | Tool có luồng xác nhận (`confirmed`) trong contract/tool implementation. | Không gửi trước xác nhận rõ ràng; tránh coi lời yêu cầu ban đầu là xác nhận. |
-| arXiv/company policy | `tools/papers/`, `tools/paper_text/`, `tools/policy/`; chưa có run evidence | Các tool bonus đã có trong registry/declarations. | Paper text là nội dung nguồn ngoài; policy chỉ dùng cho câu hỏi về tài liệu nội bộ; kiểm chứng trích dẫn và nội dung trước khi kết luận. |
+| send (Telegram) | `tools/send/`, `artifacts/tools.yaml`; chưa có transcript gửi thật | Tool đã được triển khai/đăng ký; contract có tham số xác nhận `confirmed`. | Không gửi trước xác nhận rõ ràng; tránh coi lời yêu cầu ban đầu là xác nhận. |
+| arXiv/company policy | `tools/papers/`, `tools/paper_text/`, `tools/policy/` và declarations trong `artifacts/tools.yaml` | Cả ba tool đã có implementation và đăng ký; chưa có run evidence riêng. | Paper text là nội dung nguồn ngoài; policy chỉ dùng cho câu hỏi về tài liệu nội bộ; kiểm chứng trích dẫn và nội dung trước khi kết luận. |
 | UI | `app.py` | Có mã ứng dụng trong repo. | Chưa có URL public hoặc bằng chứng UI chạy/deploy. |
 | Tool unit tests (`tests/`) | `tests/test_deduplicate_sources.py` | Bao phủ nhiều trường hợp hợp lệ, lỗi URL, chuẩn hóa và dispatch tool. | Chưa có output pytest đã lưu; không ghi nhận bug cụ thể khi chưa có bằng chứng. |
 
@@ -115,7 +117,7 @@ Không có run Ollama/local model hoặc bằng chứng tối ưu local trong re
 
 | Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
 |---|---|---|---|---|---|---|---|
-| v3 | `openai/gpt-4o-mini` (OpenRouter) | Baseline artifact v0; không có bằng chứng v3 | 0.75 (baseline v0) | 0.80 | 0.75 | 1.00 | `runs/v0_B_base_openrouter_20261110T102236137498.json` |
+| v0 baseline | `openai/gpt-4o-mini` (OpenRouter) | Baseline artifacts | 0.75 | 0.80 | 0.75 | 1.00 | `runs/v0_B_base_openrouter_20261110T102236137498.json` |
 | v3-local | Chưa chạy | N/A | N/A | N/A | N/A | N/A | Chưa có |
 | v4-local | Chưa chạy | N/A | N/A | N/A | N/A | N/A | Chưa có |
 | v5-local | Chưa chạy | N/A | N/A | N/A | N/A | N/A | Chưa có |
