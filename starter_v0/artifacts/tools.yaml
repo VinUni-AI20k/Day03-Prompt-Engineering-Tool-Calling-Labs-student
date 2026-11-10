@@ -16,13 +16,13 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Hỏi lại người dùng khi thiếu thông tin quan trọng (như thiếu tên tài khoản mạng xã hội, thiếu URL bài viết) hoặc khi cần xin xác nhận từ người dùng trước khi thực hiện hành động gửi/đăng bài. KHÔNG tự suy đoán nếu thiếu thông tin."
+    description: "Gửi một câu hỏi cho người dùng và chờ lượt trả lời tiếp theo. Dùng khi thiếu thông tin bắt buộc (ví dụ thiếu tên tài khoản, thiếu URL) hoặc cần người dùng xác nhận trước một hành động. Mỗi lần gọi PHẢI truyền tường minh cả `question` và `response_type`, không bao giờ bỏ trống `response_type`. Ví dụ: clarify(question=\"Bạn muốn xem tweet của tài khoản nào?\", response_type=\"text\")."
     parameters:
       type: object
       properties:
-        question: {type: string, default: "", description: "Nội dung câu hỏi gửi cho người dùng"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Bắt buộc chỉ định kiểu phản hồi mong đợi: 'text' khi yêu cầu người dùng cung cấp thông tin văn bản còn thiếu (ví dụ hỏi tên tài khoản hoặc URL bài viết); 'yes_no' khi yêu cầu người dùng xác nhận đồng ý/từ chối hành động; 'choice' khi chọn từ danh sách options."}
-        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn khi response_type là choice"}
+        question: {type: string, default: "", description: "Câu hỏi gửi cho người dùng"}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "BẮT BUỘC truyền. 'text' = hỏi thông tin còn thiếu mà người dùng phải tự gõ (tên tài khoản, URL, từ khóa...); 'yes_no' = xin xác nhận đồng ý/không trước một hành động; 'choice' = chọn một trong `options`."}
+        options: {type: array, default: [], items: {type: string}, description: "Danh sách lựa chọn, chỉ dùng khi response_type='choice'"}
       required: [question, response_type]
 
   - name: timeline
