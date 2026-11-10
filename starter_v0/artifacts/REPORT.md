@@ -32,9 +32,17 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| `clarify` | hỏi lại người dùng khi thiếu thông tin | không |
+| `timeline` | lấy các tweet gần đây của một tài khoản Twitter | không |
+| `social_search` | tìm kiếm tweet thảo luận theo từ khóa | không |
+| `lookup` | tra cứu thông tin và tin tức trên web | không |
+| `fetch` | đọc toàn bộ nội dung một URL bài viết | không |
+| `format` | trình bày dữ liệu thành văn bản digest | không |
+| `send` | đăng bản tin lên Telegram channel (khi có xác nhận) | không |
+| `policy` | tra cứu chính sách công ty nội bộ | không |
+| `papers` | tìm kiếm bài báo khoa học trên arXiv | không |
+| `paper_text` | tải và trích xuất text từ PDF arXiv | không |
+| `export_md` | xuất câu trả lời, báo cáo nghiên cứu ra file Markdown (.md) cục bộ | **có (mới)** |
 
 ## A3. Câu hỏi mẫu để thử
 
