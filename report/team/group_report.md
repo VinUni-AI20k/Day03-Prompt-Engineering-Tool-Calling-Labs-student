@@ -8,7 +8,7 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: TeLiet
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
 - Provider/model dùng cho v0–v3:
 
@@ -37,6 +37,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
+| source_audit | kiểm tra title và URL HTTP(S) trong danh sách nguồn trước khi trình bày digest | có |
 |  |  |  |
 |  |  |  |
 
@@ -52,7 +53,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- Thêm `source_audit` (`starter_v0/tools/source_audit/`): kiểm tra title và URL HTTP(S) cho từng citation, trả danh sách lỗi theo index; tool không tải URL và không xác minh claim.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -62,10 +63,16 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo chất lượng ban đầu trước tối ưu | - | 0.65 | `starter_v0/runs/v0_B_base_gemini_20261110T183708553548.json` |
+| v1 | `artifacts/system_prompt.md` | Routing rõ hơn sẽ giảm `wrong_tool` | 0.65 | 0.70 | `starter_v0/runs/v1_B_base_gemini_20261110T184719240561.json` |
+| v2 | `artifacts/system_prompt.md` | Quy tắc `clarify` rõ hơn sẽ giảm `missing_info` | 0.70 | 0.80 | `starter_v0/runs/v2_B_base_gemini_20261110T185133380730.json` |
+| v3 | `artifacts/system_prompt.md` | Quy tắc args và boundary rõ hơn sẽ cải thiện kết quả | 0.80 | 0.80 | `starter_v0/runs/v3_B_base_gemini_20261110T215643805698.json` |
+
+> Run v3 hợp lệ là `v3_B_base_gemini_20261110T215643805698.json`,
+> với `total_cases=20`, `measured_cases=20`, `provider_error_cases=0`.
+> Các run v3 trước đó không được tính do provider errors từ Gemini:
+> `185620920233`, `193757883769`, `194616666952`, `195746525886`,
+> `200311115832`, `214921174144`.
 
 ### B2. Failure Analysis
 
@@ -95,11 +102,13 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/source_audit/tool.py`, `TOOL.md`; đăng ký tại `starter_v0/tools/__init__.py` và `starter_v0/artifacts/tools.yaml` | 4 test xác nhận citation HTTP hợp lệ, thiếu title/URL FTP và cổng URL sai bị báo lỗi, input `items` sai kiểu trả error dict | Chỉ kiểm tra metadata/cú pháp URL; không xác nhận URL truy cập được hay claim chính xác |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` — `source_audit`: 4 passed; `starter_v0/tests/test_tool_contract.py`: 60 passed | Bắt được title thiếu, scheme FTP và cổng URL sai, là lỗi dữ liệu citation ở tầng tool | Đây là unit/contract tests, chưa chứng minh model tự route đúng tới tool |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+
+Eval routing: hiện chưa có case nhóm kiểm tra `source_audit`; `starter_v0/data/eval_group.json` đang có `cases: []`. Cần bổ sung theo phần CP4 trước khi kết luận model route tool đúng.
 
 ### B5. Bonus Evidence
 
@@ -125,6 +134,10 @@ Chỉ điền nếu nhóm làm bonus này.
 | v3-<model> | (ollama) | v3 |  |  |  |  |  |
 | v4-local |  |  |  |  |  |  |  |
 | v5-local |  |  |  |  |  |  |  |
+
+Bằng chứng setup local (chưa phải benchmark): preflight của repo với alias CPU `qwen2.5:3b-cpu` đã trả về tool call `social_search`; `ollama ps` xác nhận `100% CPU`. Chi tiết lệnh và kết quả: [local_cpu_preflight_2026-11-10.md](evidence/local_cpu_preflight_2026-11-10.md). Lỗi CUDA của lần preflight GPU trước vẫn được ghi nhận riêng, nhưng hiện đã có đường chạy CPU.
+
+B7 chưa có baseline local hợp lệ hoặc các vòng `v4-local`/`v5-local`: nhánh này vẫn đang ở prompt v0; PR của thành viên phụ trách prompt có run v3 nhưng gặp 1 provider error ở R09 (503), nên chưa đủ điều kiện làm bản đối chiếu. Model thứ hai hiện có là `llama3.2:1b`, nằm ngoài khoảng 3B–8B nêu trong hướng dẫn. Preflight CPU chỉ chứng minh provider nhận tool call, không được tính là eval. Cần có run v3 hợp lệ, hai model phù hợp và run JSON đầy đủ trước khi điền điểm.
 
 Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 

@@ -17,6 +17,13 @@ from tools import TOOL_FUNCTIONS  # noqa: F401
 
 TODO = "TODO CP3 (student): implement this test"
 
+deduplicate_tool = TOOL_FUNCTIONS["deduplicate_sources"]
+
+
+def _source_audit_tool():
+    tool = TOOL_FUNCTIONS.get("source_audit")
+    assert callable(tool), "source_audit is not registered"
+    return tool
 
 # ---------------- clarify ----------------
 
@@ -110,13 +117,91 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_keeps_first_duplicate_and_order() -> None:
+    first = {"title": "First", "url": "https://example.com/a"}
+    duplicate = {"title": "Duplicate", "url": "https://example.com/a"}
+    second = {"title": "Second", "url": "https://example.com/b"}
+
+    result = deduplicate_tool(items=[first, duplicate, second])
+
+    assert result["items"] == [first, second]
+    assert result["removed_count"] == 1
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_normalizes_trailing_slash() -> None:
+    canonical = {"title": "First", "url": "https://openai.com/blog/gpt-5"}
+    duplicate = {"title": "Duplicate", "url": "https://openai.com/blog/gpt-5/"}
+
+    result = deduplicate_tool(items=[canonical, duplicate])
+
+    assert result["items"] == [canonical]
+    assert result["removed_count"] == 1
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_keeps_items_without_url() -> None:
+    no_url = {"title": "No URL"}
+    empty_url = {"title": "Empty URL", "url": ""}
+
+    result = deduplicate_tool(items=[no_url, empty_url])
+
+    assert result["items"] == [no_url, empty_url]
+    assert result["removed_count"] == 0
+
+
+def test_deduplicate_sources_invalid_items_returns_error_dict() -> None:
+    result = deduplicate_tool(items="not-a-list")
+
+    assert result["error"] == "TypeError"
+    assert "items must be a list" in result["message"]
+def test_source_audit_accepts_complete_http_citations() -> None:
+    result = _source_audit_tool()(items=[{
+        "title": "Research report",
+        "url": "https://example.org/report",
+        "source": "Example",
+        "summary": "A short summary.",
+    }])
+
+    assert result == {
+        "tool": "source_audit",
+        "checked_count": 1,
+        "valid_count": 1,
+        "ok": True,
+        "issues": [],
+    }
+
+
+def test_source_audit_reports_missing_title_and_invalid_url() -> None:
+    result = _source_audit_tool()(items=[
+        {"url": "https://example.org/no-title"},
+        {"title": "FTP source", "url": "ftp://example.org/report"},
+    ])
+
+    assert result["ok"] is False
+    assert result["checked_count"] == 2
+    assert result["valid_count"] == 0
+    assert result["issues"] == [
+        {"index": 0, "title": None, "problems": ["missing_title"]},
+        {"index": 1, "title": "FTP source", "problems": ["invalid_url"]},
+    ]
+
+
+def test_source_audit_rejects_non_numeric_url_port() -> None:
+    result = _source_audit_tool()(items=[
+        {"title": "Bad port", "url": "https://example.org:abc/report"},
+    ])
+
+    assert result["ok"] is False
+    assert result["valid_count"] == 0
+    assert result["issues"] == [
+        {"index": 0, "title": "Bad port", "problems": ["invalid_url"]},
+    ]
+
+
+def test_source_audit_wrong_items_type_returns_error_dict() -> None:
+    result = _source_audit_tool()(items="not a list")
+
+    assert result == {
+        "tool": "source_audit",
+        "error": "TypeError",
+        "message": "items must be a list of objects",
+    }

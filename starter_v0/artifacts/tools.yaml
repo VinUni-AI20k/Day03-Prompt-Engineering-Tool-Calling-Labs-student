@@ -123,3 +123,37 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: deduplicate_sources
+    description: "Loại các item trùng URL khỏi danh sách nguồn. Giữ item xuất hiện đầu tiên và giữ nguyên thứ tự. Dùng sau khi đã thu thập nhiều nguồn; không dùng để tìm kiếm hoặc tải nội dung. Item không có URL được giữ nguyên."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Danh sách source items cần lọc"
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+      required: [items]
+
+  - name: source_audit
+    description: "Kiểm tra metadata trích dẫn của danh sách item: dùng trước khi trình bày digest để tìm item thiếu title hoặc URL HTTP(S) hợp lệ; không tải URL và không xác minh nội dung claim."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: "Các item research cần kiểm tra; mỗi item có title và url, source/summary có thể đi kèm."
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+      required: [items]
