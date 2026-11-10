@@ -17,6 +17,9 @@ from .policy.tool import search_company_policy
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
+from .hackernews.tool import search_hackernews
+from .wikipedia.tool import wikipedia_summary
+from .openalex.tool import search_openalex
 from .top_papers.tool import get_top_papers
 from .paper_references.tool import get_paper_references
 
@@ -37,6 +40,10 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
+    # Team tools (hackernews / wikipedia / openalex need no API key):
+    "hackernews": search_hackernews,
+    "wikipedia": wikipedia_summary,
+    "openalex": search_openalex,
     "top_papers": get_top_papers,
     "paper_references": get_paper_references,
     # TODO CP3 (student): register your new tool here, e.g. "my_tool": my_tool_function,
