@@ -17,6 +17,10 @@ from .policy.tool import search_company_policy
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
+from .deduplicate.tool import deduplicate_sources
+from .citation_audit.tool import audit_citations
+from .weather.tool import get_weather
+from .github_search.tool import search_github
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -25,6 +29,8 @@ from .lookup.tool import web_search
 #   artifacts/tools.yaml  ->  this dict  ->  data/eval_base.json + data/eval_research_extension.json
 # Otherwise the eval raises "not declared in tools.yaml" or scores every call as a name mismatch.
 TOOL_FUNCTIONS = {
+    "deduplicate": deduplicate_sources,
+    "citation_audit": audit_citations,
     "clarify": ask_user,
     "timeline": get_user_tweets,
     "social_search": search_tweets,
@@ -35,6 +41,8 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
+    "weather": get_weather,
+    "github_search": search_github,
     # TODO(student): register your new tool here, e.g. "my_tool": my_tool_function,
     # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
 }

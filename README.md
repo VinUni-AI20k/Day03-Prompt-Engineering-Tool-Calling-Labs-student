@@ -1,5 +1,7 @@
 # Day 03 Lab v2 — Research Agent Tool Eval
 
+**Cấu hình nhóm:** Agent hiện chạy bằng OpenAI. Đặt `OPENAI_API_KEY` trong `starter_v0/.env`; tùy chọn `OPENAI_MODEL` mặc định là `gpt-4o-mini`. Các lệnh `chat.py`, `run_eval.py` và `preflight_provider.py` mặc định dùng OpenAI.
+
 ## Brief
 
 Trong lab này, nhóm build một research agent nhỏ nhưng chạy thật. Agent nhận request của user, chọn tool, truyền arguments, chạy tool thật, lưu full JSON log, rồi dùng log đó để tối ưu prompt/tool declaration qua nhiều version.
@@ -44,7 +46,7 @@ Bonus:
 
 **Setup**
 - [ ] `.env` có provider key + `TAVILY_API_KEY`, `FIRECRAWL_API_KEY`, `RAPIDAPI_KEY`
-- [ ] `python scripts/preflight_provider.py --provider openrouter` pass
+- [ ] `python scripts/preflight_provider.py` pass
 - [ ] `pytest` chạy được: contract test + example test xanh, TODO test đang `skipped`
 
 **Prompt & tool declaration**
@@ -152,13 +154,12 @@ cd starter_v0
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
-Fill `.env`. Minimum recommended:
+Nếu chưa có `.env`, sao chép `.env.example` sang `.env`. Điền các biến sau trong `.env` hiện có:
 
 ```bash
-OPENROUTER_API_KEY=...
+OPENAI_API_KEY=...
 TAVILY_API_KEY=...
 FIRECRAWL_API_KEY=...
 RAPIDAPI_KEY=...
@@ -170,7 +171,7 @@ Tool setup details are in [TOOL-SETUP.md](TOOL-SETUP.md).
 Preflight:
 
 ```bash
-python scripts/preflight_provider.py --provider openrouter
+python scripts/preflight_provider.py
 ```
 
 If preflight fails, fix provider key, dependency, or network before running eval.
@@ -181,7 +182,7 @@ Run the fixed base eval as `v0`:
 
 ```bash
 python run_eval.py \
-  --provider openrouter \
+  --provider openai \
   --version v0 \
   --suite base \
   --eval-cases data/eval_base.json
@@ -227,9 +228,9 @@ Method, not memorized answers:
 Run at least three improved versions:
 
 ```bash
-python run_eval.py --provider openrouter --version v1 --suite base --eval-cases data/eval_base.json
-python run_eval.py --provider openrouter --version v2 --suite base --eval-cases data/eval_base.json
-python run_eval.py --provider openrouter --version v3 --suite base --eval-cases data/eval_base.json
+python run_eval.py --provider openai --version v1 --suite base --eval-cases data/eval_base.json
+python run_eval.py --provider openai --version v2 --suite base --eval-cases data/eval_base.json
+python run_eval.py --provider openai --version v3 --suite base --eval-cases data/eval_base.json
 ```
 
 After each run, fill `artifacts/version_log.csv`:
@@ -257,7 +258,7 @@ Run:
 
 ```bash
 python run_eval.py \
-  --provider openrouter \
+  --provider openai \
   --version v3 \
   --suite group \
   --eval-cases data/eval_group.json
@@ -267,7 +268,7 @@ Optional extension eval:
 
 ```bash
 python run_eval.py \
-  --provider openrouter \
+  --provider openai \
   --version v3 \
   --suite extension \
   --eval-cases data/eval_research_extension.json
@@ -301,7 +302,7 @@ Nguyên tắc: một test kiểm tra một hành vi, tên test mô tả hành vi
 `chat.py` is for live multi-round interaction. It logs every turn to `transcripts/*.transcript.json`.
 
 ```bash
-python chat.py --provider openrouter --version v3
+python chat.py --provider openai --version v3
 ```
 
 Try at least 3 live turns, for example:
@@ -350,6 +351,8 @@ Hoàn thành `artifacts/REPORT.md`. File này có 2 phần với deadline khác 
 **Format Phần A:** nộp tối thiểu bản markdown trong `REPORT.md`. Khuyến khích biến Phần A thành **poster HTML/SVG 1 trang** để show trực tiếp cho team cùng zone (ví dụ `artifacts/poster.html` hoặc `artifacts/poster.svg`) — cùng nội dung, dễ nhìn hơn. Poster HTML/SVG là tùy chọn, không thay thế bản markdown.
 
 ## Step 7 — Bonus Challenge: Small Local Model
+
+*Phần này là nội dung tham khảo của đề lab. Cấu hình hiện tại của nhóm chỉ cho phép OpenAI trong các lệnh CLI; nhóm không chạy phần bonus Ollama.*
 
 Câu hỏi: **prompt + tool declaration nhóm vừa tối ưu cho model cloud có còn đúng khi chạy model nhỏ trên máy mình không?** Model nhỏ (3B–8B) chạy offline, không tốn tiền, dữ liệu không rời máy, nhưng gọi tool kém hơn rõ: chọn sai tool, JSON arguments lỗi, bịa tool không có, gọi lặp, hoặc trả lời luôn thay vì gọi `clarify`. Bài này đo khoảng cách đó bằng log thật rồi tìm cách thu hẹp nó.
 
