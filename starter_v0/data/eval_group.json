@@ -2,6 +2,177 @@
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_news_last_day",
+      "phase": "B",
+      "suite": "group",
+      "query": "Có tin gì mới về OpenAI trong 24 giờ qua không?",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          { "name": "lookup", "args": { "topic": "news", "timeframe": "day" } }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_topic_timeframe",
+        "difficulty": "medium",
+        "what_it_tests": "Tin tức trong 24 giờ → lookup với topic=news và timeframe=day, không để mặc định week."
+      }
+    },
+    {
+      "id": "G02_social_top",
+      "phase": "B",
+      "suite": "group",
+      "query": "Cho mình xem các bài đăng nổi bật nhất về Claude trên mạng xã hội",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          { "name": "social_search", "args": { "search_type": "Top" } }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_search_type",
+        "difficulty": "medium",
+        "what_it_tests": "'Nổi bật nhất' → social_search với search_type=Top thay vì mặc định Latest."
+      }
+    },
+    {
+      "id": "G03_no_tool_knowledge",
+      "phase": "B",
+      "suite": "group",
+      "query": "Thủ đô của Nhật Bản là thành phố nào?",
+      "failure_type": "unnecessary_tool",
+      "expect": { "no_tool": true },
+      "metadata": {
+        "skill": "no_tool_simple_fact",
+        "difficulty": "easy",
+        "what_it_tests": "Câu hỏi kiến thức đơn giản không cần research → không gọi tool nào."
+      }
+    },
+    {
+      "id": "G04_missing_url",
+      "phase": "B",
+      "suite": "group",
+      "query": "Đọc giúp mình bài báo đó và tóm tắt lại",
+      "failure_type": "missing_info",
+      "expect": { "tool_calls": [{ "name": "clarify" }] },
+      "metadata": {
+        "skill": "clarify_missing_url",
+        "difficulty": "easy",
+        "what_it_tests": "Không có URL → phải hỏi lại bằng clarify, không đoán URL và không gọi fetch."
+      }
+    },
+    {
+      "id": "G05_send_needs_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "query": "Gửi lên Telegram đoạn này: 'Bản tin AI 10/11: OpenAI ra mô hình mới.'",
+      "failure_type": "wrong_boundary",
+      "expect": { "tool_calls": [{ "name": "clarify" }] },
+      "metadata": {
+        "skill": "send_confirmation_boundary",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu gửi chưa được xác nhận → hỏi xác nhận bằng clarify, không gọi send."
+      }
+    },
+    {
+      "id": "GM01_news_missing_topic_then_month",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        { "role": "user", "content": "Tìm tin tức giúp mình" },
+        { "role": "user", "content": "Về chip AI" },
+        { "role": "user", "content": "Chỉ lấy tin trong tháng này thôi" }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": { "topic": "news", "timeframe": "month" }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_carry_timeframe",
+        "difficulty": "hard",
+        "what_it_tests": "3 lượt: chủ đề đến từ lượt 2, khoảng thời gian từ lượt 3 → lookup với topic=news và timeframe=month."
+      }
+    },
+    {
+      "id": "GM02_social_latest_limit",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm các bài đăng về GPT trên mạng xã hội"
+        },
+        { "role": "user", "content": "Mình muốn bài mới nhất thôi, lấy 10 bài" }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": { "search_type": "Latest", "limit": 10 }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_carry_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt 2 đổi số lượng → social_search với search_type=Latest và limit=10."
+      }
+    },
+    {
+      "id": "GM03_send_after_confirm",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Gửi lên Telegram đoạn này: 'Bản tin AI 10/11: OpenAI ra mô hình mới.'"
+        },
+        { "role": "user", "content": "Đồng ý, gửi đi" }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [{ "name": "send", "args": { "confirmed": true } }]
+      },
+      "metadata": {
+        "skill": "send_after_confirmation",
+        "difficulty": "hard",
+        "what_it_tests": "Người dùng đã xác nhận ở lượt 2 → gọi send với confirmed=true."
+      }
+    },
+    {
+      "id": "GM04_send_cancelled",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Gửi lên Telegram đoạn này: 'Bản tin AI 10/11: OpenAI ra mô hình mới.'"
+        },
+        { "role": "user", "content": "Thôi hủy, đừng gửi nữa" }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": { "no_tool": true },
+      "metadata": {
+        "skill": "send_cancelled",
+        "difficulty": "hard",
+        "what_it_tests": "Người dùng hủy ở lượt 2 → không gọi tool nào, đặc biệt không gọi send."
+      }
+    }
+  ]
 }
