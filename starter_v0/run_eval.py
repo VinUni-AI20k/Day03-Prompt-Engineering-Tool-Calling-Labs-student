@@ -263,14 +263,28 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run Research Agent live evals.")
     parser.add_argument("--phase", choices=["B"], default="B")
     parser.add_argument("--suite", choices=["base", "group", "cross", "extension"], default="base", help="Run label saved to JSON; does not filter --eval-cases.")
-    parser.add_argument("--version", required=True)
+    parser.add_argument("--version", default="v0", help="Artifact version (v0 uses system_prompt.md/tools.yaml; vN uses system_prompt_vN.md/tools_vN.yaml).")
     parser.add_argument("--provider", choices=["openai", "openrouter", "anthropic", "gemini", "ollama"], required=True)
     parser.add_argument("--model", default=None)
-    parser.add_argument("--system-prompt", type=Path, default=ARTIFACTS_DIR / "system_prompt.md")
-    parser.add_argument("--tools", type=Path, default=ARTIFACTS_DIR / "tools.yaml")
+    parser.add_argument("--system-prompt", type=Path, default=None, help="Override the prompt file selected by --version.")
+    parser.add_argument("--tools", type=Path, default=None, help="Override the tools file selected by --version.")
     parser.add_argument("--eval-cases", type=Path, default=DATA_DIR / "eval_base.json")
     parser.add_argument("--runs-dir", type=Path, default=ROOT / "runs")
     args = parser.parse_args()
+
+    if not re.fullmatch(r"v\d+", args.version):
+        parser.error("--version must use the form v0, v1, v2, ...")
+    if args.version == "v0":
+        default_prompt = ARTIFACTS_DIR / "system_prompt.md"
+        default_tools = ARTIFACTS_DIR / "tools.yaml"
+    else:
+        default_prompt = ARTIFACTS_DIR / f"system_prompt_{args.version}.md"
+        default_tools = ARTIFACTS_DIR / f"tools_{args.version}.yaml"
+    args.system_prompt = args.system_prompt or default_prompt
+    args.tools = args.tools or default_tools
+    for artifact_path in (args.system_prompt, args.tools):
+        if not artifact_path.is_file():
+            parser.error(f"artifact file not found: {artifact_path}")
 
     system_prompt = args.system_prompt.read_text(encoding="utf-8")
     artifact_version = build_artifact_version(args.version, args.system_prompt, args.tools)
