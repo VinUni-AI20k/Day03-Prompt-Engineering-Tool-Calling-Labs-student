@@ -1,7 +1,0 @@
-# P1 — Cho phép trả lời không dùng tool và gọi nhiều tool
-
-- Phạm vi P1: thay duy nhất quy tắc "single step, pick one tool" bằng trả lời không dùng tool khi phù hợp và gọi nhiều tool khi yêu cầu nhiều nguồn. `tools.yaml` của v1 giữ nguyên v0; snapshot này chưa áp dụng cách hỏi lại của P2 hoặc xác nhận gửi của P3.
-- Kết quả thật trên cùng OpenRouter / `openai/gpt-4o-mini`, cùng 20 case base: **v0 0.70 (14/20) → v1 0.75 (15/20), tăng 5 điểm phần trăm**, không có lỗi provider. Mốc: `runs/v0_B_base_openrouter_20261110T104242979050.json`; lượt P1: `runs/v1_B_base_openrouter_20261110T145322191182.json`, artifact `v1+pa51c7cc79585+t8db0ba629f52`.
-- R08 và R14 chuyển FAIL → PASS. R13 đã gọi đủ `lookup` và `social_search`, nhưng vẫn FAIL vì `lookup.query="AI news"` thay vì `"AI"` và thiếu `topic="news"`. Giả thuyết giảm gọi tool thừa và cho phép nhiều nguồn được hỗ trợ một phần; chưa đạt toàn bộ case mục tiêu.
-- M06 chuyển PASS → FAIL vì gọi thêm `social_search` trong khi chỉ cần `lookup`; vì vậy giả thuyết không gây regression chưa được xác nhận trong lượt chạy này. R10/R11 vẫn FAIL do đoán tài khoản/URL thay vì hỏi lại; R12 vẫn FAIL do gọi `send` trước khi xác nhận. Tổng cộng còn 5 case FAIL.
-- Bàn giao P2: dùng snapshot và run P1 trên làm mốc; xử lý R10/R11, giữ quy tắc P1 và theo dõi lại R13/M06. Prompt đang dùng khớp snapshot v1 đã kiểm chứng. Người làm P2 bắt đầu từ `main` có P0 + P1, chỉ sửa phần hỏi lại và bổ sung run v2, dòng version log v2 cùng `analysis/notes_v2.md`.

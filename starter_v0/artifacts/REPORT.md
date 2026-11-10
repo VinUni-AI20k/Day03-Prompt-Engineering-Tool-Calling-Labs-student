@@ -74,13 +74,41 @@ Snapshot từng version: `artifacts/versions/vN/{system_prompt.md,tools.yaml}` (
 Kết quả thật (tự sinh):
 
 <!-- AUTO:B1 -->
-_Chưa có run base nào — chạy `python scripts/run_all.py`._
+| Version | Changed Artifact | Hypothesis | Metric Before | Metric After (case_acc) | routing | args | multiturn | Run File |
+|---|---|---|---:|---:|---:|---:|---:|---|
+| v0 | baseline | Do hanh vi chua toi uu truoc khi sua | — | 0.70 (14/20) | 0.75 | 0.70 | 1.00 | `runs\v0_B_base_openrouter_20261110T104242979050.json` |
+| v1 | system_prompt.md | v0 FAIL R08, R14 (gọi tool cho câu ngoài phạm vi) và R13 (chỉ 1 tool) vì prompt ép đúng một tool mỗi lượt | 0.7000 | 0.80 (16/20) | 0.80 | 0.80 | 0.83 | `runs\v1_B_base_openrouter_20261110T165054788663.json` |
+| v2 | system_prompt.md | v0 FAIL R10, R11 vì prompt ra lệnh đoán thay vì hỏi lại | 0.8000 | 0.80 (16/20) | 0.90 | 0.80 | 0.83 | `runs\v2_B_base_openrouter_20261110T165153717523.json` |
+| v3 | system_prompt.md | R12 FAIL vì prompt cho phép gửi ngay và khi thiếu nội dung model hỏi kiểu text thay vì yes_no | 0.8000 | 0.80 (16/20) | 0.95 | 0.80 | 0.83 | `runs\v3_B_base_openrouter_20261110T165309612676.json` |
+| v4 | tools.yaml | Description rõ ràng không làm giảm base (không regression) và giữ boundary send ở tầng tool | 0.8000 | 0.95 (19/20) | 0.95 | 0.95 | 1.00 | `runs\v4_B_base_openrouter_20261110T165415212207.json` |
+| v5 | tools.yaml + system_prompt.md | Mở rộng scope bằng tool có ranh giới rõ không làm giảm base và cho phép PASS group eval | 0.9500 | 0.95 (19/20) | 0.95 | 0.95 | 1.00 | `runs\v5_B_base_openrouter_20261110T165523621973.json` |
 <!-- /AUTO:B1 -->
 
 Ma trận PASS/FAIL từng case qua các version:
 
 <!-- AUTO:B1_MATRIX -->
-_Chưa có run._
+| Case | v0 | v1 | v2 | v3 | v4 | v5 |
+|---|---|---|---|---|---|---|
+| R01_user_tweets_routing | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R02_search_tweets_routing | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R03_web_news_routing | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R04_read_url_routing | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R05_limit_arg | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R06_timeframe_arg | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R07_search_type_arg | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R08_out_of_scope | ❌ unexpected_tool_call | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R09_no_tool_capability | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| R10_missing_handle | ❌ missing_tool_call | ❌ missing_tool_call | ❌ wrong_arg_value | ✅ | ❌ missing_tool_call | ❌ missing_tool_call |
+| R11_missing_url | ❌ missing_tool_call | ❌ missing_tool_call | ❌ wrong_arg_value | ❌ wrong_arg_value | ✅ | ✅ |
+| R12_confirm_before_send | ❌ missing_tool_call | ❌ missing_tool_call | ❌ missing_tool_call | ❌ wrong_arg_value | ✅ | ✅ |
+| R13_parallel_web_and_tweets | ❌ wrong_arg_value | ✅ | ✅ | ❌ wrong_arg_value | ✅ | ✅ |
+| R14_out_of_scope_coding | ❌ unexpected_tool_call | ✅ | ✅ | ✅ | ✅ | ✅ |
+| M01_clarify_then_fill | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| M02_carryover_timeframe | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| M03_correction_handle | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| M04_clarify_then_url | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| M05_correction_limit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| M06_switch_tool | ✅ | ❌ extra_tool_call | ❌ extra_tool_call | ❌ extra_tool_call | ✅ | ✅ |
 <!-- /AUTO:B1_MATRIX -->
 
 ## B2. Failure Analysis
@@ -88,7 +116,15 @@ _Chưa có run._
 Mỗi case FAIL lần đầu xuất hiện ở version nào, model đã gọi gì, và version nào sửa được (tự sinh từ `results[*].result`):
 
 <!-- AUTO:B2 -->
-_Chưa có run._
+| Case ID | Seen in | Failure Type | Observed mismatch | Actual Tool Calls | What Failed | Fixed in |
+|---|---|---|---|---|---|---|
+| R08_out_of_scope | v0 | out_of_scope | unexpected_tool_call | send({"text": "Nguyên hàm của x^2 là \\( \\frac{x^3}{3} + C \\), trong đó C là hằng số tùy ý."}) | expected no tool call | v1 |
+| R10_missing_handle | v0 | missing_info | missing_tool_call | timeline({"screenname": "sama"}) | missing tool call clarify; extra tool call timeline | v3 |
+| R11_missing_url | v0 | missing_info | missing_tool_call | fetch({"url": "https://example.com/article"}) | missing tool call clarify; extra tool call fetch | v4 |
+| R12_confirm_before_send | v0 | wrong_boundary | missing_tool_call | send({"text": "Bản tin này đã được đăng lên Telegram."}) | missing tool call clarify; extra tool call send | v4 |
+| R13_parallel_web_and_tweets | v0 | wrong_tool | wrong_arg_value | lookup({"max_results": 5, "query": "AI news", "timeframe": "day"}); social_search({"limit": 5, "query": "AI", "search_type": "Latest"}) | query: expected 'AI', got 'AI news'; topic: expected 'news', got None | v1 |
+| R14_out_of_scope_coding | v0 | out_of_scope | unexpected_tool_call | send({"text": "Dưới đây là một hàm Python tính số Fibonacci bằng đệ quy:\n\n```python\ndef fibonacci(n):\n if n <= 0:\n return 0\n elif n == 1:\n return 1\n el… | expected no tool call | v1 |
+| M06_switch_tool | v1 | wrong_tool | extra_tool_call | lookup({"max_results": 5, "query": "OpenAI", "timeframe": "day", "topic": "news"}); social_search({"limit": 5, "query": "OpenAI", "search_type": "Latest"}) | extra tool call social_search | v4 |
 <!-- /AUTO:B2 -->
 
 Cơ chế lỗi của v0 và version sửa nó:
@@ -124,13 +160,39 @@ vòng chính thức đặt giả thuyết từ log v0.
 Kết quả thật (tự sinh):
 
 <!-- AUTO:B3 -->
-_Chưa có run suite `group`._
+Run: `runs\v5_B_group_openrouter_20261110T165551717517.json` — version `v5+pfd25f1a8bdd8+t4e3180c18921` — case_accuracy **0.90** (9/10), routing 0.90, args 0.90, multiturn 0.80
+
+| Case ID | Turns | What It Tests | Expected Tool/Behavior | Actual Tool Calls | Result |
+|---|---|---|---|---|---|
+| G01_wikipedia_vi_concept | single | Hỏi khái niệm + nói rõ Wikipedia tiếng Việt → tool mới wikipedia với lang=vi, không dùng lookup. | wikipedia({"lang": "vi"}) | wikipedia({"lang": "vi", "query": "học tăng cường"}) | PASS |
+| G02_hackernews_top_week | single | Nhắc Hacker News → hackernews (không phải social_search); 'tuần này' → timeframe=week, 'nhiều điểm nhất' → sort=top, qu… | hackernews({"query": "Rust", "sort": "top", "timeframe": "week"}) | hackernews({"query": "Rust", "sort": "top", "timeframe": "week"}) | PASS |
+| G03_github_top_stars | single | Tìm repo mã nguồn mở → github_repos, '5 repo' → limit=5, 'nhiều sao nhất' → sort=stars. | github_repos({"limit": 5, "sort": "stars"}) | github_repos({"limit": 5, "query": "LLM agent framework", "sort": "stars"}) | PASS |
+| G04_hf_models_task | single | Model trên Hugging Face → hf_models (không phải papers/lookup), map task thành pipeline tag text-to-image, 'tải nhiều n… | hf_models({"sort": "downloads", "task": "text-to-image"}) | hf_models({"sort": "downloads", "task": "text-to-image"}) | PASS |
+| G05_arxiv_newest_sort | single | 'mới nhất' với paper → sort_by=submittedDate thay vì relevance mặc định. | papers({"sort_by": "submittedDate"}) | papers({"max_results": 5, "query": "speculative decoding", "sort_by": "submittedDate"}) | PASS |
+| G06_multiturn_github_fill_language | multi | 3 turns: carry chủ đề vector database, thêm filter language=Rust từ lượt 2, sort=stars từ lượt 3. | github_repos({"language": "Rust", "sort": "stars"}) | github_repos({"language": "Rust", "query": "vector database", "sort": "stars"}) | PASS |
+| G07_multiturn_send_after_yes | multi | Nhánh ngược của R12: sau khi đã hỏi và user nói 'Có' → gọi send với đúng text đã xác nhận và confirmed=true (không hỏi … | send({"confirmed": true, "text": "Bản tin AI hôm nay đã sẵn sàng"}) | send({"confirmed": true, "text": "Bản tin AI hôm nay đã sẵn sàng"}) | PASS |
+| G08_multiturn_twitter_to_hn | multi | 3 turns: bỏ social_search, chuyển sang hackernews, giữ chủ đề Claude, 'mới nhất' → sort=latest; không gọi thừa social_s… | hackernews({"query": "Claude", "sort": "latest"}) | hackernews({"limit": 5, "query": "Claude", "sort": "latest"}) | PASS |
+| G09_multiturn_wiki_correction | multi | 3 turns: sửa người (Yann LeCun → Geoffrey Hinton), lang=en; không gọi thêm cho Yann LeCun. | wikipedia({"lang": "en", "query": "Geoffrey Hinton"}) | wikipedia({"lang": "en", "query": "Geoffrey Hinton"}) | PASS |
+| G10_multiturn_cancel_send | multi | 3 turns: user huỷ hành động ghi → KHÔNG gọi send (gọi thừa = fail), chuyển sang lookup news + timeframe=week. | lookup({"timeframe": "week", "topic": "news"}) | lookup({"max_results": 5, "query": "công nghệ", "timeframe": "week", "topic": "news"}); lookup({"max_results": 5, "quer… | FAIL (extra tool call lookup) |
 <!-- /AUTO:B3 -->
 
 Extension eval (policy + arXiv) trên bản cuối:
 
 <!-- AUTO:B3_EXT -->
-_Chưa có run suite `extension`._
+Run: `runs\v5_B_extension_openrouter_20261110T165628962998.json` — version `v5+pfd25f1a8bdd8+t4e3180c18921` — case_accuracy **0.90** (9/10), routing 0.90, args 0.90, multiturn —
+
+| Case ID | Turns | What It Tests | Expected Tool/Behavior | Actual Tool Calls | Result |
+|---|---|---|---|---|---|
+| E01_company_source_policy | single | Câu hỏi policy nội bộ về source/citation → search_company_policy. | policy({"policy_area": "source_citation"}) | policy({"policy_area": "source_citation", "query": "tweet viral"}) | PASS |
+| E02_company_data_privacy | single | Câu hỏi secrets/customer data → company policy, không dùng web. | policy({"policy_area": "data_privacy"}) | policy({"policy_area": "data_privacy", "query": "API key, dữ liệu khách hàng"}) | PASS |
+| E03_company_telegram_approval | single | Câu hỏi write/publish policy → company policy. | policy({"policy_area": "external_publishing"}) | policy({"policy_area": "external_publishing", "query": "đăng bản tin lên Telegram"}) | PASS |
+| E04_arxiv_search_topic | single | Paper/preprint discovery → arxiv_search. | papers({}) | papers({"max_results": 5, "query": "retrieval augmented generation evaluation"}) | PASS |
+| E05_arxiv_paper_text | single | Có arXiv ID và muốn đọc nội dung → tải PDF + extract local text. | paper_text({"arxiv_url": "1706.03762", "max_pages": 2}) | paper_text({"arxiv_url": "1706.03762", "max_pages": 2}) | PASS |
+| E06_briefing_live_plus_style | single | Kết hợp live news + company source policy; eval không phụ thuộc thứ tự. | lookup({"timeframe": "day", "topic": "news"}); policy({"policy_area": "source_citation"}) | policy({"policy_area": "source_citation", "query": "source citation"}) | FAIL (missing tool call lookup) |
+| E07_paper_scan_template_plus_arxiv | single | Paper search + company citation policy. | papers({}); policy({"policy_area": "source_citation"}) | papers({"max_results": 5, "query": "AI agents", "sort_by": "submittedDate"}); policy({"policy_area": "source_citation",… | PASS |
+| E08_specific_url_not_arxiv | single | Specific URL → read_url, internal research policy → company policy. | fetch({"url": "https://openai.com/research/"}); policy({"policy_area": "ai_research"}) | fetch({"url": "https://openai.com/research/"}); policy({"policy_area": "ai_research", "query": "research workflow"}) | PASS |
+| E09_two_links_parallel | single | User gửi 2 links cùng lúc → gọi read_url cho từng link; eval không phụ thuộc thứ tự. | fetch({"url": "https://openai.com/research/"}); fetch({"url": "https://www.anthropic.com/research"}) | fetch({"url": "https://openai.com/research/"}); fetch({"url": "https://www.anthropic.com/research"}) | PASS |
+| E10_arxiv_research_search | single | Research paper/arXiv discovery → arxiv_search. | papers({}) | papers({"max_results": 5, "query": "AI agent evaluation", "sort_by": "submittedDate"}) | PASS |
 <!-- /AUTO:B3_EXT -->
 
 ## B4. Live Chat Evidence
@@ -138,7 +200,16 @@ _Chưa có run suite `extension`._
 `scripts/run_chat_demo.py` chạy đúng vòng lặp tool của `chat.py` với 6 lượt: tin AI hôm nay → thiếu account → bổ sung account → yêu cầu đăng Telegram (phải hỏi Có/Không) → "Có" → câu dùng tool mới. UI Streamlit cũng ghi transcript cùng format (`transcripts/ui_*.transcript.json`).
 
 <!-- AUTO:B4 -->
-_Chưa có transcript — chạy `python scripts/run_chat_demo.py ...` hoặc `python chat.py ...`._
+Transcript: `transcripts\v5_openrouter_20261110T165629438183.transcript.json` — `v5+pfd25f1a8bdd8+t4e3180c18921` — model `openai/gpt-4o-mini`
+
+| Turn | User Request | Tool Calls | Status | Agent reply (rút gọn) |
+|---|---|---|---|---|
+| 1 | Tin tức AI hôm nay có gì nổi bật? | lookup({"max_results": 5, "query": "AI", "timeframe": "day", "topic": "news"}) | answered | Here are some notable AI news articles from today: 1. **[Opinion: AI cannot replace being human – The Battalion](https://thebatt.com/opinion/opinion-ai-cannot-… |
+| 2 | Tóm tắt 5 tweet mới nhất giúp mình | timeline({"limit": 5, "screenname": "OpenAI"}); clarify({"question": "Mình không thể lấy tweet từ tài khoản OpenAI. Bạn có muốn lấy tweet từ một tài … | waiting_for_user | Mình không thể lấy tweet từ tài khoản OpenAI. Bạn có muốn lấy tweet từ một tài khoản khác không? |
+| 3 | Của Andrej Karpathy nhé | timeline({"limit": 5, "screenname": "karpathy"}) | answered | Mình không thể lấy tweet từ tài khoản Andrej Karpathy do gặp lỗi truy cập. Bạn có muốn thử một tài khoản khác không? |
+| 4 | Đăng tóm tắt 5 tweet đó lên Telegram giúp mình | clarify({"question": "Bạn có muốn đăng tóm tắt 5 tweet mới nhất của Andrej Karpathy lên Telegram không?", "response_type": "yes_no"}) | waiting_for_user | Bạn có muốn đăng tóm tắt 5 tweet mới nhất của Andrej Karpathy lên Telegram không? |
+| 5 | Có, mình xác nhận, đăng đi | send({"confirmed": true, "text": "Tóm tắt 5 tweet mới nhất của Andrej Karpathy:\n\n1. **Tweet 1**: Nội dung tóm tắt của tweet đầu tiên.\n2. **Tweet 2… | answered | Có vẻ như mình không thể đăng tóm tắt lên Telegram do thiếu thông tin cần thiết. Bạn có muốn mình giúp gì khác không? |
+| 6 | Tuần này trên Hacker News dân dev bàn gì về AI agents? | hackernews({"limit": 5, "query": "AI agents", "sort": "top", "timeframe": "week"}) | answered | Dưới đây là những bài thảo luận nổi bật về AI agents trên Hacker News trong tuần này: 1. **[YC's Garry Tan uses AI agents so much, he spends up to $200K a year… |
 <!-- /AUTO:B4 -->
 
 ## B5. Bonus Evidence
