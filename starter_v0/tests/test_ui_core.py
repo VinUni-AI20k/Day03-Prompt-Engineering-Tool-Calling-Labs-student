@@ -13,6 +13,7 @@ from ui_core import (
     confirmation_tools,
     load_artifacts,
     new_transcript,
+    redact,
     resolve_confirmation,
     run_turn,
     write_transcript,
@@ -78,7 +79,10 @@ def test_send_is_intercepted_even_when_model_sets_confirmed_true():
 def test_confirmation_can_edit_text_and_forces_confirmed_true():
     sent = []
     provider = FakeProvider(ModelResponse(tool_calls=[ToolCall("send", {"text": "draft", "confirmed": False})]), ModelResponse(text="Sent."))
-    tools = {"send": lambda **kwargs: sent.append(kwargs) or {"status": "sent"}}
+    def send(text, confirmed=False):
+        sent.append({"text": text, "confirmed": confirmed})
+        return {"status": "sent"}
+    tools = {"send": send}
     turn = run_turn(provider=provider, model=None, artifact_info=artifact_info(), history=[], user_text="Post it", confirmation_names={"send"}, tool_functions=tools)
     result = resolve_confirmation(turn, decision="confirmed", edited_text="approved")
     turn.update(result)
@@ -86,6 +90,29 @@ def test_confirmation_can_edit_text_and_forces_confirmed_true():
     assert turn["tool_events"][0]["ui_gate"]["text_edited_by_user"] is True
     assert turn["tool_events"][0]["ui_gate"]["user_decision"] == "confirmed"
     assert turn["status"] == "answered"
+
+
+def test_confirmation_adds_confirmed_when_model_omits_it():
+    sent = []
+    def send(text, confirmed=False):
+        sent.append({"text": text, "confirmed": confirmed})
+        return {"status": "sent"}
+    provider = FakeProvider(ModelResponse(tool_calls=[ToolCall("send", {"text": "draft"})]), ModelResponse(text="Sent."))
+    turn = run_turn(provider=provider, model=None, artifact_info=artifact_info(), history=[], user_text="Post it", confirmation_names={"send"}, tool_functions={"send": send})
+    assert turn["status"] == "awaiting_confirmation"
+    result = resolve_confirmation(turn, decision="confirmed")
+    assert sent == [{"text": "draft", "confirmed": True}]
+    assert result["status"] == "answered"
+
+
+def test_confirmation_can_only_be_resolved_once():
+    provider = FakeProvider(ModelResponse(tool_calls=[ToolCall("send", {"text": "draft"})]), ModelResponse(text="Sent."))
+    turn = run_turn(provider=provider, model=None, artifact_info=artifact_info(), history=[], user_text="Post it", confirmation_names={"send"}, tool_functions={"send": lambda text, confirmed=False: {"status": "sent"}})
+    first = resolve_confirmation(turn, decision="cancelled")
+    turn.update(first)
+    second = resolve_confirmation(turn, decision="confirmed")
+    assert second["status"] == "answered"
+    assert second["tool_events"][0]["result"]["status"] == "cancelled_by_user"
 
 
 def test_cancel_returns_cancelled_by_user_without_executing_tool():
@@ -139,11 +166,25 @@ def test_manifest_confirmation_detection_only_blocks_external_side_effects(tmp_p
     assert confirmation_tools(tmp_path) == {"send"}
 
 
-def test_transcript_matches_chat_schema_and_adds_ui_source(tmp_path):
+def test_missing_or_malformed_manifest_fails_closed_for_declared_tools(tmp_path):
+    (tmp_path / "broken").mkdir()
+    (tmp_path / "broken" / "TOOL.md").write_text("not valid frontmatter", encoding="utf-8")
+    assert confirmation_tools(tmp_path, {"broken", "missing"}) == {"broken", "missing"}
+
+
+def test_redact_preserves_internal_flags_and_redacts_telegram_url_token():
+    value = {"_invalid_json_arguments": True, "url": "https://api.telegram.org/bot123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890/sendMessage"}
+    cleaned = redact(value)
+    assert cleaned["_invalid_json_arguments"] is True
+    assert "ABCDEFGHIJKLMNOPQRSTUVWXYZ" not in cleaned["url"]
+
+
+def test_transcript_matches_chat_schema_and_adds_ui_source(monkeypatch, tmp_path):
+    monkeypatch.setattr("ui_core.TRANSCRIPTS_DIR", tmp_path)
     transcript = new_transcript("openrouter", "model-x", artifact_info())
     assert transcript["source"] == "streamlit_ui"
     for field in ("transcript_id", "version", "artifact_version", "prompt_hash", "tools_hash", "provider", "model", "system_prompt", "tools", "history_window", "max_tool_rounds", "created_at", "updated_at", "turns"):
         assert field in transcript
-    path = write_transcript(transcript, tmp_path)
+    path = write_transcript(transcript)
     assert path.parent == tmp_path
     assert '"source": "streamlit_ui"' in path.read_text(encoding="utf-8")

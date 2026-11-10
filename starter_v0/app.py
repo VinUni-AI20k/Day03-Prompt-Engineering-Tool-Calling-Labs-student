@@ -186,8 +186,8 @@ def _render_turn(turn: dict[str, Any]) -> None:
         event_num = 0
         round_records = list(turn.get("rounds", []))
         pending = turn.get("_pending")
-        if pending and not round_records:
-            round_records = [pending["round_record"]]
+        if pending and (not round_records or round_records[-1] is not pending["round_record"]):
+            round_records.append(pending["round_record"])
         for round_record in round_records:
             calls = round_record.get("tool_calls", [])
             events = round_record.get("tool_results", [])
@@ -219,7 +219,13 @@ def main() -> None:
         provider_name = st.selectbox("Provider", PROVIDERS, index=PROVIDERS.index(default_provider), key="provider_selector", disabled=busy)
         model_value = st.text_input("Model (để trống dùng mặc định provider)", value=os.getenv("UI_MODEL", ""), key="model_input", disabled=busy)
         selected_model = model_value.strip() or None
-        version = st.text_input("Nhãn version", value="v0", key="version_input", disabled=busy)
+        config_changed = bool(st.session_state.transcript) and (
+            st.session_state.provider_name != provider_name
+            or st.session_state.requested_model != selected_model
+        )
+        if config_changed:
+            st.warning("Provider or model changed. Start a new conversation before sending to keep the current history.")
+        version = st.text_input("Nhãn version", value="ui", key="version_input", disabled=busy)
         try:
             artifact_info = load_artifacts(version=version.strip() or "ui")
         except Exception as exc:
@@ -234,7 +240,8 @@ def main() -> None:
             st.session_state.requested_model = None
             st.session_state.last_error = None
             st.rerun()
-        gates = confirmation_tools()
+        declared_names = {str(item.get("name", "unknown")) for item in artifact_info["tool_declarations"]}
+        gates = confirmation_tools(declared_tools=declared_names)
         st.subheader("Tool hiện có")
         for declaration in artifact_info["tool_declarations"]:
             name = declaration.get("name", "unknown")
@@ -268,7 +275,8 @@ def main() -> None:
                     _resolve("cancelled", edited_text)
                     st.rerun()
 
-    waiting_turn = next((t for t in reversed(st.session_state.transcript["turns"]) if t.get("status") == "waiting_for_user"), None) if st.session_state.transcript else None
+    last_turn = st.session_state.transcript["turns"][-1] if st.session_state.transcript and st.session_state.transcript["turns"] else None
+    waiting_turn = last_turn if last_turn and last_turn.get("status") == "waiting_for_user" else None
     clarify_event = None
     if waiting_turn:
         clarify_event = next((e for e in reversed(waiting_turn.get("tool_events", [])) if isinstance(e.get("result"), dict) and e["result"].get("awaiting_user")), None)
@@ -284,8 +292,9 @@ def main() -> None:
 
     entered = st.chat_input("Nhập câu hỏi…", disabled=bool(pending))
     request = sample_clicked or entered
-    if request and not pending:
-        _submit(request, provider_name, selected_model, artifact_info, gates)
+    if request and not pending and not config_changed:
+        with st.spinner("Waiting for provider and tools..."):
+            _submit(request, provider_name, selected_model, artifact_info, gates)
         st.rerun()
 
     if st.session_state.transcript_path:

@@ -1,6 +1,7 @@
 """Streamlit-independent research-agent loop with a confirmation pause."""
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import re
@@ -22,7 +23,7 @@ HISTORY_WINDOW = 5
 MAX_TOOL_ROUNDS = 4
 _SECRET_PATTERNS = re.compile(
     r"(?:sk-[A-Za-z0-9_-]{16,}|tvly-[A-Za-z0-9]+|AIza[0-9A-Za-z_-]{20,}|"
-    r"\b[0-9]{8,}:[A-Za-z0-9_-]{30,}\b)"
+    r"(?<![0-9])[0-9]{8,}:[A-Za-z0-9_-]{30,}(?![A-Za-z0-9_-]))"
 )
 
 
@@ -51,7 +52,7 @@ def redact(value: Any) -> Any:
                 redacted = redacted.replace(secret, "[REDACTED]")
         return redacted
     if isinstance(value, dict):
-        return {key: redact(item) for key, item in value.items() if not str(key).startswith("_")}
+        return {key: redact(item) for key, item in value.items()}
     if isinstance(value, list):
         return [redact(item) for item in value]
     if isinstance(value, tuple):
@@ -85,20 +86,29 @@ def load_artifacts(
     }
 
 
-def confirmation_tools(tools_dir: Path = ROOT / "tools") -> set[str]:
-    """Return tool names whose TOOL.md declares an external confirmation boundary."""
+def confirmation_tools(
+    tools_dir: Path = ROOT / "tools", declared_tools: set[str] | None = None,
+) -> set[str]:
+    """Require confirmation for side effects and fail closed on missing manifests."""
     result: set[str] = set()
+    valid_manifests: set[str] = set()
     for manifest in tools_dir.glob("*/TOOL.md"):
         try:
             text = manifest.read_text(encoding="utf-8")
             frontmatter = text.split("---", 2)[1]
             metadata = yaml.safe_load(frontmatter) or {}
+            if not isinstance(metadata, dict) or not metadata.get("name"):
+                continue
         except (OSError, IndexError, yaml.YAMLError):
             continue
+        name = str(metadata.get("name", manifest.parent.name))
+        valid_manifests.add(name)
         side_effect = str(metadata.get("side_effect", "false")).strip().lower()
         requires_confirmation = str(metadata.get("requires_confirmation", "false")).strip().lower()
         if side_effect == "true" or requires_confirmation == "true":
-            result.add(str(metadata.get("name", manifest.parent.name)))
+            result.add(name)
+    if declared_tools is not None:
+        result.update(declared_tools - valid_manifests)
     return result
 
 
@@ -162,7 +172,8 @@ def new_transcript(provider: str, model: str | None, artifact_info: dict[str, An
     }
 
 
-def write_transcript(transcript: dict[str, Any], transcripts_dir: Path = TRANSCRIPTS_DIR) -> Path:
+def write_transcript(transcript: dict[str, Any], transcripts_dir: Path | None = None) -> Path:
+    transcripts_dir = transcripts_dir or TRANSCRIPTS_DIR
     transcript["updated_at"] = now_iso()
     path = transcripts_dir / f"{safe_slug(transcript['transcript_id'])}.transcript.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -171,8 +182,10 @@ def write_transcript(transcript: dict[str, Any], transcripts_dir: Path = TRANSCR
     for original_turn in transcript.get("turns", []):
         turn_copy = dict(original_turn)
         pending = turn_copy.pop("_pending", None)
-        if pending and not turn_copy.get("rounds"):
-            turn_copy["rounds"] = [pending["round_record"]]
+        if pending:
+            pending_round = pending["round_record"]
+            if not turn_copy.get("rounds") or turn_copy["rounds"][-1] is not pending_round:
+                turn_copy["rounds"] = [*turn_copy.get("rounds", []), pending_round]
         snapshot["turns"].append(turn_copy)
     path.write_text(json.dumps(redact(snapshot), ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     return path
@@ -306,7 +319,9 @@ def run_turn(
 def resolve_confirmation(
     turn: dict[str, Any], *, decision: str, edited_text: str | None = None,
 ) -> dict[str, Any]:
-    pending = turn.pop("_pending")
+    pending = turn.pop("_pending", None)
+    if not pending:
+        return {"status": turn.get("status", "error"), "assistant_text": turn.get("assistant_text", ""), "rounds": turn.get("rounds", []), "tool_events": turn.get("tool_events", [])}
     calls = [_tool_call(item) for item in pending["calls"]]
     call = calls[pending["call_index"]]
     original_text = str(call.args.get("text", ""))
@@ -316,7 +331,8 @@ def resolve_confirmation(
     gate_event["ui_gate"].update({"user_decision": decision, "text_edited_by_user": edited})
     if decision == "confirmed":
         call.args["text"] = updated_text
-        if "confirmed" in call.args:
+        func = (pending["tool_functions"] or TOOL_FUNCTIONS).get(call.name)
+        if func and "confirmed" in inspect.signature(func).parameters:
             call.args["confirmed"] = True
         event = execute_tool_call(call, pending["tool_functions"])
     else:
