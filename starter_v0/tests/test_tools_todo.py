@@ -14,6 +14,7 @@ import pytest
 
 from conftest import FakeResponse  # noqa: F401  (you will need it)
 from tools import TOOL_FUNCTIONS  # noqa: F401
+from tools.keywords import tool as keywords_module
 
 TODO = "TODO CP3 (student): implement this test"
 
@@ -110,13 +111,33 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_extract_keywords_returns_ranked_keywords() -> None:
+    result = TOOL_FUNCTIONS["extract_keywords"](
+        text="AI research improves AI safety and research quality", max_keywords=2
+    )
+
+    assert result["keywords"] == [
+        {"keyword": "ai", "count": 2},
+        {"keyword": "research", "count": 2},
+    ]
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_extract_keywords_rejects_empty_text_from_model() -> None:
+    result = TOOL_FUNCTIONS["extract_keywords"](text="", max_keywords=3)
+
+    assert result["error"] == "ValueError"
+    assert "empty" in result["message"]
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_extract_keywords_internal_failure_returns_error_dict(monkeypatch) -> None:
+    def broken_tokenizer(_: str) -> list[str]:
+        raise RuntimeError("tokenizer unavailable")
+
+    monkeypatch.setattr(keywords_module, "_tokenize", broken_tokenizer)
+    result = TOOL_FUNCTIONS["extract_keywords"](text="A valid research passage")
+
+    assert result == {
+        "tool": "extract_keywords",
+        "error": "RuntimeError",
+        "message": "tokenizer unavailable",
+    }
