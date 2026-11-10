@@ -45,7 +45,7 @@ with st.sidebar:
     version_label = st.selectbox(
         "Prompt & Tool Version",
         options=["v0", "v1", "v2", "v3"],
-        index=0,
+        index=2,  # Mặc định v2 (bản đã tối ưu)
     )
     custom_model = st.text_input("Custom Model (optional)", value="", placeholder="Leave empty for provider default")
     model_name = custom_model.strip() or None
@@ -53,10 +53,26 @@ with st.sidebar:
     max_tool_rounds = st.slider("Max Tool Rounds", min_value=1, max_value=8, value=4)
     history_window = st.slider("History Window (turns)", min_value=1, max_value=10, value=5)
 
+    # Phân tách phiên bản chuẩn xác theo tiến trình lab:
+    if version_label == "v0":
+        active_prompt_path = ARTIFACTS_DIR / "system_prompt_v0.md"
+        active_tools_path = ARTIFACTS_DIR / "tools_v0.yaml"
+        version_description = "v0: Baseline ban đầu (starter prompt ép gọi tool, đoán mò args, send không confirm, 10 tools gốc)"
+    elif version_label == "v1":
+        active_prompt_path = ARTIFACTS_DIR / "system_prompt_v1.md"
+        active_tools_path = ARTIFACTS_DIR / "tools_v0.yaml"
+        version_description = "v1: Tối ưu System Prompt (sửa 6 lỗi baseline, clarify khi thiếu info, guardrail confirm, chưa có tool mới)"
+    else:  # v2, v3
+        active_prompt_path = ARTIFACTS_DIR / "system_prompt.md"
+        active_tools_path = ARTIFACTS_DIR / "tools.yaml"
+        version_description = f"{version_label}: Đầy đủ (Tối ưu prompt multi-turn + tích hợp Tool mới export_md)"
+
+    st.caption(f"📌 **{version_description}**")
+
     st.divider()
-    st.markdown("### 🛠️ Available Tools")
+    st.markdown(f"### 🛠️ Available Tools ({version_label})")
     try:
-        tools_decl = load_tool_declarations(ARTIFACTS_DIR / "tools.yaml")
+        tools_decl = load_tool_declarations(active_tools_path)
         for t in tools_decl:
             name = t.get("name", "unnamed")
             desc = t.get("description", "")
@@ -81,11 +97,10 @@ if "transcript" not in st.session_state:
 if "transcript_path" not in st.session_state:
     st.session_state.transcript_path = None
 
-# Initialize transcript session if not yet initialized
-if st.session_state.transcript is None:
-    system_prompt_path = ARTIFACTS_DIR / "system_prompt.md"
-    tools_path = ARTIFACTS_DIR / "tools.yaml"
-    artifact_version = build_artifact_version(version_label, system_prompt_path, tools_path)
+# Initialize transcript session if not yet initialized or if version changed
+if st.session_state.transcript is None or st.session_state.get("active_version") != version_label:
+    st.session_state.active_version = version_label
+    artifact_version = build_artifact_version(version_label, active_prompt_path, active_tools_path)
     
     timestamp = datetime.now().strftime("%Y%m%dT%H%M%S%f")
     transcript_id = "_".join([
@@ -100,8 +115,8 @@ if st.session_state.transcript is None:
         **artifact_version_dict(artifact_version),
         "provider": provider_name,
         "model": model_name,
-        "system_prompt": str(system_prompt_path),
-        "tools": str(tools_path),
+        "system_prompt": str(active_prompt_path),
+        "tools": str(active_tools_path),
         "history_window": history_window,
         "max_tool_rounds": max_tool_rounds,
         "created_at": now_iso(),
@@ -110,7 +125,7 @@ if st.session_state.transcript is None:
     }
 
 # Display existing messages
-for msg in st.session_state.messages:
+for msg_idx, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         if msg.get("tool_events"):
             with st.expander(f"🔧 Tool Calls ({len(msg['tool_events'])})", expanded=False):
@@ -122,6 +137,21 @@ for msg in st.session_state.messages:
                     st.divider()
         st.markdown(msg["content"])
 
+        # Hiển thị nút tải file nếu có gọi export_md
+        for e_idx, event in enumerate(msg.get("tool_events", [])):
+            if event.get("tool") == "export_md":
+                res = event.get("result", {})
+                if res.get("status") == "success" and res.get("file_path"):
+                    fpath = Path(res["file_path"])
+                    if fpath.exists():
+                        st.download_button(
+                            label=f"📥 Tải xuống file Markdown: {res.get('filename', fpath.name)}",
+                            data=fpath.read_bytes(),
+                            file_name=res.get("filename", fpath.name),
+                            mime="text/markdown",
+                            key=f"hist_dl_{msg_idx}_{e_idx}_{fpath.name}",
+                        )
+
 # User Chat Input
 if prompt := st.chat_input("Hỏi research agent hoặc yêu cầu tìm kiếm, tổng hợp..."):
     # Render user message
@@ -130,8 +160,8 @@ if prompt := st.chat_input("Hỏi research agent hoặc yêu cầu tìm kiếm, 
         st.markdown(prompt)
 
     # Prepare agent run
-    system_prompt = (ARTIFACTS_DIR / "system_prompt.md").read_text(encoding="utf-8")
-    tool_declarations = load_tool_declarations(ARTIFACTS_DIR / "tools.yaml")
+    system_prompt = active_prompt_path.read_text(encoding="utf-8")
+    tool_declarations = load_tool_declarations(active_tools_path)
     openai_tools = to_openai_tools(tool_declarations)
     provider = make_provider(provider_name)
 
@@ -177,6 +207,21 @@ if prompt := st.chat_input("Hỏi research agent hoặc yêu cầu tìm kiếm, 
                                 st.json(event.get("result", {}))
 
                 st.markdown(assistant_text)
+
+                # Nút tải file ngay khi xuất file thành công
+                for e_idx, event in enumerate(tool_events):
+                    if event.get("tool") == "export_md":
+                        res = event.get("result", {})
+                        if res.get("status") == "success" and res.get("file_path"):
+                            fpath = Path(res["file_path"])
+                            if fpath.exists():
+                                st.download_button(
+                                    label=f"📥 Tải xuống file Markdown: {res.get('filename', fpath.name)}",
+                                    data=fpath.read_bytes(),
+                                    file_name=res.get("filename", fpath.name),
+                                    mime="text/markdown",
+                                    key=f"live_dl_{turn_index}_{e_idx}_{fpath.name}",
+                                )
 
                 # Save history
                 st.session_state.history.append({"role": "user", "content": prompt})
