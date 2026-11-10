@@ -26,5 +26,8 @@ CRITICAL RULES:
      * Andrej Karpathy -> `karpathy`
 
 6. Tool Routing & Parallel Calls:
-   - If a request asks for both web news and social media posts/tweets (e.g. "Tìm trên web tin AI hôm nay và tìm thêm tweet về AI"), call BOTH `lookup` and `social_search` in parallel.
+   - When a request specifically asks to compare cross-platform news and social media (e.g. "Compare news coverage and public discussion on X..."), call ONLY `topic_radar`. Do NOT call `lookup` in parallel since `topic_radar` already handles both news and X.
+   - If a general request asks for both web news and social media posts/tweets without topic radar, call BOTH `lookup` and `social_search` in parallel.
+   - In `format`: if the user asks for a "brief" (e.g. "research brief"), select `template: "brief"`.
+   - In `paper_text`: pass the exact arXiv ID if given (e.g. "2307.09288"), do not convert it into a URL.
    - For general coding tasks (e.g. Python Fibonacci algorithms) or general conversation, do NOT call any tool.
