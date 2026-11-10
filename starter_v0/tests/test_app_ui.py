@@ -35,6 +35,7 @@ def test_app_accepts_question_and_renders_fake_answer(monkeypatch, tmp_path):
     assert app.session_state["transcript"]["turns"][0]["status"] == "answered"
 
 
+
 def test_send_call_shows_confirmation_and_disables_chat_input(monkeypatch, tmp_path):
     fake = FakeProvider([ModelResponse(tool_calls=[ToolCall("send", {"text": "Proposed post", "confirmed": True})])])
     monkeypatch.setattr(providers, "make_provider", lambda name: fake)
@@ -47,6 +48,7 @@ def test_send_call_shows_confirmation_and_disables_chat_input(monkeypatch, tmp_p
     assert any(button.label == "Xác nhận gửi" for button in app.button)
     assert app.chat_input[0].disabled is True
     assert app.session_state["pending_turn"]["status"] == "awaiting_confirmation"
+
 
 
 def test_tool_error_is_visible_in_chat(monkeypatch, tmp_path):
