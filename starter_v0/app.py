@@ -13,6 +13,7 @@ from env_loader import load_lab_env
 from providers import make_provider
 from providers.base import ToolCall
 from tools import TOOL_FUNCTIONS, load_tool_declarations, to_openai_tools
+from tools.export_report.tool import EXPORTS_DIR
 from versioning import artifact_version_dict, build_artifact_version
 
 # Root paths
@@ -323,11 +324,11 @@ with col_p4:
 
 
 # ---------------- Render Existing Conversation ----------------
-for msg in st.session_state.messages:
+for message_index, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"], avatar="🧑‍💻" if msg["role"] == "user" else "🤖"):
         # If there are tool calls in this turn, render them nicely
         if msg.get("tool_events"):
-            for event in msg["tool_events"]:
+            for event_index, event in enumerate(msg["tool_events"]):
                 tool_name = event.get("tool", "tool")
                 args = event.get("args", {})
                 res = event.get("result", {})
@@ -344,6 +345,7 @@ for msg in st.session_state.messages:
                     "clarify": "💬",
                     "send": "✈️",
                     "format": "📊",
+                    "export_report": "📥",
                 }
                 tool_icon = icons.get(tool_name, "🔧")
                 with st.expander(f"{tool_icon} Tool Executed: `{tool_name}`", expanded=False):
@@ -351,6 +353,29 @@ for msg in st.session_state.messages:
                     st.json(args)
                     st.markdown("**Kết quả thực tế (Tool Result):**")
                     st.json(res)
+
+                if tool_name == "export_report" and isinstance(res, dict) and res.get("status") == "exported":
+                    try:
+                        export_path = Path(res["file_path"]).resolve()
+                        # Only expose files created inside the tool's export directory.
+                        if not export_path.is_relative_to(EXPORTS_DIR.resolve()):
+                            raise ValueError("File không nằm trong thư mục exports.")
+                        mime_types = {
+                            ".md": "text/markdown; charset=utf-8",
+                            ".csv": "text/csv; charset=utf-8",
+                            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        }
+                        if export_path.suffix not in mime_types:
+                            raise ValueError("Định dạng file không được hỗ trợ.")
+                        st.download_button(
+                            label=f"📥 Tải báo cáo {export_path.suffix.upper()}",
+                            data=export_path.read_bytes(),
+                            file_name=export_path.name,
+                            mime=mime_types[export_path.suffix],
+                            key=f"export_download_{message_index}_{event_index}",
+                        )
+                    except (OSError, ValueError, KeyError, TypeError):
+                        st.warning("Không thể tải file báo cáo. File có thể đã bị xóa; hãy yêu cầu xuất lại.")
 
         st.markdown(msg["content"])
 
