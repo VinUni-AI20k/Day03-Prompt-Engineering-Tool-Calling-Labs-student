@@ -20,20 +20,20 @@ Research Agent hỗ trợ tìm tin trên web và mạng xã hội, xem bài đă
 
 ## A2. Tool agent có
 
-Các tool dưới đây được khai báo trong `artifacts/tools.yaml` và đăng ký trong `tools/__init__.py` (`TOOL_FUNCTIONS`); “có sẵn” nghĩa là không phải tool mới nhóm thêm trong repo, không có nghĩa là thiếu implementation.
+Các tool dưới đây được khai báo trong `artifacts/tools.yaml` và đăng ký trong `tools/__init__.py` (`TOOL_FUNCTIONS`); “có” nghĩa là tool được triển khai/đăng ký trong repo, không phải là tool mới nhóm thêm.
 
 | Tên tool | Làm được gì | Phân loại / evidence |
 |---|---|---|
-| `clarify` | Hỏi người dùng để bổ sung thông tin còn thiếu hoặc xác nhận hành động. | Có sẵn · `tools/clarify/` |
-| `timeline` | Lấy bài đăng gần đây theo tài khoản; cần handle/tên tài khoản. | Có sẵn · `tools/timeline/` |
-| `social_search` | Tìm bài đăng mạng xã hội theo từ khóa, sắp xếp `Latest` hoặc `Top`. | Có sẵn · `tools/social_search/` |
-| `lookup` | Tìm kiếm web; hỗ trợ chủ đề chung/tin tức và khoảng thời gian. | Có sẵn · `tools/lookup/` |
-| `fetch` | Đọc nội dung từ URL người dùng cung cấp. | Có sẵn · `tools/fetch/` |
-| `format` | Định dạng các nguồn đã thu thập thành digest/bullets/thread. | Có sẵn · `tools/format/` |
-| `send` | Gửi nội dung lên Telegram; chỉ thực hiện sau xác nhận rõ ràng (`confirmed=true`). | Có sẵn (bonus) · `tools/send/` |
-| `policy` | Tìm kiếm tài liệu policy nội bộ trong knowledge base của lab. | Có sẵn (bonus) · `tools/policy/` |
-| `papers` | Tìm paper khoa học trên arXiv. | Có sẵn (bonus) · `tools/papers/` |
-| `paper_text` | Trích xuất nội dung văn bản từ paper arXiv. | Có sẵn (bonus) · `tools/paper_text/` |
+| `clarify` | Hỏi người dùng để bổ sung thông tin còn thiếu hoặc xác nhận hành động. | Có · `tools/clarify/` |
+| `timeline` | Lấy bài đăng gần đây theo tài khoản; cần handle/tên tài khoản. | Có · `tools/timeline/` |
+| `social_search` | Tìm bài đăng mạng xã hội theo từ khóa, sắp xếp `Latest` hoặc `Top`. | Có · `tools/social_search/` |
+| `lookup` | Tìm kiếm web; hỗ trợ chủ đề chung/tin tức và khoảng thời gian. | Có · `tools/lookup/` |
+| `fetch` | Đọc nội dung từ URL người dùng cung cấp. | Có · `tools/fetch/` |
+| `format` | Định dạng các nguồn đã thu thập thành digest/bullets/thread. | Có · `tools/format/` |
+| `send` | Gửi nội dung lên Telegram; chỉ thực hiện sau xác nhận rõ ràng (`confirmed=true`). | Có (bonus) · `tools/send/` |
+| `policy` | Tìm kiếm tài liệu policy nội bộ trong knowledge base của lab. | Có (bonus) · `tools/policy/` |
+| `papers` | Tìm paper khoa học trên arXiv. | Có (bonus) · `tools/papers/` |
+| `paper_text` | Trích xuất nội dung văn bản từ paper arXiv. | Có (bonus) · `tools/paper_text/` |
 | `deduplicate_sources` | Loại URL trùng đã chuẩn hóa, giữ thứ tự và metadata của nguồn đầu tiên. | Tool mới nhóm thêm · `tools/deduplicate_sources/` |
 
 ## A3. Câu hỏi mẫu để thử
