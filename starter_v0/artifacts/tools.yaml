@@ -174,3 +174,40 @@ tools:
         max_pages: {type: integer, default: 5, description: "Max pages to extract."}
         max_chars: {type: integer, default: 8000, description: "Max characters to return."}
       required: [arxiv_url]
+
+  # ---------------- Team tools (CP3) ----------------
+  - name: text_stats
+    description: "Đếm số ký tự, từ, câu và ước tính thời gian đọc của một đoạn văn bản người dùng đưa vào. Dùng khi người dùng hỏi bài/đoạn này dài bao nhiêu từ, đọc mất bao lâu. KHÔNG dùng để tóm tắt (không phải việc của tool này) và KHÔNG dùng để lấy nội dung từ URL (dùng fetch)."
+    parameters:
+      type: object
+      properties:
+        text: {type: string, default: "", description: "Đoạn văn bản cần đếm, chép nguyên văn từ người dùng hoặc từ kết quả tool trước."}
+      required: [text]
+
+  - name: date_diff
+    description: "Tính số ngày và số tuần giữa hai ngày. Dùng khi người dùng hỏi từ ngày A đến ngày B là bao nhiêu ngày, còn bao lâu, đã qua bao lâu. KHÔNG dùng để tìm tin tức theo thời gian (dùng lookup với timeframe)."
+    parameters:
+      type: object
+      properties:
+        start_date: {type: string, default: "", description: "Ngày bắt đầu, định dạng YYYY-MM-DD, ví dụ 2026-11-10. Người dùng chưa nêu ngày thì gọi clarify."}
+        end_date: {type: string, default: "", description: "Ngày kết thúc, định dạng YYYY-MM-DD. days âm nghĩa là end_date trước start_date."}
+      required: [start_date, end_date]
+
+  - name: dedupe
+    description: "Loại bỏ các mục trùng lặp trong danh sách kết quả ĐÃ lấy từ tool khác (ví dụ gộp kết quả lookup và social_search) trước khi gọi format. Giữ mục xuất hiện đầu tiên. KHÔNG dùng để tìm kiếm và KHÔNG tự thêm mục mới."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Danh sách mục đã lấy từ tool trước, mỗi mục có url hoặc title."
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+        key: {type: string, enum: [url, title], default: "url", description: "url: so sánh theo link (mặc định). title: so sánh theo tiêu đề khi mục không có url."}
+      required: [items]
