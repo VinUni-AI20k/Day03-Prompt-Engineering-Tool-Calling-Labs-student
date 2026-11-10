@@ -63,9 +63,20 @@ Fill from `artifacts/version_log.csv` and `runs/*.json`.
 
 Use actual failures from `results[*].result.failures`.
 
+Nguồn: `runs/v0_B_base_openrouter_20261110T100848604186.json` (v0, 13/20 PASS).
+Lưu ý: `result.failure_type` trong run JSON chỉ lặp lại nhãn mà case được thiết kế để bắt, không phải lỗi quan sát được. Cột *Failure Type* dưới đây lấy từ `result.observed_mismatch` + `result.failures`.
+
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | wrong_arg_value | `lookup(query="AI news", topic="news", timeframe="day", max_results=5)` | Eval so khớp chuỗi chính xác: `query` expected `"AI"`, got `"AI news"` | v2 — `tools.yaml`: `query` chỉ chứa chủ đề, loại tin đặt vào `topic` |
+| R08_out_of_scope | out_of_scope | `send(text="Nguyên hàm của x^2 là x^3/3 + C ...")` | Câu hỏi ngoài phạm vi nhưng agent vẫn gọi tool; dùng `send` như kênh trả lời | v1 — prompt: ngoài phạm vi thì trả lời trực tiếp, không gọi tool; `send` không dùng để trả lời |
+| R10_missing_handle | missing_info | `timeline(screenname="sama")` | Tự đoán Sam Altman khi user không nêu tài khoản; lẽ ra phải `clarify` | v1 — prompt: thiếu thông tin không suy ra được thì `clarify`, không đoán |
+| R11_missing_url | missing_info | `fetch(url="https://www.example.com/article")` | Bịa URL khi user chỉ nói "bài viết này"; lẽ ra phải `clarify` | v1 — prompt: không bịa URL, gọi `clarify` |
+| R12_confirm_before_send | wrong_boundary | `send(text="Bản tin này")` | Gửi ngay khi chưa xác nhận; lẽ ra phải `clarify(response_type="yes_no")` | v1 — prompt + v2 `tools.yaml`: `send` chỉ khi user đã đồng ý và `confirmed=true` |
+| R13_parallel_web_and_tweets | wrong_arg_value | `lookup(query="AI news", timeframe="day", max_results=5)` + `social_search(query="AI", search_type="Latest", limit=5)` | `query` sai (`"AI news"` vs `"AI"`) và thiếu `topic="news"` — routing đúng, args sai | v2 — `tools.yaml`: convention args cho `lookup` (`topic`, `timeframe`) |
+| R14_out_of_scope_coding | out_of_scope | `send(text="def fibonacci(n): ...")` | Yêu cầu viết code ngoài phạm vi nhưng vẫn gọi tool; `send` bị dùng để trả lời | v1 — prompt: ngoài phạm vi thì không gọi tool |
+
+Tổng hợp v0: 7 fail / 20 case, chia 4 nhóm — sai args (2), out_of_scope (2), thiếu `clarify` (2), vượt ranh giới `send` (1). `summary.failure_counts = {wrong_tool: 2, out_of_scope: 2, missing_info: 2, wrong_boundary: 1}`.
 
 ## B3. Team Eval Cases
 
