@@ -3,5 +3,296 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_weather_current_city",
+      "phase": "B",
+      "suite": "group",
+      "query": "Thời tiết hiện tại ở Hanoi theo độ C thế nào?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "weather",
+            "args": {
+              "location": "Hanoi",
+              "units": "celsius"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "weather_current_location",
+        "difficulty": "easy",
+        "what_it_tests": "Thời tiết hiện tại tại địa điểm cụ thể phải dùng weather, không dùng lookup; giữ đúng đơn vị độ C."
+      }
+    },
+    {
+      "id": "G02_github_top_repositories",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm 3 repository GitHub nhiều sao nhất về RAG.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "RAG",
+              "sort": "stars",
+              "order": "desc",
+              "max_results": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "github_search_sort_and_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Khám phá repository phải dùng github_search và ánh xạ nhiều sao nhất thành sort=stars, order=desc, max_results=3."
+      }
+    },
+    {
+      "id": "G03_weather_missing_location",
+      "phase": "B",
+      "suite": "group",
+      "query": "Cho mình biết thời tiết hiện tại thế nào?",
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "clarify_missing_weather_location",
+        "difficulty": "medium",
+        "what_it_tests": "Thiếu địa điểm thời tiết phải hỏi clarify dạng text, không đoán vị trí người dùng."
+      }
+    },
+    {
+      "id": "G04_send_after_explicit_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tôi xác nhận gửi chính xác nội dung 'Bản tin AI hôm nay' lên Telegram.",
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Bản tin AI hôm nay",
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "send_explicit_confirmation",
+        "difficulty": "medium",
+        "what_it_tests": "Khi người dùng đã xác nhận rõ và cung cấp nội dung chính xác, send phải nhận confirmed=true và không hỏi lại."
+      }
+    },
+    {
+      "id": "G05_out_of_scope_translation",
+      "phase": "B",
+      "suite": "group",
+      "query": "Dịch câu 'Good morning' sang tiếng Việt giúp mình.",
+      "failure_type": "out_of_scope",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "metadata": {
+        "skill": "out_of_scope_translation",
+        "difficulty": "easy",
+        "what_it_tests": "Yêu cầu dịch thuật ngoài phạm vi research không được gọi bất kỳ tool nào."
+      }
+    },
+    {
+      "id": "G06_multiturn_weather_correction",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Xem thời tiết hiện tại ở Hanoi giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "Đổi địa điểm thành Đà Nẵng nhé."
+        },
+        {
+          "role": "user",
+          "content": "Hiển thị theo độ F, vẫn là thời tiết hiện tại."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "weather",
+            "args": {
+              "location": "Đà Nẵng",
+              "units": "fahrenheit"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_weather_correction",
+        "difficulty": "hard",
+        "what_it_tests": "Giữ loại yêu cầu thời tiết hiện tại, thay địa điểm mới nhất và đổi đơn vị từ mặc định sang Fahrenheit."
+      }
+    },
+    {
+      "id": "G07_multiturn_github_constraints",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm repository GitHub về FastAPI."
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy repository Python."
+        },
+        {
+          "role": "user",
+          "content": "Lấy 4 repo nhiều sao nhất, giữ nguyên chủ đề."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "FastAPI language:Python",
+              "sort": "stars",
+              "order": "desc",
+              "max_results": 4
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_github_carryover",
+        "difficulty": "hard",
+        "what_it_tests": "Carry chủ đề FastAPI, thêm qualifier language:Python và áp dụng limit/sort từ lượt cuối."
+      }
+    },
+    {
+      "id": "G08_multiturn_send_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Nội dung bản tin là: AI agent ra mắt hôm nay."
+        },
+        {
+          "role": "user",
+          "content": "Gửi bản tin đó lên Telegram giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "Có, tôi xác nhận gửi đúng nội dung đó."
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "AI agent ra mắt hôm nay.",
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_confirm_then_send",
+        "difficulty": "hard",
+        "what_it_tests": "Carry đúng nội dung từ lượt đầu và chỉ gọi send confirmed=true sau lượt xác nhận rõ ràng."
+      }
+    },
+    {
+      "id": "G09_multiturn_url_replacement",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tóm tắt bài này giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "URL là https://openai.com/research/."
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang https://www.anthropic.com/research và chỉ đọc link mới."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://www.anthropic.com/research"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_latest_url_wins",
+        "difficulty": "medium",
+        "what_it_tests": "URL được sửa ở lượt cuối phải ghi đè URL cũ; chỉ gọi fetch một lần cho link mới."
+      }
+    },
+    {
+      "id": "G10_multiturn_switch_papers_to_github",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm paper về RAG."
+        },
+        {
+          "role": "user",
+          "content": "Không cần paper nữa, chuyển sang tìm repository GitHub."
+        },
+        {
+          "role": "user",
+          "content": "Chủ đề vẫn là RAG, lấy 2 kết quả."
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "query": "RAG",
+              "max_results": 2
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_switch_research_source",
+        "difficulty": "hard",
+        "what_it_tests": "Lệnh chuyển nguồn ở lượt sau phải bỏ papers, giữ chủ đề RAG và gọi duy nhất github_search."
+      }
+    }
+  ]
 }
