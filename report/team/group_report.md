@@ -26,15 +26,21 @@ pip install -r requirements.txt      # đã thêm streamlit
 streamlit run app.py                 # http://localhost:8501
 ```
 
+UI mặc định dùng model `nvidia/nemotron-3.5-super-vl:free` (đổi ở sidebar hoặc biến môi trường `AGENT_MODEL`). Chat terminal tương đương: `python chat.py --provider openrouter --model nvidia/nemotron-3.5-super-vl:free --version v3`.
+
 UI hiển thị từng tool call (tên, args, kết quả, lỗi nếu có) và lưu transcript vào `starter_v0/transcripts/ui_*.transcript.json`. Sidebar cho chọn provider/model/version và hiện `prompt_hash`/`tools_hash` đang chạy.
 
 **Link dùng thử (deploy):**
 
 ```bash
-cloudflared tunnel --url http://localhost:8501
+# Instance public: env riêng không có token Telegram (xem mục 5)
+DAY03_ENV_FILE=<env_không_telegram> streamlit run app.py --server.port 8502
+cloudflared tunnel --url http://localhost:8502
 ```
 
-URL: _(dán link `https://<random>.trycloudflare.com` khi mở tunnel trong buổi showdown)_
+URL: https://streams-stars-bucks-details.trycloudflare.com
+
+> Link `trycloudflare.com` là tạm thời, chỉ sống khi máy chạy UI còn bật streamlit + cloudflared.
 
 ### A2. Tool agent có
 
@@ -157,7 +163,12 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 > Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
 
--
+- **Model mặc định không dùng được (HTTP 402).** Provider OpenRouter trong starter mặc định gọi `openai/gpt-4o-mini` (`starter_v0/providers/openrouter_provider.py`). Preflight trả `Error code: 402 - Insufficient credits. This account never purchased credits` vì tài khoản OpenRouter của nhóm chưa nạp credit. Nếu chạy eval với model này, mọi case sẽ là `provider_error`, run không hợp lệ (`provider_error_cases > 0`).
+  - **Xử lý:** lấy danh sách model `:free` có hỗ trợ tool calling trên OpenRouter, chạy preflight từng model. `google/gemma-4-31b-it:free` bị 429 (server free quá tải); `nvidia/nemotron-3.5-super-vl:free` và `nvidia/nemotron-3-ultra-550b-a55b:free` pass và gọi đúng `timeline(screenname="sama")`. Nhóm chốt **`nvidia/nemotron-3.5-super-vl:free`** cho toàn bộ v0–v3 (truyền `--model` cho mọi lệnh `run_eval.py` / `chat.py`), và đặt làm model mặc định trong UI (`starter_v0/app.py`, biến `AGENT_MODEL`).
+  - **Bằng chứng:** [evidence/preflight_openrouter.txt](evidence/preflight_openrouter.txt) (output preflight của cả hai model).
+  - **Rủi ro còn lại:** model free bị giới hạn số request/ngày và có thể trả 429 khi quá tải → run có `provider_error_cases > 0` phải chạy lại, không dùng làm bằng chứng. Cả nhóm phải dùng cùng một model để metric v0–v3 so sánh được.
+- **Link public + tool `send`.** Khi mở UI ra internet bằng Cloudflare Tunnel, bất kỳ ai có link đều có thể yêu cầu agent gửi tin lên Telegram; với prompt starter ("cứ gửi luôn"), agent sẽ gửi mà không hỏi lại.
+  - **Xử lý:** instance UI public chạy với file env riêng (`DAY03_ENV_FILE`) không chứa `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`, nên `send` trả lỗi thay vì gửi thật; UI hiển thị lỗi đó (không che). Transcript gửi Telegram thật chỉ quay trên máy nhóm, sau khi prompt v3 có boundary xác nhận.
 
 ## 6. Tổng hợp đóng góp
 

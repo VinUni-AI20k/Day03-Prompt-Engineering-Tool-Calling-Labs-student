@@ -30,6 +30,8 @@ from tools import load_tool_declarations, to_openai_tools
 from versioning import artifact_version_dict, build_artifact_version
 
 PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama"]
+# Model the team uses for v0–v3 (see group_report.md §1). Override with AGENT_MODEL.
+DEFAULT_MODEL = os.getenv("AGENT_MODEL", "nvidia/nemotron-3.5-super-vl:free")
 SYSTEM_PROMPT_PATH = ARTIFACTS_DIR / "system_prompt.md"
 TOOLS_PATH = ARTIFACTS_DIR / "tools.yaml"
 TRANSCRIPTS_DIR = ROOT / "transcripts"
@@ -150,7 +152,7 @@ def run_turn(user_text: str) -> None:
 with st.sidebar:
     st.header("⚙️ Cấu hình")
     provider_name = st.selectbox("Provider", PROVIDERS, index=0)
-    model = st.text_input("Model (để trống = mặc định của provider)", value="").strip() or None
+    model = st.text_input("Model (để trống = mặc định của provider)", value=DEFAULT_MODEL).strip() or None
     version = st.text_input("Version label", value=os.getenv("AGENT_VERSION", "v3")).strip() or "v3"
     history_window = st.slider("History window (cặp lượt)", 0, 10, 5)
     max_rounds = st.slider("Max tool rounds", 1, 8, 4)
