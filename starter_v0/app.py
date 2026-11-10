@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import streamlit as st
 
 from chat import ARTIFACTS_DIR, run_model_tool_loop, trim_history
@@ -7,7 +9,8 @@ from providers import make_provider
 from tools import load_tool_declarations, to_openai_tools
 from versioning import build_artifact_version
 
-PROVIDER = "openrouter"
+# Provider lấy từ env UI_PROVIDER (mặc định openai vì nhóm dùng OPENAI_API_KEY); .env đã được load khi import chat.
+PROVIDER = os.environ.get("UI_PROVIDER", "openai")
 VERSION_LABEL = "ui"
 HISTORY_WINDOW = 5
 MAX_TOOL_ROUNDS = 4

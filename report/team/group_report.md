@@ -21,7 +21,14 @@ Research agent: tìm tin theo từ khóa hoặc theo tài khoản, đọc nội 
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+```bash
+cd starter_v0
+source .venv/bin/activate          # Windows: .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt    # đã có streamlit>=1.67.0
+streamlit run app.py               # → http://localhost:8501
+```
+
+Provider mặc định `openai` (cần `OPENAI_API_KEY` trong `.env`); đổi bằng biến môi trường, ví dụ `UI_PROVIDER=openrouter streamlit run app.py`. Code UI: `starter_v0/app.py`.
 
 **Link dùng thử (deploy):**
 
