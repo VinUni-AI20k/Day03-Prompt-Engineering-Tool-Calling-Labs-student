@@ -1,0 +1,806 @@
+{
+  "run_id": "v6_B_group_openrouter_20261110T225055601556",
+  "version": "v6",
+  "artifact_version": "v6+p25f9a19bc0e2+t20bb32db2a4c",
+  "prompt_hash": "25f9a19bc0e2682890d448fa796c7478ed6a7280ed5be66ef4afbfc2d9482861",
+  "tools_hash": "20bb32db2a4c43bcd971814c6e8f6884b7cc27c4c20877cb7806aaa27154b394",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "/Users/minh/GitHub-PMinh/K5-L3B-DAY03-MMV-ResearchAgentToolEval/starter_v0/artifacts/system_prompt.md",
+  "tools": "/Users/minh/GitHub-PMinh/K5-L3B-DAY03-MMV-ResearchAgentToolEval/starter_v0/artifacts/tools.yaml",
+  "eval_cases": "data/eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T22:50:55",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 10,
+    "provider_error_cases": 0,
+    "passed_cases": 10,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": 1.0,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_deduplicate_collected_articles",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate (tool mới của nhóm), không gọi lookup/fetch/format. Chỉ chấm routing vì harness không so sánh được list-of-dict trong args."
+      },
+      "input": "Lọc trùng URL trong danh sách bài viết đã có sau, giữ bài đầu tiên và bỏ fragment khi so sánh. Chỉ lọc trùng, chưa cần định dạng hay tìm thêm: [{\"url\":\"https://example.com/ai#intro\",\"title\":\"AI first\"},{\"url\":\"https://example.com/robotics\",\"title\":\"Robotics\"},{\"url\":\"https://example.com/ai#end\",\"title\":\"AI duplicate\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.com/ai#intro",
+                  "title": "AI first"
+                },
+                {
+                  "url": "https://example.com/robotics",
+                  "title": "Robotics"
+                },
+                {
+                  "url": "https://example.com/ai#end",
+                  "title": "AI duplicate"
+                }
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "deduplicate",
+          "args": {
+            "items": [
+              {
+                "url": "https://example.com/ai#intro",
+                "title": "AI first"
+              },
+              {
+                "url": "https://example.com/robotics",
+                "title": "Robotics"
+              },
+              {
+                "url": "https://example.com/ai#end",
+                "title": "AI duplicate"
+              }
+            ]
+          },
+          "result": {
+            "tool": "deduplicate",
+            "items": [
+              {
+                "url": "https://example.com/ai#intro",
+                "title": "AI first"
+              },
+              {
+                "url": "https://example.com/robotics",
+                "title": "Robotics"
+              }
+            ],
+            "removed_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_dedupe_missing_list",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "clarify_missing_input_new_tool",
+        "what_it_tests": "Yêu cầu lọc trùng nhưng KHÔNG có danh sách bài/URL → hỏi lại (clarify text), không gọi deduplicate với items bịa hoặc rỗng."
+      },
+      "input": "Lọc trùng các bài viết mình đã thu thập giúp mình nhé.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có thể cung cấp danh sách các bài viết mà bạn đã thu thập để tôi có thể lọc trùng cho bạn không?",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có thể cung cấp danh sách các bài viết mà bạn đã thu thập để tôi có thể lọc trùng cho bạn không?",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có thể cung cấp danh sách các bài viết mà bạn đã thu thập để tôi có thể lọc trùng cho bạn không?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_send_with_content_still_confirms",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "confirm_before_write_with_content",
+        "what_it_tests": "Dù đã có đủ nội dung cần gửi, hành động gửi vẫn phải xin xác nhận (clarify yes_no) trước, không gọi send ngay."
+      },
+      "input": "Gửi đoạn này lên Telegram cho nhóm: \"Họp sprint dời sang thứ Sáu 9h\"",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có muốn gửi nội dung \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram cho nhóm không?",
+              "response_type": "yes_no"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có muốn gửi nội dung \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram cho nhóm không?",
+            "response_type": "yes_no"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có muốn gửi nội dung \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram cho nhóm không?",
+            "response_type": "yes_no",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_out_of_scope_creative_writing",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope",
+        "what_it_tests": "Yêu cầu sáng tác văn học nằm ngoài phạm vi research agent → không gọi tool (đặc biệt không bắn qua send), từ chối hoặc định hướng lại."
+      },
+      "input": "Viết giúp mình một bài thơ lục bát về mùa thu Hà Nội.",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Mùa thu Hà Nội, lá vàng rơi,  \nGió nhẹ thổi qua, lòng thấy vui.  \nSương mờ giăng kín, phố phường xưa,  \nNhững chiều hoàng hôn, ánh nắng mờ.  \n\nCafé phố cổ, hương thơm ngát,  \nNgười đi qua lại, tiếng cười rộn.  \nMùa thu Hà Nội, đẹp như mơ,  \nKý ức ngọt ngào, mãi không phai.  \n\nNhững chiếc lá vàng, rơi lả tả,  \nDưới chân người đi, bước nhẹ nhàng.  \nMùa thu Hà Nội, tình yêu đong,  \nTrong từng khoảnh khắc, mãi bên lòng.",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G05_news_week_keyword_only",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_convention_news_timeframe",
+        "what_it_tests": "Tin tức → lookup với topic=news, timeframe=week theo 'tuần này', query chỉ giữ từ khóa 'chip AI' (không thêm 'news'/'tin tức') — lỗi tương tự R13 của v0."
+      },
+      "input": "Tìm tin về chip AI trong tuần này.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "chip AI",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "chip AI",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "chip AI",
+            "topic": "news",
+            "timeframe": "week"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "chip AI",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Google’s (GOOG) AI chip push adds more pressure on Nvidia (NVDA)",
+                "url": "https://www.coindesk.com/markets/2026/11/09/google-s-ai-chip-push-adds-more-pressure-on-nvidia",
+                "source": "coindesk.com",
+                "summary": "Google GOOG$292.10 is expanding its AI chip range, adding to competition with Nvidia NVDA$178.96 amid an investigation into CEO Jensen Huang’s personal affairs.\n\nThe double-headed wind comes as the AI trade falters, with neocloud and infrastructure stocks, including IREN IREN$21.50, Cipher Digital CIFR$6.7980, and CoreWeave (CRWV), down 70% or more from their all-time highs. [...] Summary\n\nShow\n\n   Google plans to launch two specialised AI chips next year, targeting confidential computing and applications requiring larger amounts of data.\n   TPUs cost about 30% less than Nvidia’s GPUs, potentially putting pressure on Nvidia’s pricing and market share.\n   Nvidia shares fell 5% as an investigation involving CEO Jensen Huang added uncertainty around its leadership. [...] Google plans to introduce two specialized tensor processing units (TPUs) next year. One targets confidential computing for customers handling sensitive information, while the other supports applications that require larger volumes of data, including coding and drug discovery.",
+                "score": 0.6989468
+              },
+              {
+                "title": "Find My AI Chips: the US Plans to Track GPUs Abroad - IEEE Spectrum",
+                "url": "https://spectrum.ieee.org/find-my-ai-chip",
+                "source": "spectrum.ieee.org",
+                "summary": "To deduce an AI chip’s location, PLV measures the time it takes for a ping to travel from the chip to multiple trusted “landmark” servers around the world and back. Kyle Miller, a senior research analyst at CSET and coauthor of the report, says that for new AI chips, manufacturers could integrate PLV functionality into the hardware itself, while a firmware update could be applied to chips already in circulation. [...] Not all AI chips should be tracked, the researchers note. “The priority should be for the highest-end data center chips—the cream of the crop in high-end data center GPUs,” says Jacob Feldgoise, a senior data research analyst at CSET and coauthor of the report. [...] Whether or not a “Find My” for AI chips becomes a regulatory requirement, Feldgoise envisions tighter conditions for the export of advanced AI chips. “This is based on the increasing importance of compute to national and economic security,” he says. “The chips that generate compute are being seen as a strategic resource, so I would be unsurprised if the due diligence requirements on these devices increase as time passes.”",
+                "score": 0.6628188
+              },
+              {
+                "title": "Google's chip business is on a faster track than Nvidia's own AI boom",
+                "url": "https://finance.yahoo.com/markets/article/googles-chip-business-is-on-a-faster-track-than-nvidias-own-ai-boom-135447046.html",
+                "source": "finance.yahoo.com",
+                "summary": "Google introduced two new tensor processing units, or TPUs — its homegrown AI chips — on Monday. The TPU 8tx and TPU 8i Max join the 8t and 8i it unveiled in April, the first time Google has introduced four TPU systems in a single year. Both new chips ship next year. [...] Think of it as a chip menu. The 8tx keeps data encrypted for governments, banks, and other regulated businesses, paired with processors from AMD (AMD). The 8i Max squeezes two chips into one package for requests with long context windows — the amount of information an AI model can juggle at once. [...] Google is selling on price. SemiAnalysis found that Google's current Ironwood TPU delivers up to nearly three times as much AI output per dollar as Nvidia's Blackwell chips when running AI agents, though Nvidia's top system still wins when speed is everything.\n\nBar chart of peak AI computing power per chip in petaflops. Nvidia Rubin 35, Google TPU 8i Max 20, Nvidia Blackwell Ultra 15, Google TPU 8t 13, Google TPU 8i 10 and AMD MI355X 10.\n\nGoogle, Nvidia, AMD, Yahoo Finance",
+                "score": 0.6501347
+              },
+              {
+                "title": "Nvidia Faces Congressional Scrutiny Over AI Chip Sales, Export Controls - Bloomberg",
+                "url": "https://www.bloomberg.com/news/articles/2026-11-06/nvidia-s-ai-chip-exports-emerge-as-target-in-democratic-congress",
+                "source": "bloomberg.com",
+                "summary": "# Nvidia’s AI Chip Exports Emerge as Target in Democratic Congress\n\nNvidia Corp. is in for tougher scrutiny from a new Democratic majority in Congress that’s set to demand answers from Chief Executive Officer Jensen Huang about whether the company is doing enough to keep its coveted artificial intelligence chips out of the hands of China and other US adversaries.",
+                "score": 0.5163278
+              },
+              {
+                "title": "Deconstructing the AI Trade: AI Builders, AI Supplies and AI Products!",
+                "url": "https://aswathdamodaran.substack.com/p/deconstructing-the-ai-trade-ai-builders",
+                "source": "aswathdamodaran.substack.com",
+                "summary": "On November 5 alone, AI stocks lost almost $1.8 trillion in market cap, with chip stocks taking the brunt of the hit. During the course of the the last week, the AI chip and AI electrical groupings took a beating, but most of the other groups held their own. In fact, the hyperscalers, with the four Mag Seven companies in their midst, actually saw an aggregate increase in market cap during the week. It is a small sample, and there is a danger that I am overreaching, but if the immediate [...] For much of AI’s early existence, the commonalities have overwhelmed the competing interests, with the hope of a large market for AI products and services pushing up market pricing for all of the groups, with AI chip companies like Nvidia being rewarded for the expected growth in AI architecture, hyperscalers seeing their pricing marked up, when they spend more on architecture, and the compute power commitments atAI product companies being viewed as a competitive plus, rather than minus. That, [...] Looking at the year-to-date numbers for 2026, AI chips and AI real estate have run ahead of the market, and the rest of the AI groups lag the market; again, you should read the AI products and services grouping with caution, because it has only three companies in it, and SpaceX made its entry into the group mid-year. In fact, AI companies, in the aggregate, increased their share of overall US equity market capitalization for much of the year, peaking at about 37% on September 30, 2026. Since",
+                "score": 0.47373086
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G06_multiturn_clarify_topic_then_search",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_fill_topic",
+        "what_it_tests": "3 turns: lượt 1 thiếu chủ đề, lượt 2 bổ sung 'Gemini', lượt 3 chọn Latest → social_search với query=Gemini, search_type=Latest."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm giúp mình các tweet bàn về chủ đề đó"
+        },
+        {
+          "role": "user",
+          "content": "Chủ đề là Gemini nhé"
+        },
+        {
+          "role": "user",
+          "content": "Lấy các tweet mới nhất thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Latest"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Latest"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Gemini",
+            "search_type": "Latest"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Gemini",
+            "search_type": "Latest",
+            "items": [
+              {
+                "title": "GEMINI 4 CARBON IS HERE FOR ULTRA USERS https://t.co/PtZdfgwyOg",
+                "summary": "GEMINI 4 CARBON IS HERE FOR ULTRA USERS https://t.co/PtZdfgwyOg",
+                "url": "https://x.com/BuilderGuest/status/2120182345177436219",
+                "source": "@BuilderGuest",
+                "date": "Tue Nov 10 15:50:36 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "@decodedbysania Off by default is now the safer assumption. Google switched off Gemini and Search for K-12 student accou",
+                "summary": "@decodedbysania Off by default is now the safer assumption. Google switched off Gemini and Search for K-12 student accounts until schools opt in, so any edtech flow that assumes AI access for minors needs an audit.",
+                "url": "https://x.com/productgrowthai/status/2120182344128852165",
+                "source": "@productgrowthai",
+                "date": "Tue Nov 10 15:50:36 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "Gemini 4 Carbon 已上线，仅限Ultra订阅用户使用。",
+                "summary": "Gemini 4 Carbon 已上线，仅限Ultra订阅用户使用。\n\n其他订阅档位应该陆续会上架。 https://t.co/wV3G7bftPd",
+                "url": "https://x.com/Stargridcompass/status/2120182331483070465",
+                "source": "@Stargridcompass",
+                "date": "Tue Nov 10 15:50:33 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "Excited to announce Gemini Robotics 2.5 for real-world general dexterity!  🦾  ✨ ",
+                "summary": "Excited to announce Gemini Robotics 2.5 for real-world general dexterity!  🦾  ✨ \n\nFor robots to help people even more in the real-world, they need to be able to take on any task skillfully, reliably and safely. \n\nGemini Robotics 2.5 is our most capable vision-language-action model to date - increasing both the breadth of skills a robot can learn and the speed at which it can master them.\nIt marks a leap forward in three key areas:\n\n🔧Dexterity: mastering precise, fiddly tasks with delicate, flexible objects, from using everyday tools like tongs to tying a bow.\n🤝Reliability: With @Apptronik and @Mercedes-Benz, we put 2.5 to the test our models helped Apptronik’s Apollo 2 humanoid pick and pack automotive parts with a 96% success rate. \n🛑Safety: We developed new features to help robots better spot hazards and people and steer around them in real time. We’re also releasing a new open-source benchmark to test against jailbreaks.\n\nWe’re rolling out Gemini Robotics 2.5 to our partners now!\n\nLearn more: https://t.co/OWVyUqwLdQ\n\n@GoogleDeepMind Robotics",
+                "url": "https://x.com/carolina_parada/status/2120182324474388935",
+                "source": "@carolina_parada",
+                "date": "Tue Nov 10 15:50:31 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "5"
+                }
+              },
+              {
+                "title": "@bakiabaci @yademailab Gemini yayınları bana yaramıyor ama bi yayın lazım bu aralar :D",
+                "summary": "@bakiabaci @yademailab Gemini yayınları bana yaramıyor ama bi yayın lazım bu aralar :D",
+                "url": "https://x.com/Avenoxai/status/2120182309471035824",
+                "source": "@Avenoxai",
+                "date": "Tue Nov 10 15:50:28 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G07_multiturn_change_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_override_timeframe",
+        "what_it_tests": "3 turns: người dùng đổi timeframe từ day sang week ở lượt 2 và giữ chủ đề robot → lookup phải dùng timeframe=week (giá trị mới nhất), không giữ day cũ."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Hôm nay có tin gì về robot không?"
+        },
+        {
+          "role": "user",
+          "content": "Đổi sang tin trong tuần này đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn chủ đề robot nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "robot",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "robot",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "robot",
+            "topic": "news",
+            "timeframe": "week"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "robot",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Boston Dynamics Launches Next Generation Stretch Robot | Boston Dynamics",
+                "url": "https://bostondynamics.com/news/boston-dynamics-launches-next-generation-stretch-robot",
+                "source": "bostondynamics.com",
+                "summary": "Boston Dynamics is the global leader in AI-enabled mobile robots that tackle the toughest industrial and safety challenges. Our robots are equipped with advanced mobility, dexterity and intelligence, enabling automation in unstructured, unsafe or hard-to-traverse spaces. We have three robots in our portfolio: Spot®, a quadruped that conducts industrial inspections, manages facility performance data and keeps people out of harm’s way; Stretch®, a box-moving robot for logistics and retail [...] As a first mover in the robotic unloading space, Stretch is the market leader and has more deployments than any competitive product in the logistics industry. The team analyzed data from more than 100,000 operating hours and tens of millions of boxes that Stretch has already unloaded to target the most common causes of unplanned downtime. The result is a robot hardened for durability and an updated modular design that enables “plug and play” part swaps for easier maintenance and serviceability. [...] The new robot also runs on a redesigned onboard computing platform that is constantly improving. Regular software releases bring gains in case detection, motion planning, pick strategies and world modeling across an entire fleet, with no hardware changes required.",
+                "score": 0.32946774
+              },
+              {
+                "title": "Amazon is building a new home robot after Astro. Here's what we know",
+                "url": "https://www.cnbc.com/2026/11/08/amazon-home-robot-fauna-sprout.html",
+                "source": "cnbc.com",
+                "summary": "Apple is reportedly working on several home robot projects, including a tabletop device that resembles the Pixar lamp. Hugging Face, which Nvidia agreed to acquire for almost $13 billion in September, released the $399 Microduck in August. Angle, in May, launched a startup building fuzzy companion robots called Familiar Machines & Magic. Companies including Sunday, Tau and Nori claim their robots can help with household chores like folding laundry and clearing the table, but they remain mostly [...] \"The toolkit that the Astro team had when they did it was clubs with nails in them, just incredibly primitive,\" Angle said. \"It's difficult to understate just how much the robot industry has changed in the last two years.\"\n\nAdvances in AI models, sensors, battery systems and key mechanical components like actuators have spurred a new wave of development around robots for industrial and consumer use. [...] Elon Musk's Tesla has been developing its bipedal Optimus robots since 2021. Startups including Apptronik, Boston Dynamics, China's Unitree, Figure and 1X are also building humanoids. Agility Robotics, the company behind the bipedal Digit robot that counts Amazon as one of its backers, went public via a SPAC on Thursday.",
+                "score": 0.32672292
+              },
+              {
+                "title": "I watched a humanoid robot clean my apartment. It felt like a taste of the future.",
+                "url": "https://www.technologyreview.com/2026/11/06/1148090/i-watched-a-humanoid-robot-clean-my-apartment-it-felt-like-a-taste-of-the-future",
+                "source": "technologyreview.com",
+                "summary": "With all the human support they need, the robots are closer to radio-controlled cars than Waymos. Many tasks, such as making the bed and folding laundry, require what’s called kinematic guidance: The human pilot performs the necessary motions, and sensors transmit those movements to the robot, which copies them. These kinematically guided tasks produce especially valuable training data. Tau’s AI models might not have solved laundry folding yet, but learning from the examples of robots that have [...] But the robots are physically capable of cleaning, and they’re undeniably cute. Tau has armed each four-and-a-half-foot-tall robot with a 3D-printed “head” with antennae that allow it to communicate with Tau’s headquarters, as well as two 3D-printed claw “hands” (the more humanlike alternatives apparently aren’t durable enough, and claws do surprisingly well for most cleaning tasks). Mine was wearing a Tau Robotics shirt, and grippy socks so that it didn’t scratch hardwood floors. [...] the robots clean, they collect data that Tau will use to train up their more independent descendants. Every counter successfully wiped and T-shirt successfully folded will help the models that power the robots learn to do better on the next go-round.",
+                "score": 0.312014
+              },
+              {
+                "title": "Clearing up a robot’s fuzzy memory | MIT News | Massachusetts Institute of Technology",
+                "url": "https://news.mit.edu/2026/clearing-up-robot-fuzzy-memory-1105",
+                "source": "news.mit.edu",
+                "summary": "But the robot sometimes sees objects only partially or from far away, or its camera might capture blurry or poorly lit images. In these cases, DAAAM might describe these objects incorrectly, such as by mistaking a gray chimney for a squirrel perched on a rooftop.\n\n“With no way to correct itself, this wrong memory would persist as the robot proceeds in its environment, which could impact downstream applications,” Zhang says. [...] UQ-DAAAM integrates uncertainty quantification into the DAAAM framework. It allows the robot to measure its confidence in the accuracy of object descriptions and fix incorrect captions as it travels through an environment.\n\nWhile on the move, the robot constantly collects and stores images of the world around it. Many of these images show the same objects captured from different angles. UQ-DAAAM uses these additional viewpoints to identify and correct unreliable descriptions. [...] “Performing this uncertainty quantification procedure across the entire map the robot generates allows it to improve its understanding of what it has observed,” Gorlo says.\n\nNext, the researchers want to use UQ-DAAAM to guide different types of robots, like mobile robotic manipulators, and apply their uncertainty quantification techniques to other domains.",
+                "score": 0.29752147
+              },
+              {
+                "title": "Make a Robot Arm Feel Weightless with NVIDIA Holoscan 5 | NVIDIA Technical Blog",
+                "url": "https://developer.nvidia.com/blog/make-a-robot-arm-feel-weightless-with-nvidia-holoscan-5",
+                "source": "developer.nvidia.com",
+                "summary": "Picture guiding a robot arm by hand while its motors supply just enough torque to support its weight and keep the robot upright. This simple interaction, a useful starting point for robots that learn by demonstration, manipulate objects, or work alongside people, depends on a gravity-compensation loop. [...] This tutorial is built around the Seeed Studio reBot Arm B601-DM, which is an accessible, affordable platform for getting started with modern robotics control. Most low-cost robot arm development platforms use highly-geared hobby servos, which are only suitable for positional control. The reBot Arm uses quasi-direct-drive (QDD) actuators that provide high torque bandwidth for both control and sensing — important for haptic, co-bot, or other torque-oriented projects like this one.",
+                "score": 0.27846816
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G08_multiturn_confirmed_send",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "send_after_confirmation",
+        "what_it_tests": "Người dùng đã xác nhận rõ ở lượt cuối → gọi send với confirmed=true, không hỏi lại thừa (mặt đối xứng của G03)."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Gửi \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram"
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn muốn mình gửi đúng nội dung \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram phải không?"
+        },
+        {
+          "role": "user",
+          "content": "Đúng, gửi đi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Họp sprint dời sang thứ Sáu 9h",
+              "confirmed": true
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "Họp sprint dời sang thứ Sáu 9h",
+            "confirmed": true
+          },
+          "result": {
+            "tool": "send_telegram",
+            "error": "RuntimeError",
+            "message": "Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G09_multiturn_thanks_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "no_tool_closing",
+        "what_it_tests": "Lượt cuối chỉ là lời cảm ơn kết thúc → không gọi tool nào (không tìm kiếm lại, không gửi), chỉ đáp lại ngắn gọn."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin về năng lượng tái tạo hôm nay có gì?"
+        },
+        {
+          "role": "assistant",
+          "content": "Đây là vài tin nổi bật về năng lượng tái tạo hôm nay."
+        },
+        {
+          "role": "user",
+          "content": "Cảm ơn, mình đọc đủ rồi nhé"
+        }
+      ],
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Không có gì! Nếu bạn cần thêm thông tin gì khác, hãy cho tôi biết nhé!",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G10_multiturn_dedupe_from_earlier_list",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách nằm ở lượt 1, yêu cầu lọc trùng ở lượt cuối → gọi deduplicate dùng lại danh sách từ ngữ cảnh, không hỏi lại URL và không gọi tool tìm kiếm."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mình thu thập được 3 bài: [{\"url\":\"https://example.org/solar\",\"title\":\"Solar\"},{\"url\":\"https://example.org/wind\",\"title\":\"Wind\"},{\"url\":\"https://example.org/solar#top\",\"title\":\"Solar again\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Bài thứ ba có vẻ trùng bài đầu"
+        },
+        {
+          "role": "user",
+          "content": "Loại bài trùng URL khỏi danh sách trên giúp mình"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.org/solar",
+                  "title": "Solar"
+                },
+                {
+                  "url": "https://example.org/wind",
+                  "title": "Wind"
+                },
+                {
+                  "url": "https://example.org/solar#top",
+                  "title": "Solar again"
+                }
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "deduplicate",
+          "args": {
+            "items": [
+              {
+                "url": "https://example.org/solar",
+                "title": "Solar"
+              },
+              {
+                "url": "https://example.org/wind",
+                "title": "Wind"
+              },
+              {
+                "url": "https://example.org/solar#top",
+                "title": "Solar again"
+              }
+            ]
+          },
+          "result": {
+            "tool": "deduplicate",
+            "items": [
+              {
+                "url": "https://example.org/solar",
+                "title": "Solar"
+              },
+              {
+                "url": "https://example.org/wind",
+                "title": "Wind"
+              }
+            ],
+            "removed_count": 1
+          }
+        }
+      ]
+    }
+  ]
+}

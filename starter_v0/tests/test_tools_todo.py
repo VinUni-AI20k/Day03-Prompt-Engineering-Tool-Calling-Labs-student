@@ -10,10 +10,14 @@ Rules:
 """
 from __future__ import annotations
 
+import time
+
 import pytest
+import requests
 
 from conftest import FakeResponse
 from tools import TOOL_FUNCTIONS
+from tools.semantic_scholar import tool as semantic_scholar_module
 
 
 # ---------------- clarify ----------------
@@ -408,3 +412,354 @@ def test_filters_preserve_input_and_return_independent_copies(tool, args):
     assert items == original
     result["items"][0]["metadata"]["tags"].append("changed")
     assert items == original
+
+
+# ---------------- openalex ----------------
+
+OPENALEX_URL = "https://api.openalex.org/works"
+
+
+def _openalex_work(**overrides):
+    work = {
+        "id": "https://openalex.org/W123",
+        "doi": "https://doi.org/10.1000/xyz",
+        "title": "Attention Is All You Need",
+        "publication_year": 2017,
+        "publication_date": "2017-06-12",
+        "authorships": [
+            {"author": {"display_name": "Ashish Vaswani"}},
+            {"author": {"display_name": "Noam Shazeer"}},
+        ],
+        "primary_location": {"source": {"display_name": "NeurIPS"}},
+        "best_oa_location": {"landing_page_url": "https://arxiv.org/abs/1706.03762", "pdf_url": "https://arxiv.org/pdf/1706.03762"},
+        "open_access": {"is_oa": True},
+        "cited_by_count": 100000,
+        "type": "article",
+        "abstract_inverted_index": {"world": [1], "Hello": [0], "again": [2]},
+    }
+    work.update(overrides)
+    return work
+
+
+@pytest.fixture
+def openalex_env(monkeypatch):
+    """conftest only clears the starter env vars, so clear the OpenAlex ones here."""
+    monkeypatch.delenv("OPENALEX_API_KEY", raising=False)
+    monkeypatch.delenv("OPENALEX_MAILTO", raising=False)
+
+
+def test_openalex_sends_expected_request_and_maps_work(openalex_env, fake_http) -> None:
+    calls = fake_http(FakeResponse({"meta": {"count": 42}, "results": [_openalex_work()]}))
+
+    result = TOOL_FUNCTIONS["openalex"](query="  transformer   attention ", max_results=3, sort_by="cited_by_count")
+
+    assert calls[0]["url"] == OPENALEX_URL
+    assert calls[0]["params"]["search"] == "transformer attention"
+    assert calls[0]["params"]["per_page"] == 3
+    assert calls[0]["params"]["sort"] == "cited_by_count:desc"
+    assert "api_key" not in calls[0]["params"] and "mailto" not in calls[0]["params"]
+    assert result["total_results"] == 42
+    assert result["sort_by"] == "cited_by_count"
+    assert result["items"] == [{
+        "openalex_id": "https://openalex.org/W123",
+        "title": "Attention Is All You Need",
+        "abstract": "Hello world again",
+        "authors": ["Ashish Vaswani", "Noam Shazeer"],
+        "year": 2017,
+        "published": "2017-06-12",
+        "venue": "NeurIPS",
+        "citation_count": 100000,
+        "type": "article",
+        "doi": "10.1000/xyz",
+        "url": "https://openalex.org/W123",
+        "landing_page_url": "https://arxiv.org/abs/1706.03762",
+        "pdf_url": "https://arxiv.org/pdf/1706.03762",
+        "is_open_access": True,
+        "source": "openalex.org",
+    }]
+
+
+def test_openalex_sends_api_key_and_mailto_only_when_set(openalex_env, monkeypatch, fake_http) -> None:
+    monkeypatch.setenv("OPENALEX_API_KEY", "oa-key")
+    monkeypatch.setenv("OPENALEX_MAILTO", "team@example.com")
+    calls = fake_http(FakeResponse({"results": []}))
+
+    TOOL_FUNCTIONS["openalex"](query="llm")
+
+    assert calls[0]["params"]["api_key"] == "oa-key"
+    assert calls[0]["params"]["mailto"] == "team@example.com"
+
+
+@pytest.mark.parametrize("query", ["", "   ", None])
+def test_openalex_empty_query_returns_error_and_makes_no_request(openalex_env, fake_http, query) -> None:
+    calls = fake_http(FakeResponse({"results": []}))
+
+    result = TOOL_FUNCTIONS["openalex"](query=query)
+
+    assert result["tool"] == "openalex_search"
+    assert result["error"] == "ValueError"
+    assert "query" in result["message"]
+    assert calls == []
+
+
+@pytest.mark.parametrize("max_results,expected", [(0, 5), (-4, 1), (1000, 100), ("7", 7)])
+def test_openalex_max_results_is_coerced_into_valid_range(openalex_env, fake_http, max_results, expected) -> None:
+    calls = fake_http(FakeResponse({"results": []}))
+
+    result = TOOL_FUNCTIONS["openalex"](query="llm", max_results=max_results)
+
+    assert "error" not in result
+    assert calls[0]["params"]["per_page"] == expected
+
+
+def test_openalex_unknown_sort_by_falls_back_to_relevance(openalex_env, fake_http) -> None:
+    calls = fake_http(FakeResponse({"results": []}))
+
+    result = TOOL_FUNCTIONS["openalex"](query="llm", sort_by="newest")
+
+    assert result["sort_by"] == "relevance"
+    assert calls[0]["params"]["sort"] == "relevance_score:desc"
+
+
+def test_openalex_non_numeric_max_results_returns_error_and_makes_no_request(openalex_env, fake_http) -> None:
+    calls = fake_http(FakeResponse({"results": []}))
+
+    result = TOOL_FUNCTIONS["openalex"](query="llm", max_results="many")
+
+    assert result["error"] == "ValueError"
+    assert calls == []
+
+
+def test_openalex_sparse_work_does_not_crash_and_uses_empty_defaults(openalex_env, fake_http) -> None:
+    sparse = {"id": "https://openalex.org/W9", "title": None, "authorships": None, "primary_location": None,
+              "best_oa_location": None, "open_access": None, "abstract_inverted_index": None}
+    fake_http(FakeResponse({"results": [sparse, "not-a-dict"]}))
+
+    result = TOOL_FUNCTIONS["openalex"](query="llm")
+
+    assert len(result["items"]) == 1
+    item = result["items"][0]
+    assert item["title"] == "" and item["abstract"] == "" and item["authors"] == []
+    assert item["venue"] is None and item["pdf_url"] is None and item["is_open_access"] is False
+
+
+def test_openalex_http_error_returns_error_dict(openalex_env, fake_http) -> None:
+    fake_http(FakeResponse(status_code=429))
+
+    result = TOOL_FUNCTIONS["openalex"](query="llm")
+
+    assert result == {"tool": "openalex_search", "error": "HTTPError", "message": "HTTP 429"}
+
+
+def test_openalex_timeout_returns_error_dict_instead_of_raising(openalex_env, fake_http) -> None:
+    fake_http(requests.Timeout("timed out"))
+
+    result = TOOL_FUNCTIONS["openalex"](query="llm")
+
+    assert result["error"] == "Timeout"
+    assert "timed out" in result["message"]
+
+
+# ---------------- semantic_scholar ----------------
+
+SEMANTIC_SCHOLAR_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
+
+
+class _SSResponse(FakeResponse):
+    """FakeResponse plus headers, because the retry logic reads Retry-After."""
+
+    def __init__(self, payload=None, status_code=200, headers=None) -> None:
+        super().__init__(payload, status_code)
+        self.headers = headers or {}
+
+
+@pytest.fixture
+def semantic_scholar_env(monkeypatch):
+    """Clear the API key, skip real sleeping, and reset the in-process rate limiter."""
+    monkeypatch.delenv("SEMANTIC_SCHOLAR_API_KEY", raising=False)
+    sleeps: list[float] = []
+    monkeypatch.setattr(time, "sleep", lambda seconds: sleeps.append(seconds))
+    monkeypatch.setattr(semantic_scholar_module, "_last_semantic_scholar_request_at", 0.0)
+    return sleeps
+
+
+def _queue_http(monkeypatch, responses):
+    """Return the given responses one by one (the last one repeats) and record every request."""
+    calls: list[dict] = []
+    queue = list(responses)
+
+    def _get(url, **kwargs):
+        calls.append({"url": url, **kwargs})
+        item = queue.pop(0) if len(queue) > 1 else queue[0]
+        if isinstance(item, Exception):
+            raise item
+        return item
+
+    monkeypatch.setattr(requests, "get", _get)
+    return calls
+
+
+def _paper(**overrides):
+    paper = {
+        "paperId": "abc123",
+        "title": "BERT",
+        "abstract": "Pre-training of deep bidirectional transformers.",
+        "authors": [{"name": "Jacob Devlin"}, {"name": ""}, {"authorId": "1"}],
+        "year": 2018,
+        "publicationDate": "2018-10-11",
+        "venue": "NAACL",
+        "citationCount": 90000,
+        "referenceCount": 40,
+        "url": "https://www.semanticscholar.org/paper/abc123",
+        "openAccessPdf": {"url": "https://arxiv.org/pdf/1810.04805"},
+        "externalIds": {"DOI": "10.18653/v1/N19-1423", "ArXiv": "1810.04805"},
+        "fieldsOfStudy": [{"category": "Computer Science"}, {"category": None}],
+        "publicationTypes": ["Conference"],
+    }
+    paper.update(overrides)
+    return paper
+
+
+def test_semantic_scholar_sends_expected_request_and_maps_paper(semantic_scholar_env, monkeypatch) -> None:
+    calls = _queue_http(monkeypatch, [_SSResponse({"total": 7, "data": [_paper()]})])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="  bert   language model ", max_results=2)
+
+    assert calls[0]["url"] == SEMANTIC_SCHOLAR_URL
+    assert calls[0]["params"]["query"] == "bert language model"
+    assert calls[0]["params"]["limit"] == 2
+    assert "sort" not in calls[0]["params"]
+    assert "x-api-key" not in calls[0]["headers"]
+    assert result["total_results"] == 7
+    assert result["items"] == [{
+        "paper_id": "abc123",
+        "title": "BERT",
+        "abstract": "Pre-training of deep bidirectional transformers.",
+        "authors": ["Jacob Devlin"],
+        "year": 2018,
+        "published": "2018-10-11",
+        "venue": "NAACL",
+        "citation_count": 90000,
+        "reference_count": 40,
+        "url": "https://www.semanticscholar.org/paper/abc123",
+        "pdf_url": "https://arxiv.org/pdf/1810.04805",
+        "is_open_access": True,
+        "doi": "10.18653/v1/N19-1423",
+        "arxiv_id": "1810.04805",
+        "fields_of_study": ["Computer Science"],
+        "publication_types": ["Conference"],
+        "source": "semanticscholar.org",
+    }]
+
+
+def test_semantic_scholar_sort_by_citation_count_sends_sort_param(semantic_scholar_env, monkeypatch) -> None:
+    calls = _queue_http(monkeypatch, [_SSResponse({"data": []})])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm", sort_by="citationCount")
+
+    assert calls[0]["params"]["sort"] == "citationCount:desc"
+    assert result["sort_by"] == "citationCount"
+
+
+def test_semantic_scholar_unknown_sort_by_falls_back_to_relevance(semantic_scholar_env, monkeypatch) -> None:
+    calls = _queue_http(monkeypatch, [_SSResponse({"data": []})])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm", sort_by="newest")
+
+    assert result["sort_by"] == "relevance"
+    assert "sort" not in calls[0]["params"]
+
+
+def test_semantic_scholar_sends_api_key_header_when_set(semantic_scholar_env, monkeypatch) -> None:
+    monkeypatch.setenv("SEMANTIC_SCHOLAR_API_KEY", "ss-key")
+    calls = _queue_http(monkeypatch, [_SSResponse({"data": []})])
+
+    TOOL_FUNCTIONS["semantic_scholar"](query="llm")
+
+    assert calls[0]["headers"]["x-api-key"] == "ss-key"
+
+
+@pytest.mark.parametrize("query", ["", "   ", None])
+def test_semantic_scholar_empty_query_returns_error_and_makes_no_request(semantic_scholar_env, monkeypatch, query) -> None:
+    calls = _queue_http(monkeypatch, [_SSResponse({"data": []})])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query=query)
+
+    assert result["tool"] == "semantic_scholar_search"
+    assert result["error"] == "ValueError"
+    assert calls == []
+
+
+@pytest.mark.parametrize("max_results,expected", [(0, 5), (-4, 1), (1000, 100), ("7", 7)])
+def test_semantic_scholar_max_results_is_coerced_into_valid_range(semantic_scholar_env, monkeypatch, max_results, expected) -> None:
+    calls = _queue_http(monkeypatch, [_SSResponse({"data": []})])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm", max_results=max_results)
+
+    assert "error" not in result
+    assert calls[0]["params"]["limit"] == expected
+
+
+def test_semantic_scholar_sparse_paper_does_not_crash_and_uses_empty_defaults(semantic_scholar_env, monkeypatch) -> None:
+    sparse = {"paperId": "p1", "title": None, "abstract": None, "authors": None, "openAccessPdf": None,
+              "externalIds": None, "fieldsOfStudy": None, "publicationTypes": None}
+    _queue_http(monkeypatch, [_SSResponse({"data": [sparse, "not-a-dict"]})])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm")
+
+    assert len(result["items"]) == 1
+    item = result["items"][0]
+    assert item["title"] == "" and item["abstract"] == "" and item["authors"] == []
+    assert item["pdf_url"] is None and item["is_open_access"] is False
+    assert item["fields_of_study"] == [] and item["publication_types"] == []
+
+
+def test_semantic_scholar_client_error_returns_error_dict_without_retry(semantic_scholar_env, monkeypatch) -> None:
+    calls = _queue_http(monkeypatch, [_SSResponse(status_code=404)])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm")
+
+    assert result == {"tool": "semantic_scholar_search", "error": "HTTPError", "message": "HTTP 404"}
+    assert len(calls) == 1
+
+
+def test_semantic_scholar_retries_429_then_returns_items(semantic_scholar_env, monkeypatch) -> None:
+    calls = _queue_http(monkeypatch, [
+        _SSResponse(status_code=429, headers={"Retry-After": "7"}),
+        _SSResponse({"data": [_paper()]}),
+    ])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm")
+
+    assert len(calls) == 2
+    assert 7.0 in semantic_scholar_env  # honoured the Retry-After header
+    assert result["items"][0]["title"] == "BERT"
+
+
+def test_semantic_scholar_gives_up_after_three_attempts_and_returns_error_dict(semantic_scholar_env, monkeypatch) -> None:
+    calls = _queue_http(monkeypatch, [_SSResponse(status_code=503)])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm")
+
+    assert len(calls) == 3
+    assert result["error"] == "HTTPError"
+    assert result["message"] == "HTTP 503"
+
+
+def test_semantic_scholar_network_error_returns_error_dict_instead_of_raising(semantic_scholar_env, monkeypatch) -> None:
+    _queue_http(monkeypatch, [requests.ConnectionError("no route")])
+
+    result = TOOL_FUNCTIONS["semantic_scholar"](query="llm")
+
+    assert result["error"] == "ConnectionError"
+    assert "no route" in result["message"]
+
+
+def test_semantic_scholar_spaces_back_to_back_requests_at_least_one_second(semantic_scholar_env, monkeypatch) -> None:
+    _queue_http(monkeypatch, [_SSResponse({"data": []})])
+    monkeypatch.setattr(semantic_scholar_module, "_last_semantic_scholar_request_at", time.monotonic())
+
+    TOOL_FUNCTIONS["semantic_scholar"](query="llm")
+
+    assert len(semantic_scholar_env) == 1
+    assert 0 < semantic_scholar_env[0] <= 1.0
