@@ -12,7 +12,7 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Vũ Xuân Bách | 2A202603803 | bachvx@example.com | bachvx1709 | Leader, Eval & Report |
-|   2 | Nguyễn Hoàng Trung | 2A202603826 | 26ai.trungnh@vinui.edu.vn | NguyenHoangTrung | CP3: Custom Tool & Unit Tests |
+|   2 | Nguyễn Hoàng Trung | 2A202603826 | 26ai.trungnh@vinui.edu.vn | trungtk03 | CP3: Custom Tool & Unit Tests |
 
 ## Cá nhân
 
