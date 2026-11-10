@@ -11,7 +11,7 @@
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 |        |      |       |        |         |
+|   1 | Đào Lê Bảo Minh | 2A202604010 | 26ai.dlbminh@vinuni.edu.vn | https://github.com/lebaominh-dao | Trưởng nhóm |
 |   2 |        |      |       |        |         |
 
 ## Cá nhân
