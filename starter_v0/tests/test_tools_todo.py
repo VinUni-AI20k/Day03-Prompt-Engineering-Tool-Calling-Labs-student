@@ -11,6 +11,7 @@ Rules:
 from __future__ import annotations
 
 import pytest
+import requests
 
 from conftest import FakeResponse  # noqa: F401  (you will need it)
 from tools import TOOL_FUNCTIONS  # noqa: F401
@@ -110,13 +111,79 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+# def test_my_new_tool_happy_path() -> None:
+#     pytest.skip(TODO)
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+# def test_my_new_tool_bad_input_from_model() -> None:
+#     pytest.skip(TODO)
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+# def test_my_new_tool_failure_returns_error_dict() -> None:
+#     pytest.skip(TODO)
+
+def test_github_repo_maps_response_and_sends_expected_request(fake_http):
+    calls = fake_http(FakeResponse({
+        "full_name": "psf/requests",
+        "html_url": "https://github.com/psf/requests",
+        "description": "HTTP library",
+        "stargazers_count": 123,
+        "forks_count": 45,
+        "language": "Python",
+        "updated_at": "2026-01-01T00:00:00Z",
+    }))
+
+    result = TOOL_FUNCTIONS["github_repo"](repo="psf/requests")
+
+    assert len(calls) == 1
+    assert calls[0]["method"] == "GET"
+    assert calls[0]["url"] == "https://api.github.com/repos/psf/requests"
+    assert calls[0]["headers"]["Accept"] == "application/vnd.github+json"
+    assert calls[0]["timeout"] > 0
+    assert result == {
+        "tool": "github_repo",
+        "items": [{
+            "title": "psf/requests",
+            "url": "https://github.com/psf/requests",
+            "source": "github.com",
+            "summary": "HTTP library",
+            "stars": 123,
+            "forks": 45,
+            "language": "Python",
+            "updated_at": "2026-01-01T00:00:00Z",
+        }],
+    }
+
+
+@pytest.mark.parametrize("repo", [
+    "", "   ", None, 123, "requests", "psf/..",
+    "https://github.com/psf/requests", "psf/requests.git",
+])
+def test_github_repo_invalid_input_returns_error_without_http(repo, fake_http):
+    calls = fake_http(FakeResponse({}))
+
+    result = TOOL_FUNCTIONS["github_repo"](repo=repo)
+
+    assert result["tool"] == "github_repo"
+    assert result["error"] == "ValueError"
+    assert result["message"]
+    assert calls == []
+
+
+@pytest.mark.parametrize("response, expected_error", [
+    (FakeResponse(status_code=403), "HTTPError"),
+    (FakeResponse(status_code=404), "HTTPError"),
+    (FakeResponse(status_code=429), "HTTPError"),
+    (requests.Timeout("Request timed out"), "Timeout"),
+    (FakeResponse(payload=[]), "ValueError"),
+])
+def test_github_repo_api_failure_returns_error_dict(response, expected_error, fake_http):
+    calls = fake_http(response)
+
+    result = TOOL_FUNCTIONS["github_repo"](repo="psf/requests")
+
+    assert len(calls) == 1
+    assert result["tool"] == "github_repo"
+    assert result["error"] == expected_error
+    assert result["message"]
+    assert "items" not in result
