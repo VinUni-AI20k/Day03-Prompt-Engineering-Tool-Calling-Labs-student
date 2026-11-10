@@ -123,3 +123,20 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: stats
+    description: "Tính mean, median hoặc độ lệch chuẩn mẫu trên dữ liệu số đã có từ nghiên cứu/người dùng. Không dùng để tìm dữ liệu, đọc URL hoặc giải toán tổng quát."
+    parameters:
+      type: object
+      properties:
+        values:
+          type: array
+          minItems: 1
+          items: {type: number}
+          description: "Danh sách số hữu hạn, không nhận boolean hoặc chuỗi số."
+        statistic:
+          type: string
+          enum: [mean, median, stdev]
+          default: mean
+          description: "stdev là độ lệch chuẩn mẫu (n-1), cần ít nhất 2 giá trị."
+      required: [values]
