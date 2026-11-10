@@ -8,9 +8,9 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm: <<CHỜ: người dùng/A cung cấp tên nhóm>>
+- Tên nhóm: MMV
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3: <<CHỜ: A/người dùng gửi provider và model>>
+- Provider/model dùng cho v0–v3: OpenRouter / `openai/gpt-4o-mini` (đối chiếu `version_log.csv` và run JSON).
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -30,41 +30,58 @@ Dependency đã thêm: `streamlit>=1.40.0` trong `starter_v0/requirements.txt`.
 
 **Link dùng thử (deploy):**
 
-URL đã được người dùng xác nhận mở được từ thiết bị khác: [https://testing-alternatively-dash-cherry.trycloudflare.com](https://testing-alternatively-dash-cherry.trycloudflare.com).
-
-Lưu ý: link `trycloudflare.com` chỉ sống khi lệnh `cloudflared tunnel --url http://localhost:8501` còn chạy. Khi kiểm tra lại ngày 2026-11-10 sau khi tunnel đã tắt, link này không còn truy cập được (không phân giải được tên miền). Cần chạy lại `streamlit run app.py` và `cloudflared`, rồi thay URL mới vào đây trước khi nộp hoặc demo.
+Link thử nghiệm cũ đã được người dùng xác nhận mở được từ thiết bị khác, nhưng hiện đã hết hiệu lực sau khi tunnel dừng. Trước demo cần chạy lại `streamlit run app.py --server.headless true` và `cloudflared tunnel --url http://localhost:8501`; cập nhật URL chỉ sau khi xác nhận truy cập được từ thiết bị khác.
 
 ### A2. Tool agent có
 
-Danh sách dưới đây lấy từ `starter_v0/artifacts/tools.yaml` hiện tại; đối chiếu registry trong `starter_v0/tools/__init__.py` và lịch sử Git không thấy tool mới ngoài 10 tool gốc.
+Danh sách lấy từ `starter_v0/artifacts/tools.yaml` hiện hành, đối chiếu registry `starter_v0/tools/__init__.py` và Git history. Sáu tool mới của nhóm được đánh dấu “có”.
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | Đặt câu hỏi và chờ người dùng bổ sung thông tin | không |
-| timeline | Lấy bài đăng gần đây từ tài khoản X | không |
-| social_search | Tìm trên mạng xã hội | không |
-| lookup | Tra cứu thông tin trên internet | không |
-| fetch | Lấy nội dung từ một URL | không |
-| format | Trình bày dữ liệu đã có thành văn bản | không |
-| send | Gửi văn bản tới Telegram khi được xác nhận | không |
-| policy | Tìm trong tài liệu nội bộ | không |
-| papers | Tìm bài báo khoa học | không |
-| paper_text | Tải PDF arXiv và trích xuất văn bản cục bộ | không |
-| <<CHỜ: B>> | <<CHỜ: B gửi tên/mô tả tool mới hoặc xác nhận chưa thêm tool>> | <<CHỜ: B>> |
+| clarify | Hỏi người dùng để bổ sung thông tin hoặc xác nhận trước khi gửi Telegram | không |
+| timeline | Lấy bài đăng gần đây từ một tài khoản X cụ thể | không |
+| social_search | Tìm bài đăng X theo từ khóa hoặc chủ đề | không |
+| lookup | Tìm tin tức và thông tin chung trên web | không |
+| fetch | Đọc nội dung từ URL cụ thể do người dùng cung cấp | không |
+| format | Định dạng các item đã thu thập thành digest | không |
+| send | Gửi văn bản lên Telegram sau khi người dùng xác nhận | không |
+| policy | Tra cứu chính sách nội bộ | không |
+| papers | Tìm bài báo khoa học trên arXiv theo từ khóa | không |
+| paper_text | Tải PDF arXiv và trích xuất văn bản | không |
+| deduplicate | Loại URL trùng trong danh sách bài đã thu thập, giữ thứ tự và item đầu tiên | có |
+| filter_sources | Lọc item theo domain cho phép hoặc chặn | có |
+| filter_by_date | Lọc item theo khoảng ngày | có |
+| validate_citations | Kiểm tra trường trích dẫn và URL HTTP(S) | có |
+| semantic_scholar | Tìm bài báo khoa học và thông tin trích dẫn qua Semantic Scholar | có |
+| openalex | Tìm công trình học thuật qua OpenAlex | có |
 
 ### A3. Câu hỏi mẫu để thử
 
 1. Tìm tin AI hôm nay và tổng hợp thành một bản tin ngắn giúp mình.
-2. Tóm tắt 5 tweet mới nhất giúp mình.
-3. Đăng bản tin AI ở lượt đầu lên Telegram giúp mình.
-4. Đọc và tóm tắt trang này giúp mình: https://example.com
+2. Tóm tắt 5 tweet mới nhất giúp mình. *(Thiếu tài khoản X; agent cần hỏi lại.)*
+3. Đăng bản tin AI ở lượt đầu lên Telegram giúp mình. *(Phải hỏi xác nhận trước khi gửi; không xác nhận thì không gửi.)*
+4. Đọc giúp mình bài này: https://arxiv.org/abs/1706.03762
+5. Tìm giúp mình các bài báo về retrieval-augmented generation được trích dẫn nhiều nhất. *(Kiểm tra route tới `semantic_scholar`.)*
 
 ## 3. Giải pháp
 
-> Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
+### Thay đổi prompt và khai báo tool
 
-- <<CHỜ: A và B gửi tóm tắt thay đổi prompt/tools/tool mới để ghép nguyên văn>>
+- **v1:** bỏ các chỉ dẫn xấu khuyến khích đoán thông tin, gửi ngay hoặc ép xử lý một bước; thêm quy tắc dùng `clarify` khi thiếu dữ liệu và hỏi xác nhận trước `send`.
+- **v2:** bổ sung quy tắc chọn `timeline`, `social_search`, `lookup`, `fetch` theo loại yêu cầu và điều kiện khi nào cần hỏi lại.
+- **v3:** làm rõ quy tắc đổi nguồn và xác nhận gửi trong prompt; viết lại mô tả tool theo việc nên dùng/không nên dùng, quy ước arguments và boundary của `send`.
+- **v4–v7:** thêm routing cho tool mới; yêu cầu hỏi lại khi thiếu danh sách đầu vào; giới hạn gọi `lookup` khi không có yêu cầu về X; thử một thay đổi ưu tiên xác nhận (không hiệu quả, đã bỏ); cuối cùng làm rõ cách truyền `limit` cho `timeline`. Kết quả và giả thuyết từng vòng được ghi ở B1 và `starter_v0/artifacts/version_log.csv`.
 
+### Sáu tool mới
+
+- `deduplicate`: bỏ URL trùng trong tập kết quả đã thu thập, giữ thứ tự và item đầu tiên.
+- `filter_sources`: lọc các item theo domain cho phép/chặn.
+- `filter_by_date`: lọc item theo khoảng ngày.
+- `validate_citations`: kiểm tra trường trích dẫn và URL.
+- `semantic_scholar`: tìm bài báo và thông tin trích dẫn qua Semantic Scholar.
+- `openalex`: tìm công trình học thuật qua OpenAlex.
+
+Bốn tool xử lý danh sách không tự tìm dữ liệu trên mạng; hai tool học thuật gọi API ngoài. Chi tiết quy tắc/arguments nằm trong `starter_v0/artifacts/tools.yaml` và `starter_v0/tools/*/TOOL.md`.
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
 ### B1. Version Evidence
@@ -160,7 +177,7 @@ Nhận xét: luồng hỏi lại, bổ sung và xác nhận trước khi gửi h
 |---|---|---|---|
 | Tool mới (`tools/<tên>/`) | 6 tool mới, mỗi tool có `tool.py` và `TOOL.md`, đăng ký trong `tools/__init__.py` và `tools.yaml`: `deduplicate`, `filter_sources`, `filter_by_date`, `validate_citations`, `openalex`, `semantic_scholar` | Bốn tool đầu xử lý danh sách item đã thu thập (lọc trùng URL, lọc theo tên miền, lọc theo ngày, kiểm tra trích dẫn). Hai tool sau: tạo thành công 2 tool tìm kiếm bài báo khoa học thông qua OpenAlex API và Semantic Scholar API. Có khả năng truy xuất, chuẩn hóa thông tin bài báo như tiêu đề, tác giả, năm xuất bản, abstract, DOI và số lượt trích dẫn. | Phụ thuộc vào API bên ngoài nên có thể gặp lỗi kết nối, giới hạn số request hoặc thiếu dữ liệu ở một số bài báo. Có xử lý lỗi và giới hạn số lượng kết quả trả về. |
 | Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`; output `pytest` đầy đủ: `starter_v0/analysis/pytest_output.txt` (213 passed, 0 failed, 0 skipped) | Mỗi tool mới đều có test cho happy path, input xấu và nhánh lỗi trả error dict thay vì raise. Số test theo pytest (tính cả các case parametrize): `deduplicate` 22, `filter_sources` 12, `filter_by_date` 8, `validate_citations` 11, `openalex` 14, `semantic_scholar` 17. Test của `openalex` và `semantic_scholar` assert cả request gửi đi (URL, params, header) lẫn kết quả đã chuẩn hóa, và bao gồm `query` rỗng, `max_results` ngoài khoảng, `sort_by` sai, bản ghi thiếu field, HTTP 429/404/503, timeout, retry và giãn cách 1 giây của `semantic_scholar`. `tests/test_tool_contract.py` cũng xanh cho cả hai tool (85 passed). | Test dùng `fake_http` nên chưa đảm bảo khả năng chạy với API thật (giới hạn request, thay đổi định dạng trả về). Test của `openalex` và `semantic_scholar` được bổ sung sau khi hai tool đã được merge. |
-| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `starter_v0/ui_core.py`, `starter_v0/tests/test_app_ui.py`, `starter_v0/tests/test_ui_core.py`; lệnh chạy và link ở mục A1 | UI Streamlit có chốt xác nhận trước khi chạy tool có tác dụng phụ; lệnh chạy: `streamlit run app.py --server.headless true` (từ `starter_v0/`). Test UI nằm trong cùng suite 213 test. | Link `trycloudflare.com` chỉ sống khi tunnel còn chạy. Link hiện đã tắt (xem A1) nên cần chạy lại tunnel trước khi demo. Transcript bằng chứng ở B4 là của `chat.py` (`starter_v0/transcripts/`, không bị ignore); transcript do UI tạo ghi vào `transcripts_ui/` và bị `.gitignore`, chưa có file nào. |
+| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `starter_v0/ui_core.py`, `starter_v0/tests/test_app_ui.py`, `starter_v0/tests/test_ui_core.py`; lệnh chạy và link ở mục A1 | UI Streamlit có chốt xác nhận như lớp bảo vệ thứ hai; boundary chính nằm ở `system_prompt.md`/`tools.yaml`. Lệnh chạy: `streamlit run app.py --server.headless true` (từ `starter_v0/`). | Link `trycloudflare.com` đã tắt (A1), cần chạy lại trước demo. Transcript B4 là của `chat.py`; `transcripts_ui/` chưa có transcript runtime chứa `ui_gate`, nên bằng chứng hiện có cho gate UI là test. Link công khai cần để trống thông tin Telegram và tắt tunnel sau demo. |
 
 **Ví dụ lỗi unit test bắt được nhưng eval không bắt được:** sau khi merge hai tool `openalex` và `semantic_scholar`, `tools/__init__.py` đăng ký nhầm khoá `"senmatic_scholar"` thay vì `"semantic_scholar"`. `pytest` báo 2 test FAIL (`test_every_declared_tool_has_implementation[semantic_scholar]` và `test_declared_params_exist_in_function_signature[semantic_scholar]`, cùng lỗi `KeyError: 'semantic_scholar'`) và hết lỗi sau khi sửa tên khoá. Eval không thể bắt lỗi này vì không có case nào trong `eval_base.json` hay `eval_group.json` kỳ vọng `semantic_scholar`, nên mọi lần chạy eval đều không chạm tới tool này, trong khi nếu model gọi nó thì agent chỉ trả `unknown_tool` (`agent.py`).
 
@@ -170,44 +187,25 @@ Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool c�
 
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Small Local Model | xem B7 |  |  |
-| Hơn 3 tool mới (≥ 4) |  |  |  |
-| `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
-| Test challenge (0 skipped / regression test) | `pytest` output |  |  |
+| Small Local Model | Không có run Ollama/local trong `starter_v0/runs/` | Chưa thực hiện | Không nhận bonus nếu thiếu run evidence. |
+| Hơn 3 tool mới (≥ 4) | `starter_v0/artifacts/tools.yaml`, `starter_v0/tools/`, B3 | Có 6 tool mới được đăng ký và kiểm tra | `semantic_scholar` có thể bị giới hạn API; xem lỗi 429 ở B3. |
+| `send` gửi thật lên Telegram sau xác nhận | Transcript B4 | Chưa đạt: tool trả lỗi do thiếu cấu hình Telegram; không có tin nhắn nào được gửi | Không bật Telegram trên tunnel công khai; cần xác nhận và private channel nếu nhóm muốn thử lại. |
+| Test challenge (0 skipped / regression test) | `starter_v0/analysis/pytest_output.txt`, `starter_v0/tests/test_tool_contract.py` | Suite ghi nhận 213 passed, 0 skipped; contract test hồi quy kiểm tra đăng ký và chữ ký tool `semantic_scholar` | Lỗi được phát hiện là lỗi đăng ký tool mới, không phải lỗi trong tool có sẵn; cần đối chiếu rubric trước khi tính bonus. Kết quả trong file là log đã lưu, không phải lần chạy lại trong lượt cập nhật báo cáo này. |
 
 Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách sửa, và test regression tương ứng.
 
 ### B7. Small Local Model Challenge (bonus)
 
-Chỉ điền nếu nhóm làm bonus này.
-
-| Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
-|---|---|---|---|---|---|---|---|
-| v3 | (cloud) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v4-local |  |  |  |  |  |  |  |
-| v5-local |  |  |  |  |  |  |  |
-
-Lỗi đặc thù của model nhỏ (đếm từ run JSON):
-
-| Failure Pattern | Count | Example Case | Fix Tried | Helped? |
-|---|---|---|---|---|
-| wrong / hallucinated tool |  |  |  |  |
-| invalid JSON args (`_invalid_json_arguments`) |  |  |  |  |
-| no tool call / answered directly |  |  |  |  |
-| missed `clarify` |  |  |  |  |
-| repeated / unnecessary calls |  |  |  |  |
-
-- Cái gì giúp model nhỏ gọi tool đúng hơn nhất? Bằng chứng?
-- Bản prompt tối ưu cho local chạy trên model cloud thì sao?
-- Khi nào nhóm sẽ chọn model local thay vì cloud cho agent này?
+Chưa có run local/Ollama trong evidence hiện có; nhóm chưa thực hiện bonus này. Không có số liệu để điền bảng metric hoặc failure pattern.
 
 ## 5. Khó khăn và cách xử lý
 
 > Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
 
--
+- Eval dao động giữa các lần chạy: với cùng prompt/tools, M01 và G08 có lúc PASS, có lúc FAIL; mỗi version chỉ có một lần đo nên chưa đủ kết luận hơn-kém. Bằng chứng và run paths được liệt kê tại B1.
+- Semantic Scholar gặp HTTP 429 khi gọi API trong case G11; tool trả error dict. Xem kết quả G11 và run `starter_v0/runs/v7_B_group_openrouter_20261110T230626499597.json` tại B3. Đây là lỗi quota/rate limit phía API, không phải provider error của run.
+- Lượt gửi Telegram đã hỏi xác nhận nhưng `send` không gửi được vì thiếu `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`; xem `starter_v0/transcripts/v7_openrouter_20261110T231021464746.transcript.json` tại B4. Không có tin nhắn nào được gửi thật.
+- Link Quick Tunnel đã hết hiệu lực sau khi tunnel dừng; cần chạy lại tunnel và chỉ thay link sau khi kiểm tra từ thiết bị khác (A1).
 
 ## 6. Tổng hợp đóng góp
 
@@ -215,11 +213,15 @@ Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEA
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
-- Fix nào thuộc `system_prompt.md`?
-- Fix nào thuộc `tools.yaml`?
-- Failure nào cần review thủ công thay vì chấm tự động?
-- Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?
+- **Prompt:** gỡ chỉ dẫn đoán/gửi ngay; dùng `clarify` khi thiếu thông tin; bổ sung routing theo tác vụ và hỏi xác nhận trước `send`. Thay đổi v6 ưu tiên xác nhận không đạt giả thuyết và đã bị bỏ.
+- **Tool declaration:** làm rõ mục đích, điều kiện dùng/không dùng và convention arguments; v7 làm rõ phải điền `limit` khi người dùng nói số cụ thể.
+- **Cần review thủ công:** case từ chối ngoài phạm vi vì scorer có thể chấm PASS chỉ dựa trên việc không gọi tool; case xử lý danh sách vì harness chưa so sánh đầy đủ `items` trong arguments. Xem giới hạn B3.
+- **Nếu có thêm vòng:** tập trung sửa R12 (xác nhận `send`) bằng một thay đổi có giả thuyết rõ, thêm lặp run để ước lượng dao động, và cải thiện scorer để so sánh toàn bộ danh sách item cũng như chất lượng từ chối.
 
 ## 8. Tài liệu tham khảo
 
--
+- Hướng dẫn và tiêu chí trong repo: [`README.md`](../../README.md), [`RULES.md`](../../RULES.md), [`SUBMISSION.md`](../../SUBMISSION.md).
+- Artifact và eval: [`system_prompt.md`](../../starter_v0/artifacts/system_prompt.md), [`tools.yaml`](../../starter_v0/artifacts/tools.yaml), [`version_log.csv`](../../starter_v0/artifacts/version_log.csv), [`eval_group.json`](../../starter_v0/data/eval_group.json).
+- Bằng chứng thực nghiệm: các run trong [`starter_v0/runs/`](../../starter_v0/runs/), transcript trong [`starter_v0/transcripts/`](../../starter_v0/transcripts/), test output [`pytest_output.txt`](../../starter_v0/analysis/pytest_output.txt).
+- Tài liệu API chính thức: [OpenAlex API](https://help.openalex.org/api/), [Semantic Scholar Academic Graph API](https://api.semanticscholar.org/api-docs/graphs).
+- Tài liệu công cụ: [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest), [Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).

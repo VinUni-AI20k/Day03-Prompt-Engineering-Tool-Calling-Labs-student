@@ -5,16 +5,16 @@
 - Tên nhóm: MMV
 - Lớp: L3B
 - Repo nhóm: `K5-L3B-DAY03-MMV-ResearchAgentToolEval`
-- URL repo, nhánh nộp, commit chốt: https://github.com/caominhnguyen05/K5-L3B-DAY03-MMV-ResearchAgentToolEval · nhánh `main` · commit chốt: điền sau khi chốt bài
+- URL repo, nhánh nộp, commit chốt: https://github.com/caominhnguyen05/K5-L3B-DAY03-MMV-ResearchAgentToolEval · nhánh `main` · commit chốt: chưa chốt (sẽ ghi hash sau commit cuối cùng)
 
 ## Thành viên
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 |   Phạm Hoàng Đức Minh     |    2A202604114  |   ducminh03102005@gmail.com    |    https://github.com/PH31M    |   Đóng góp viên      |
-|   2 | Nguyễn Cao Minh | 2A202604099 | 26ai.minhnc@vinuni.edu.vn | https://github.com/caominhnguyen05 | 4 tool xử lý dữ liệu đã thu thập và unit test |
-|   3 | Nguyễn Công Huy | 2A202604086 | conghuycr@gmail.com |  | 2 tool tìm bài báo khoa học (`openalex`, `semantic_scholar`) |
-|   4 |  |  |  | https://github.com/qvinhh2312 | UI Streamlit, deploy Cloudflare, Phần A báo cáo nhóm |
+| 1 | Phạm Hoàng Đức Minh | 2A202604114 | ducminh03102005@gmail.com | https://github.com/PH31M | Prompt và eval, chạy run/transcript, tổng hợp B1–B5a |
+| 2 | Nguyễn Cao Minh | 2A202604099 | 26ai.minhnc@vinuni.edu.vn | https://github.com/caominhnguyen05 | 4 tool xử lý dữ liệu đã thu thập và unit test |
+| 3 | Nguyễn Công Huy | 2A202604086 | conghuycr@gmail.com | Chưa cung cấp | 2 tool tìm bài báo khoa học (`openalex`, `semantic_scholar`) |
+| 4 | Tào Quang Vinh | 2A202604081 | qvinhh2312@gmail.com | https://github.com/qvinhh2312 | UI Streamlit, Cloudflare Tunnel, Phần A báo cáo nhóm |
 
 ## Cá nhân
 
@@ -26,7 +26,7 @@ report/team/MSSV_HoTen.md
 
 Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
-Sao chép mục dưới đây cho từng thành viên.
+Tóm tắt đóng góp theo báo cáo cá nhân và bằng chứng trong repo.
 
 ## NguyenCaoMinh-2A202604099
 
@@ -47,7 +47,7 @@ Sao chép mục dưới đây cho từng thành viên.
 - Viết `TOOL.md` cho từng tool theo đúng folder contract của repo, mô tả input, output, giới hạn và side effect.
 - Khai báo tên, description và JSON schema của bốn tool trong `artifacts/tools.yaml` để model biết khi nào dùng tool và cách truyền arguments.
 - Viết unit test cho happy path, input xấu, trường hợp biên và nhánh lỗi. Các test chạy offline và kiểm tra thêm việc giữ thứ tự, không sửa input, xử lý URL/domain/ngày không hợp lệ và báo lỗi theo đúng index.
-- Thêm bốn eval case G01–G04 trong 1starter_v0/data/eval_group.json1 để kiểm tra model route đúng tới bốn tool mới và truyền đúng arguments.
+- Thêm bốn eval case G01–G04 trong `starter_v0/data/eval_group.json` để kiểm tra model route đúng tới bốn tool mới và truyền đúng arguments.
 
 ### Bằng chứng
 
@@ -90,9 +90,32 @@ Sao chép mục dưới đây cho từng thành viên.
 
 - Commit: `2f25a54`, `f60e41e`, `f893bbc`, `bbc847c`, `f29fd57`, `5fb6e01` và các commit merge trên `optimize`.
 - Chi tiết: [report/team/2A202604114_PhamHoangDucMinh.md](report/team/2A202604114_PhamHoangDucMinh.md).
+## NguyenCongHuy-2A202604086
 
+### Phần việc phụ trách
 
+- Xây dựng hai tool tìm kiếm học thuật `openalex` và `semantic_scholar`.
 
+### Đóng góp cụ thể
 
+- Triển khai tool và `TOOL.md`, chuẩn hóa dữ liệu bài báo (tiêu đề, tác giả, abstract, DOI, năm, trích dẫn và PDF nếu có), xử lý lỗi API/timeout và giới hạn kết quả.
+- Viết test cho happy path, input không hợp lệ và lỗi API; đóng góp được mô tả trong `report/team/2A202604086_NguyenCongHuy.md`.
 
+### Bằng chứng
 
+- `starter_v0/tools/openalex/`, `starter_v0/tools/semantic_scholar/`, `starter_v0/artifacts/tools.yaml`, `starter_v0/tools/__init__.py`.
+## TaoQuangVinh-2A202604081
+
+### Phần việc phụ trách
+
+- UI Streamlit, chốt xác nhận cho tool có tác dụng phụ, launcher Cloudflare Tunnel và Phần A báo cáo nhóm.
+
+### Đóng góp cụ thể
+
+- Xây dựng `starter_v0/app.py`, `starter_v0/ui_core.py`; viết test offline trong `starter_v0/tests/test_ui_core.py` và `starter_v0/tests/test_app_ui.py`; tạo `starter_v0/scripts/run_ui.ps1` và `starter_v0/scripts/run_ui.sh`.
+- Chốt xác nhận UI ghi `ui_gate`; lớp này bổ sung cho boundary chính trong prompt và khai báo tool. Soạn A1–A3 và bảng A2.
+
+### Bằng chứng
+
+- Các commit UI/deploy trên `feat/ui-report`: `3bc365b`, `7d9bc2b`, `1df1a9e`, `9915721`, `36c4084`, `2c64780`, `3b4d2ae`, `de0c21d`, `69ed595`, `feeea4f`.
+- Báo cáo cá nhân: [`report/team/2A202604081_TaoQuangVinh.md`](report/team/2A202604081_TaoQuangVinh.md).
