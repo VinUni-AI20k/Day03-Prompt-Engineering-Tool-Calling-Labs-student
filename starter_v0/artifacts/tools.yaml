@@ -124,6 +124,35 @@ tools:
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
 
+  - name: hf_models
+    description: >-
+      Tìm kiếm model AI open-weight, checkpoint hoặc lượt tải/thích trên Hugging Face Hub.
+      CHỈ DÙNG khi người dùng hỏi về model trên Hugging Face, open-source/open-weight LLM,
+      lượt tải model hoặc model theo task (vd: text-generation, embeddings).
+      KHÔNG DÙNG cho tin tức chung (dùng lookup), tweet (dùng social_search) hay bài báo arXiv (dùng papers).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa tên model hoặc chủ đề (vd: 'qwen', 'llama', 'embedding')"}
+        task: {type: string, default: "", description: "Pipeline task tùy chọn trên Hugging Face (vd: 'text-generation', 'feature-extraction', để trống nếu không lọc)"}
+        sort_by: {type: string, enum: [downloads, likes, lastModified], default: "downloads", description: "Tiêu chí sắp xếp: downloads, likes hoặc lastModified"}
+        limit: {type: integer, default: 5, description: "Số lượng model trả về (1–20)"}
+      required: [query]
+
+  - name: hn_search
+    description: >-
+      Tìm kiếm bài viết, Show HN, Ask HN hoặc bình luận thảo luận kỹ thuật trên Hacker News.
+      CHỈ DÙNG khi người dùng nhắc đến Hacker News (HN) hoặc muốn xem thảo luận/phản hồi
+      của cộng đồng lập trình viên trên Hacker News.
+      KHÔNG DÙNG cho tin tức web chung (dùng lookup) hoặc bài đăng X/Twitter (dùng social_search).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa cần tìm trên Hacker News"}
+        tag: {type: string, enum: [story, comment, ask_hn, show_hn, all], default: "story", description: "Loại mục trên HN: story, comment, ask_hn, show_hn hoặc all"}
+        sort_by: {type: string, enum: [relevance, date], default: "relevance", description: "relevance (độ liên quan/phổ biến) hoặc date (mới nhất)"}
+        limit: {type: integer, default: 5, description: "Số lượng kết quả trả về (1–20)"}
+      required: [query]
   # ---------------- Custom tools ----------------
   - name: github_repos
     description: >
