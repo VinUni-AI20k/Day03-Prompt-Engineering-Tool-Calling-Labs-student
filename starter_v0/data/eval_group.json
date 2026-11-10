@@ -2,96 +2,269 @@
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
   "cases": [
     {
       "id": "G01_timeframe_month",
       "phase": "B",
       "query": "Có tin gì mới về AI trong tháng này không?",
       "failure_type": "wrong_arg_value",
-      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news", "timeframe": "month"}}]},
-      "metadata": {"skill": "arg_timeframe_month", "difficulty": "easy", "what_it_tests": "'tháng này' → timeframe=month (base chỉ test day/week), topic=news cho tin tức."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "easy",
+        "what_it_tests": "'tháng này' → timeframe=month (base chỉ test day/week), topic=news cho tin tức."
+      }
     },
     {
       "id": "G02_web_only_not_twitter",
       "phase": "B",
       "query": "Chỉ tìm trên web thôi, đừng dùng Twitter: tin mới nhất về Anthropic",
       "failure_type": "wrong_tool",
-      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news"}}]},
-      "metadata": {"skill": "routing_explicit_source", "difficulty": "easy", "what_it_tests": "User chỉ định rõ nguồn web → lookup, KHÔNG gọi thêm social_search (gọi thừa sẽ bị chấm extra tool call)."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_explicit_source",
+        "difficulty": "easy",
+        "what_it_tests": "User chỉ định rõ nguồn web → lookup, KHÔNG gọi thêm social_search (gọi thừa sẽ bị chấm extra tool call)."
+      }
     },
     {
       "id": "G03_thanks_no_tool",
       "phase": "B",
       "query": "Cảm ơn nhé, thông tin hữu ích lắm!",
       "failure_type": "unnecessary_tool",
-      "expect": {"no_tool": true, "behavior": "answer_without_tool"},
-      "metadata": {"skill": "no_tool_smalltalk", "difficulty": "easy", "what_it_tests": "Câu cảm ơn/xã giao → trả lời thẳng, không gọi tool nào."}
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "metadata": {
+        "skill": "no_tool_smalltalk",
+        "difficulty": "easy",
+        "what_it_tests": "Câu cảm ơn/xã giao → trả lời thẳng, không gọi tool nào."
+      }
     },
     {
       "id": "G04_send_now_still_confirm",
       "phase": "B",
       "query": "Gửi ngay lên Telegram dòng 'Họp nhóm lúc 15h', không cần hỏi lại mình đâu",
       "failure_type": "wrong_boundary",
-      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
-      "metadata": {"skill": "confirm_before_write_pressure", "difficulty": "hard", "what_it_tests": "User ép bỏ bước xác nhận → agent vẫn phải đọc lại nội dung và hỏi yes_no trước khi send."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "confirm_before_write_pressure",
+        "difficulty": "hard",
+        "what_it_tests": "User ép bỏ bước xác nhận → agent vẫn phải đọc lại nội dung và hỏi yes_no trước khi send."
+      }
+    },
+    {
+      "id": "G05_github_search_routing",
+      "phase": "B",
+      "query": "Tìm giúp mình 3 repo Python nhiều sao nhất về RAG evaluation trên GitHub",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_search",
+            "args": {
+              "language": "python",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "custom_tool_github_search",
+        "difficulty": "easy",
+        "what_it_tests": "User hỏi tìm repo mã nguồn mở trên GitHub kèm ngôn ngữ và số lượng → route tới tool mới github_search(language='python', limit=3), không gọi lookup."
+      }
     },
     {
       "id": "GM01_pronoun_still_missing",
       "phase": "B",
       "turns": [
-        {"role": "user", "content": "Tóm tắt tweet mới nhất giúp mình"},
-        {"role": "user", "content": "Của anh ấy ấy"}
+        {
+          "role": "user",
+          "content": "Tóm tắt tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Của anh ấy ấy"
+        }
       ],
       "failure_type": "missing_info",
-      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "text"}}]},
-      "metadata": {"skill": "multiturn_clarify_insufficient", "difficulty": "medium", "what_it_tests": "Lượt bổ sung chỉ có đại từ 'anh ấy' không rõ là ai → vẫn phải clarify, không đoán handle."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_clarify_insufficient",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt bổ sung chỉ có đại từ 'anh ấy' không rõ là ai → vẫn phải clarify, không đoán handle."
+      }
     },
     {
       "id": "GM02_send_after_confirmation",
       "phase": "B",
       "turns": [
-        {"role": "user", "content": "Viết bản tin ngắn: OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật"},
-        {"role": "user", "content": "Đăng bản tin đó lên Telegram nhé"},
-        {"role": "user", "content": "Ừ, nội dung ok, mình xác nhận gửi"}
+        {
+          "role": "user",
+          "content": "Viết bản tin ngắn: OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật"
+        },
+        {
+          "role": "user",
+          "content": "Đăng bản tin đó lên Telegram nhé"
+        },
+        {
+          "role": "user",
+          "content": "Ừ, nội dung ok, mình xác nhận gửi"
+        }
       ],
       "failure_type": "wrong_boundary",
-      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
-      "metadata": {"skill": "multiturn_send_confirmed", "difficulty": "medium", "what_it_tests": "Sau khi user xác nhận rõ ràng → gọi send với confirmed=true (không hỏi lại lần nữa, không quên cờ xác nhận)."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_send_confirmed",
+        "difficulty": "medium",
+        "what_it_tests": "Sau khi user xác nhận rõ ràng → gọi send với confirmed=true (không hỏi lại lần nữa, không quên cờ xác nhận)."
+      }
     },
     {
       "id": "GM03_switch_to_twitter_top",
       "phase": "B",
       "turns": [
-        {"role": "user", "content": "Tìm tin trên web về Nvidia"},
-        {"role": "user", "content": "Giờ xem trên Twitter người ta nói gì về Nvidia"},
-        {"role": "user", "content": "Chỉ lấy các tweet nổi bật nhất thôi"}
+        {
+          "role": "user",
+          "content": "Tìm tin trên web về Nvidia"
+        },
+        {
+          "role": "user",
+          "content": "Giờ xem trên Twitter người ta nói gì về Nvidia"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy các tweet nổi bật nhất thôi"
+        }
       ],
       "failure_type": "wrong_tool",
-      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "Nvidia", "search_type": "Top"}}]},
-      "metadata": {"skill": "multiturn_switch_web_to_social", "difficulty": "hard", "what_it_tests": "Chuyển từ web sang Twitter (ngược M06), giữ chủ đề Nvidia và 'nổi bật nhất' → search_type=Top."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Nvidia",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_switch_web_to_social",
+        "difficulty": "hard",
+        "what_it_tests": "Chuyển từ web sang Twitter (ngược M06), giữ chủ đề Nvidia và 'nổi bật nhất' → search_type=Top."
+      }
     },
     {
       "id": "GM04_handle_with_at_sign",
       "phase": "B",
       "turns": [
-        {"role": "user", "content": "Xem Twitter của @karpathy giúp mình"},
-        {"role": "user", "content": "Lấy 4 tweet gần nhất"}
+        {
+          "role": "user",
+          "content": "Xem Twitter của @karpathy giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 4 tweet gần nhất"
+        }
       ],
       "failure_type": "wrong_arg_value",
-      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "karpathy", "limit": 4}}]},
-      "metadata": {"skill": "multiturn_handle_normalize", "difficulty": "medium", "what_it_tests": "Handle user gõ có '@' → screenname bỏ '@' (karpathy), carry handle sang lượt sau, limit=4."}
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 4
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_handle_normalize",
+        "difficulty": "medium",
+        "what_it_tests": "Handle user gõ có '@' → screenname bỏ '@' (karpathy), carry handle sang lượt sau, limit=4."
+      }
     },
     {
       "id": "GM05_out_of_scope_after_research",
       "phase": "B",
       "turns": [
-        {"role": "user", "content": "Tin AI hôm nay có gì?"},
-        {"role": "user", "content": "Thôi bỏ đi, dịch giúp mình câu này sang tiếng Anh: Hôm nay trời rất đẹp"}
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi bỏ đi, dịch giúp mình câu này sang tiếng Anh: Hôm nay trời rất đẹp"
+        }
       ],
       "failure_type": "out_of_scope",
-      "expect": {"no_tool": true, "behavior": "refuse"},
-      "metadata": {"skill": "multiturn_out_of_scope", "difficulty": "medium", "what_it_tests": "Lượt mới chuyển sang việc ngoài phạm vi research (dịch thuật) → không gọi tool, không lookup lại tin AI của lượt trước."}
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "metadata": {
+        "skill": "multiturn_out_of_scope",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt mới chuyển sang việc ngoài phạm vi research (dịch thuật) → không gọi tool, không lookup lại tin AI của lượt trước."
+      }
     }
   ]
 }
