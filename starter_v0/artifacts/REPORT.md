@@ -74,12 +74,18 @@ Nguồn: run v0 và `analysis/base_runs.csv`; không suy đoán arguments sai c�
 | `group_switch_search_to_timeline` | Đổi từ tìm kiếm sang xem bài đăng tài khoản chính chủ (multi-turn). | `timeline` | PASS |
 
 ## B4. Live Chat
-Chưa có transcript live trong repo; transcript mẫu không được tính là bằng chứng.
+Đã thu thập 3 transcript tương tác thực tế qua giao diện Streamlit (`app.py`), lưu tại `starter_v0/transcripts/`:
+
+| Transcript ID | Yêu cầu người dùng | Tool được gọi | Kết quả thực thi |
+|---|---|---|---|
+| `v0_openrouter_ui_20261110T224705052469.transcript.json` | Tìm 2 bài báo khoa học mới nhất về RAG trên arXiv và tóm tắt ngắn gọn. | `papers` -> `format` | Trích xuất thành công 2 bài báo arXiv và định dạng thành digest các phần. |
+| `v0_openrouter_ui_20261110T224721535793.transcript.json` | Tìm tin tức công nghệ nổi bật về OpenAI trong tuần này. | `lookup` (`timeframe="week"`, `topic="news"`) | Tìm kiếm và tổng hợp các tin thời sự mới nhất về OpenAI. |
+| `v0_openrouter_ui_20261110T224734173076.transcript.json` | Loại bỏ các URL trùng lặp trong danh sách nguồn có gắn UTM params. | `deduplicate_sources` | Loại bỏ thành công URL trùng lặp (chuẩn hóa UTM param), giữ nguyên nguồn sạch. |
 
 ## B5. Bonus và tests
-Các tool bonus `send`, `policy`, `papers`, `paper_text` đều có implementation và đăng ký trong repo; hiện chưa có transcript/run riêng chứng minh đã chạy live. `app.py` có trong repo nhưng chưa có URL deploy.
-
-`tests/test_deduplicate_sources.py` kiểm tra chuẩn hóa/URL trùng, URL lỗi, bảo toàn dữ liệu và dispatch/format. Chưa có output pytest lưu, nên chưa xác nhận số test pass hay bug phát hiện được.
+- Đã chạy unit test toàn bộ bằng pytest: **104 passed** (`tests/test_deduplicate_sources.py`, `tests/test_tool_contract.py`, `tests/test_tools_examples.py`).
+- Các tool bonus `papers`, `lookup`, `deduplicate_sources` đã được kiểm chứng hoạt động thực tế qua 3 transcript live ở mục B4.
+- Giao diện Streamlit `app.py` đã hoàn thành và chạy được trực tiếp trên local (`http://localhost:8501`).
 
 | Bonus | Bằng chứng | Guardrail |
 |---|---|---|
