@@ -122,6 +122,16 @@ def test_deduplicate_sources_keeps_first_duplicate_and_order() -> None:
     assert result["removed_count"] == 1
 
 
+def test_deduplicate_sources_normalizes_trailing_slash() -> None:
+    canonical = {"title": "First", "url": "https://openai.com/blog/gpt-5"}
+    duplicate = {"title": "Duplicate", "url": "https://openai.com/blog/gpt-5/"}
+
+    result = deduplicate_tool(items=[canonical, duplicate])
+
+    assert result["items"] == [canonical]
+    assert result["removed_count"] == 1
+
+
 def test_deduplicate_sources_keeps_items_without_url() -> None:
     no_url = {"title": "No URL"}
     empty_url = {"title": "Empty URL", "url": ""}

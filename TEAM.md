@@ -29,16 +29,26 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 Sao chép mục dưới đây cho từng thành viên.
 
-## HoVaTen-MSSV
+## PhamLeChuan-2A202603784
 
 ### Phần việc phụ trách
 
--
+- Tự làm tool `deduplicate_sources` và ít nhất 3 unit test.
+- Tối ưu `system_prompt.md` qua các phiên bản v1-v3.
+- Chạy eval cloud bằng Gemini và ghi version log.
 
 ### Đóng góp cụ thể
 
--
+- Loại item trùng URL, giữ item đầu tiên và thứ tự ban đầu.
+- Xử lý item không có URL và input sai kiểu bằng error dict phù hợp.
+- Phân tích kết quả baseline v0 và các vòng tối ưu v1-v3.
 
 ### Bằng chứng
 
--
+- `starter_v0/tools/deduplicate_sources/`
+- `starter_v0/tests/test_tools_todo.py`
+- `starter_v0/artifacts/system_prompt.md`
+- `starter_v0/runs/v0_B_base_gemini_20261110T183708553548.json`
+- `starter_v0/runs/v1_B_base_gemini_20261110T184719240561.json`
+- `starter_v0/runs/v2_B_base_gemini_20261110T185133380730.json`
+- `starter_v0/runs/v3_B_base_gemini_20261110T185620920233.json`
