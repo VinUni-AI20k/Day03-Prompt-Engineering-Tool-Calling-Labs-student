@@ -63,21 +63,30 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
 | v0 | baseline | _ | _ | case_accuracy = 75% | v0_B_base_openrouter_20261110T173925903234 |
-| v1 |  | Prompt v0 khuyến khích tự đoán khi thiếu thông tin, khiến agent tự chọn tài khoản và tạo URL. Thay chỉ dẫn này bằng quy tắc kiểm tra lịch sử hội thoại và gọi clarify khi vẫn thiếu account hoặc URL sẽ giảm lỗi missing_info. |  |  |  |
-| v2 |  |  |  |  |  |
+| v1 | system prompt — thay chỉ dẫn tự đoán account/URL bằng kiểm tra lịch sử và hỏi lại | Prompt v0 khuyến khích tự đoán khi thiếu thông tin, khiến agent tự chọn tài khoản và tạo URL. Thay chỉ dẫn này bằng quy tắc kiểm tra lịch sử hội thoại và gọi clarify khi vẫn thiếu account hoặc URL sẽ giảm lỗi missing_info. | case_accuracy = 75% | case_accuracy = 85% |  |
+| v2 |  | V1 đã chọn đúng tool clarify nhưng bỏ qua tham số response_type. Làm rõ trong tool declaration rằng khi hỏi thông tin còn thiếu phải truyền tường minh response_type="text" sẽ giảm lỗi wrong_arg_value, giúp R10/R11 đạt PASS. |  |  |  |
 | v3 |  |  |  |  |  |
 
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
-| Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
-|---|---|---|---|---|
-| R08_out_of_scope | out_of_scope | send(text="Nguyên hàm…") | Câu hỏi toán không cần tool nhưng agent gọi tool gửi Telegram | Quy định câu hỏi không cần công cụ thì trả lời trực tiếp; send chỉ dùng để xuất bản khi đủ xác nhận |
-| R10_missing_handle | missing_info | timeline(screenname="sama") | Tự đoán tài khoản khi user chưa cung cấp | Kiểm tra lịch sử; nếu chưa có tài khoản thì gọi clarify(response_type="text") |
-| R11_missing_url | missing_info | fetch(url="https://example.com/article") | Tự tạo URL khi user chưa cung cấp | Kiểm tra lịch sử; nếu chưa có URL thì gọi clarify(response_type="text") |
-| R12_confirm_before_send | wrong_boundary | send(text="Bản tin này") | Gọi gửi khi chưa xác nhận; dùng cụm “Bản tin này” làm nội dung thay vì xác định bản tin | Yêu cầu xác nhận bằng clarify(response_type="yes_no"); chỉ gửi nội dung cụ thể đã được xác nhận |
-| R13_parallel_web_and_tweets | wrong_arg_value | lookup(query="AI news", timeframe="day") và social_search(query="AI", search_type="Latest") | Chọn đúng hai tool nhưng sai query và thiếu topic="news" | Làm rõ cách tách chủ đề, loại tìm kiếm và thời gian thành các arguments riêng |
+| Version | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
+|---|---|---|---|---|---|
+| v0 | R08_out_of_scope | out_of_scope | send(text="Nguyên hàm…") | Câu hỏi toán không cần tool nhưng agent gọi tool gửi Telegram | Quy định câu hỏi không cần công cụ thì trả lời trực tiếp; send chỉ dùng để xuất bản khi đủ xác nhận |
+| v0 | R10_missing_handle | missing_info | timeline(screenname="sama") | Tự đoán tài khoản khi user chưa cung cấp | Kiểm tra lịch sử; nếu chưa có tài khoản thì gọi clarify(response_type="text") |
+| v0 | R11_missing_url | missing_info | fetch(url="https://example.com/article") | Tự tạo URL khi user chưa cung cấp | Kiểm tra lịch sử; nếu chưa có URL thì gọi clarify(response_type="text") |
+| v0 | R12_confirm_before_send | wrong_boundary | send(text="Bản tin này") | Gọi gửi khi chưa xác nhận; dùng cụm “Bản tin này” làm nội dung thay vì xác định bản tin | Yêu cầu xác nhận bằng clarify(response_type="yes_no"); chỉ gửi nội dung cụ thể đã được xác nhận |
+| v0 | R13_parallel_web_and_tweets | wrong_arg_value | lookup(query="AI news", timeframe="day") và social_search(query="AI", search_type="Latest") | Chọn đúng hai tool nhưng sai query và thiếu topic="news" | Làm rõ cách tách chủ đề, loại tìm kiếm và thời gian thành các arguments riêng |
+| v1 | R10_missing_handle | wrong_arg_value | clarify(question="Bạn muốn tóm tắt tweet của tài khoản nào?") | V1: đã chọn đúng clarify, nhưng thiếu response_type; expected "text", actual không có. | Đề xuất: quy định gọi clarify để hỏi thông tin còn thiếu phải truyền rõ response_type="text"; làm rõ yêu cầu này trong tool declaration. |
+| v1 | R11_missing_url | wrong_arg_value | clarify(question="Bạn vui lòng cung cấp URL của bài viết mà bạn muốn tóm tắt?") | V1: đã chọn đúng clarify, nhưng thiếu response_type; expected "text", actual không có. | Đề xuất: yêu cầu truyền rõ response_type="text" khi hỏi URL, rồi chạy lại kiểm tra. |
+| v1 | R12_confirm_before_send | wrong_boundary | send(text="Bản tin này") | V1: vẫn gọi send thay vì clarify(response_type="yes_no") để xin xác nhận; chưa xác định nội dung bản tin cụ thể. | Đề xuất: bỏ chỉ dẫn gửi ngay; yêu cầu xác định nội dung và xin xác nhận trước khi gọi send. |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+
 
 ### B3. Team Eval Cases
 
