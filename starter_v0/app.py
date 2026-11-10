@@ -11,7 +11,9 @@ from tools import load_tool_declarations, to_openai_tools
 
 ROOT = Path(__file__).parent
 load_lab_env(ROOT)
-
+# Public demo must not have Telegram credentials.
+os.environ.pop("TELEGRAM_BOT_TOKEN", None)
+os.environ.pop("TELEGRAM_CHAT_ID", None)
 st.set_page_config(page_title="Research Agent", page_icon="🔎")
 st.title("🔎 Research Agent")
 st.caption("Tìm nguồn, tổng hợp thông tin và xem các tool agent sử dụng.")
@@ -44,6 +46,8 @@ if user_text:
     try:
         prompt = (ROOT / "artifacts/system_prompt.md").read_text(encoding="utf-8")
         declarations = load_tool_declarations(ROOT / "artifacts/tools.yaml")
+        # Do not offer the action tool in the public UI.
+        declarations = [tool for tool in declarations if tool["name"] != "send"]
         tools = to_openai_tools(declarations)
         provider = make_provider("openrouter")
 
