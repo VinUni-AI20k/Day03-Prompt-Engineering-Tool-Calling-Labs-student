@@ -1,0 +1,125 @@
+# Starter v0 — tool declarations (initial draft).
+# Names and descriptions here began as a rough draft. Routing rules, name-to-handle
+# mapping, argument conventions (news/timeframe/Top), and the send-confirmation boundary
+# were not specified. The goal is to make these declarations and the
+# system prompt clear enough for the agent to route correctly in evaluation.
+#
+# If you rename a tool, keep the name in sync across:
+#   this file  ->  tools/__init__.py (TOOL_FUNCTIONS)  ->  data/eval_base.json + data/eval_research_extension.json
+# `pytest tests/test_tool_contract.py` checks this sync for you.
+#
+# TODO:
+#   - Describe what each tool does, when to use it, and when not to use it.
+#   - Specify argument conventions (handle format, topic/timeframe, search_type).
+#   - Make the confirmation requirement for `send` explicit.
+#   - Declare any new tools at the end of this file.
+tools:
+  # ---------------- Core tools ----------------
+  - name: clarify
+    description: "Hỏi người dùng khi thiếu thông tin thiết yếu hoặc cần xác nhận trước khi gửi. Khi thiếu tên tài khoản/URL, chỉ gọi clarify; không đoán."
+    parameters:
+      type: object
+      properties:
+        question: {type: string, default: "", description: "Question to ask"}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Expected response type"}
+        options: {type: array, default: [], items: {type: string}, description: "Available choices"}
+      required: [question]
+
+  - name: timeline
+    description: "Lấy tweet gần đây của một tài khoản cụ thể. Dùng khi hỏi tweet của ai; screenname là handle không có @. Không dùng cho tìm tweet theo chủ đề. Thiếu tài khoản thì clarify."
+    parameters:
+      type: object
+      properties:
+        screenname: {type: string, default: "", description: "Account handle without @; use only when stated or confidently mapped."}
+        limit: {type: integer, default: 5, description: "Number of results/posts"}
+      required: [screenname]
+
+  - name: social_search
+    description: "Tìm tweet theo chủ đề trên X/Twitter. Không dùng cho timeline của cá nhân hoặc tìm tin web. Query là chủ đề cốt lõi; Latest mặc định, Top khi yêu cầu bài phổ biến."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Core topic; do not add source labels such as tweet/news."}
+        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Sort mode"}
+        limit: {type: integer, default: 5, description: "Number of results/posts"}
+      required: [query]
+
+  - name: lookup
+    description: "Tìm kiếm web. Dùng topic=news cho tin tức/thời sự, general cho tra cứu thường; timeframe day/week/month/year theo yêu cầu. Query chỉ là chủ đề, không thêm từ news. Dùng song song social_search nếu yêu cầu cả web và tweet."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Core topic; do not add the word news. Specify the source category with topic."}
+        topic: {type: string, enum: [general, news], default: "general", description: "Search category"}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Time range"}
+        max_results: {type: integer, default: 5, description: "Số kết quả"}
+      required: [query]
+
+  - name: fetch
+    description: "Đọc URL cụ thể do người dùng cung cấp. Không tìm URL thay cho người dùng; nếu thiếu URL thì gọi clarify. Không dùng để tìm kiếm web."
+    parameters:
+      type: object
+      properties:
+        url: {type: string, default: "", description: "URL to read"}
+      required: [url]
+
+  - name: format
+    description: "Format data already retrieved. Do not use to search or retrieve information."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Items to format"
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+              section: {type: string}
+        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Output template"}
+        headline: {type: string, default: "", description: "Headline"}
+      required: [items, template]
+
+  # ---------------- Additional tools ----------------
+  - name: send
+    description: "Send/post content to an external service. Call only after the exact content and destination are known and the user has explicitly approved publishing that content to that destination; set confirmed=true. The original request to post is not approval. Never use to answer in chat."
+    parameters:
+      type: object
+      properties:
+        text: {type: string, default: "", description: "Content to send"}
+        confirmed: {type: boolean, default: false, description: "true only after explicit prior confirmation of the content and destination."}
+      required: [text]
+
+  - name: policy
+    description: "Search internal policy documents. Use for questions about internal policies, not public web research."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Core topic; do not add the word news. Specify the source category with topic."}
+        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Policy area"}
+        top_k: {type: integer, default: 3, description: "Number of items"}
+      required: [query]
+
+  - name: papers
+    description: "Search for scientific papers. Use for scholarly literature, not general web news."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Core topic; do not add source labels such as tweet/news."}
+        max_results: {type: integer, default: 5, description: "Number of results/posts"}
+        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "Sort order"}
+      required: [query]
+
+  - name: paper_text
+    description: "Retrieve the text of a specific paper when given its arXiv ID or URL; do not use to search for papers."
+    parameters:
+      type: object
+      properties:
+        arxiv_url: {type: string, default: "", description: "arXiv ID or URL"}
+        max_pages: {type: integer, default: 5, description: "Maximum pages"}
+        max_chars: {type: integer, default: 8000, description: "Maximum characters"}
+      required: [arxiv_url]
