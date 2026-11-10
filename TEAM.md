@@ -54,11 +54,15 @@ Sao chép mục dưới đây cho từng thành viên.
 
 ### Đóng góp cụ thể
 
--
+- Chạy và tạo baseline v0
+- Sửa đổi system prompt để không bắt buộc chạy tool lung tung, chạy bản v1 để kiểm định
+- Sửa system prompt để không tự ý suy đoán khi thiếu thông tin quan trọng, yêu cầu xác nhận trước hành động bên ngoài và cho phép xử lý tác vụ qua nhiều bước khi cần thiết, chạy bản v2 để kiểm định
+- Sửa system prompt nhằm rút gọn và chuẩn hóa Tool Routing Policy: phân biệt rõ chức năng 10 tools, quy định argument conventions, routing sequences và send confirmation boundary, chạy bản v3 để kiểm định
 
 ### Bằng chứng
 
--
+- File/commit/PR: CP2
+- AI/công cụ đã dùng và cách tự kiểm tra kết quả: ChatGPT, tự kiểm tra kết quả qua kiểm tra log và kết quả xuất ra command line sau khi chạy run_eval
 
 ## MaiXuanNhan-2A202604006
 
