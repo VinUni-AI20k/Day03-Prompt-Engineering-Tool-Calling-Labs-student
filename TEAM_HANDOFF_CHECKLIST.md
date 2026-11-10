@@ -50,19 +50,19 @@ Thông tin merge mới nhất được theo dõi trong file chung này.
 
 ## 3. Checklist của Trọng — prompt và routing
 
-- [ ] Cập nhật `main` vào nhánh làm việc; điền tên branch thực tế ở mục 8.
-- [ ] Đọc contract `source_check` và review block khai báo mới trong `artifacts/tools.yaml`.
-- [ ] Kiểm tra baseline `v0`: có run JSON và đúng prompt/tools hash của lần chạy.
-- [ ] Phân loại lỗi baseline từ log thật: sai tool, sai args, thiếu thông tin hoặc sai boundary.
-- [ ] Sửa chỉ dẫn đoán username/URL; dùng `clarify` khi thiếu dữ liệu.
-- [ ] Bổ sung routing cho `timeline`, `social_search`, `lookup`, `fetch`, `format`, `source_check`.
-- [ ] Chỉ cho phép `send` sau khi người dùng xác nhận rõ; khai báo `confirmed=true` tương ứng.
-- [ ] Làm rõ convention args: handle không có `@`, `topic`, `timeframe`, `Top/Latest`.
+- [x] Cập nhật `main` vào nhánh làm việc; điền tên branch thực tế ở mục 8.
+- [x] Đọc contract `source_check` và review block khai báo mới trong `artifacts/tools.yaml`.
+- [x] Kiểm tra baseline `v0`: có run JSON và đúng prompt/tools hash của lần chạy. Evidence: `runs/v0_B_base_gemini_20261110T105830047307.json`; `artifact_version=v0+pc58791a20353+tb792b413ece1`; prompt hash `c58791a20353f34e23846cb5d459c72761343038fd451cfbe71c219e70d829ea`; tools hash `b792b413ece1b5a742e49f15fb78363f78a997e19dad03029446fced9ff043b6`; cả hai khớp hash tính từ artifact hiện tại.
+- [x] Phân loại lỗi baseline từ log thật: kiểm tra [run v0 mới](starter_v0/runs/v0_B_base_gemini_20261110T110404621050.json), hash prompt/tools khớp artifact hiện tại và hash ở mục trên. Đo được 19/20 case, PASS 18, accuracy 94.74% trên 19 case đo được. `R03_web_news_routing` sai args (`wrong_arg_value`): gọi đúng `lookup`, nhưng query là `AI news` thay vì `AI`; `topic=news`, `timeframe=day` đúng. Nhãn `failure_counts.wrong_tool=1` là nhãn của case; lỗi quan sát thực tế nằm ở `observed_mismatch=wrong_arg_value`. `M01_clarify_then_fill` là `provider_error` do Gemini 503 quá tải, chưa đánh giá được hành vi thiếu thông tin. Các case đo được không phát hiện lỗi sai tool, missing-info hay boundary. Run dùng prompt/tools đã chỉnh sửa, không đại diện cho bản gốc trước tối ưu. Bước tiếp theo: làm rõ quy tắc query ở v1 và chạy lại để đo; chạy lại M01 khi provider ổn định.
+- [x] Sửa chỉ dẫn đoán username/URL; dùng `clarify` khi thiếu dữ liệu.
+- [x] Bổ sung routing cho `timeline`, `social_search`, `lookup`, `fetch`, `format`, `source_check`.
+- [x] Chỉ cho phép `send` sau khi người dùng xác nhận rõ; khai báo `confirmed=true` tương ứng.
+- [x] Làm rõ convention args: handle không có `@`, `topic`, `timeframe`, `Top/Latest`.
 - [ ] Chạy `v1`, ghi giả thuyết, một thay đổi chính, metric và đường dẫn run.
 - [ ] Chạy `v2`, ghi bằng chứng tương ứng.
 - [ ] Chạy `v3`, ghi bằng chứng tương ứng.
 - [ ] Điền đủ `v0`–`v3` trong `artifacts/version_log.csv`; không tạo metric hoặc log giả.
-- [ ] Chạy lại test sau thay đổi YAML; bàn giao commit/PR prompt cho cả nhóm.
+- [ ] Chạy lại test sau thay đổi YAML; bàn giao commit/PR prompt cho cả nhóm. **Chưa chạy được:** `.venv` thiếu `pytest` và `PyYAML`; pip bị chặn mạng (`WinError 10013`). Kiểm tra tĩnh `compileall` đã PASS.
 - [ ] Review REPORT B1/B2 và mô tả prompt/tool declaration sau khi Minh tổng hợp.
 
 Files chính: `starter_v0/artifacts/system_prompt.md`, `tools.yaml`, `version_log.csv`.
@@ -107,7 +107,7 @@ Files chính: `starter_v0/data/eval_group.json`, `app.py`, `artifacts/REPORT.md`
 
 ## 6. Checklist chung trước khi chốt bài
 
-- [ ] Cả ba thành viên xác nhận setup; provider preflight thành công trên môi trường chạy eval.
+- [x] Cả ba thành viên xác nhận setup; provider preflight thành công trên môi trường chạy eval. Trọng đã xác nhận Gemini preflight PASS trên máy chạy eval.
 - [ ] `main` chứa tool/test của Tân, prompt/routing của Trọng và eval/UI/report của Minh.
 - [ ] Bản tích hợp cuối chạy `pytest`: **0 failed, 0 skipped**; lưu output mới.
 - [ ] Contract khớp tên tool, function signature, YAML và `TOOL.md`.
@@ -121,7 +121,16 @@ Files chính: `starter_v0/data/eval_group.json`, `app.py`, `artifacts/REPORT.md`
 
 Setup/provider ở máy Tân chưa được xác nhận: lần kiểm tra trước không có `.env`
 hoặc `OPENROUTER_API_KEY`. Mỗi thành viên tự ghi trạng thái môi trường của mình;
-không suy ra máy khác cũng thiếu key.
+không suy ra máy khác cũng thiếu key. Trọng đã có `GEMINI_API_KEY` trong `.env`
+nhưng chưa preflight được vì `.venv` thiếu `PyYAML` (và các dependency khác).
+
+**Evidence Mốc 0 của Trọng (10/11/2026):** `.env` có `GEMINI_API_KEY` (không ghi
+giá trị), dependencies đã hoạt động trong `.venv`, `pytest` đạt **122 passed,
+0 failed, 0 skipped**, và Trọng xác nhận chạy ngoài sandbox:
+`preflight_provider.py --provider gemini` trả `OK provider=gemini
+model=gemini-3.5-flash` cùng tool call `timeline(screenname=sama, limit=1)`.
+Checkpoint 0 của Trọng đạt; lỗi `WinError 10013` trước đó là giới hạn môi
+trường sandbox, không phải lỗi provider/key.
 
 ## 7. Cách lấy code và kiểm chứng
 
@@ -165,7 +174,13 @@ checkpoint chung sau review. Khi cùng sửa file này, fetch/merge trước khi
 | Ngày | Người | Branch / commit hoặc PR | Nội dung bàn giao | Kiểm chứng / evidence | Việc tiếp theo |
 |---|---|---|---|---|---|
 | 10/11/2026 | Tân | `feature/new-tool-tests-03688` / `8682c8d` | `source_check`, registry, YAML, test; đã merge main theo Tân xác nhận | [122 passed](starter_v0/tools/source_check/pytest-output.txt) | Trọng cập nhật routing; Minh tích hợp eval/UI/report |
-| Chưa cập nhật | Trọng | Điền branch / commit / PR thực tế | Điền phần đã hoàn thành | Lệnh, kết quả, đường dẫn run JSON | Điền người nhận và bước tiếp theo |
+| 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Cập nhật `system_prompt.md` và `tools.yaml`: clarify khi thiếu dữ liệu, routing 6 tool, convention args, confirmation trước `send`, metadata-only cho `source_check` | `starter_v0/artifacts/system_prompt.md`, `starter_v0/artifacts/tools.yaml`; `compileall: PASS`; pytest/preflight bị chặn do thiếu `pytest`/`PyYAML` và pip `WinError 10013` | Cài dependencies hoặc dùng môi trường đã setup; chạy pytest, provider preflight, baseline và v1–v3; sau đó điền version log |
+| 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Kiểm tra baseline v0 và điều kiện phân loại lỗi | Chưa có `starter_v0/runs/`, `.env` hoặc `OPENROUTER_API_KEY`; preflight Python hệ thống thiếu `requests`; không có log thật để phân loại | Cấu hình provider và cài dependencies; chạy baseline v0, kiểm tra hash, rồi phân loại lỗi theo log |
+| 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Chạy Mốc 0 theo `TASK_ASSIGNMENT.md` | `.venv` sẵn có; `.env` tạo từ mẫu; `pip install -r requirements.txt` bị `WinError 10013`; preflight thiếu `yaml`; pytest thiếu module | Cài dependencies trên môi trường có network/provider key rồi chạy lại preflight và pytest |
+| 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Thử chạy lại Mốc 0 bằng Gemini | `GEMINI_API_KEY=SET` (không ghi giá trị); `preflight_provider.py --provider gemini` vẫn lỗi `ModuleNotFoundError: yaml` do `.venv` chưa có dependencies | Cài `requirements.txt` thành công rồi chạy lại preflight Gemini và pytest |
+| 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Kiểm tra lại Mốc 0 sau khi môi trường đã có dependencies | `pytest`: **122 passed, 0 failed, 0 skipped**; preflight Gemini exit 1 do `WinError 10013` khi kết nối API; key không bị in ra | Chạy lại preflight trên mạng cho phép kết nối Google API; sau đó xác nhận Checkpoint 0 |
+| 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Hoàn tất Mốc 0 | `pytest -q`: **122 passed**; preflight Gemini ngoài sandbox: `OK provider=gemini model=gemini-3.5-flash`, tool `timeline` gọi đúng args `screenname=sama`, `limit=1` | Chuyển sang Mốc 1: chạy baseline v0 và lập danh sách lỗi từ run JSON |
+| 10/11/2026 | Trọng | `feature/prompt-routing-03666` / chưa commit | Chạy và kiểm tra baseline v0 | `runs/v0_B_base_gemini_20261110T105830047307.json`; hash prompt/tools khớp artifact; 20/20 case `provider_error`, `measured_cases=0` do `WinError 10013` | Chạy lại v0 trên môi trường có kết nối Gemini để phân loại routing/args/missing/boundary từ kết quả đo thật |
 | Chưa cập nhật | Minh | Điền branch / commit / PR thực tế | Điền phần đã hoàn thành | Eval, UI, transcript, report | Điền người nhận và bước tiếp theo |
 
 Quy ước: `[x]` là đã có bằng chứng hoặc xác nhận được ghi rõ; `[ ]` là chưa xác
