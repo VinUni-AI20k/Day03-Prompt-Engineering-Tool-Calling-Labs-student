@@ -62,4 +62,4 @@
 - Tích hợp tool `stats` của DucLT để kiểm tra khả năng trích xuất danh sách số liệu và tính trung bình cộng.
 
 ## Công cụ AI đã dùng (để ghi vào báo cáo cá nhân)
-- Google Antigravity Agent (Gemini 3.8 Flash High): hỗ trợ phân tích log lỗi thất bại v0, rà soát cú pháp schema eval cases và hỗ trợ xử lý conflict git.
+- Google Antigravity Agent (Gemini 3.8 Flash High): Trợ lý lập trình cặp (pair programming) theo phương thức tương tác hỏi - đáp từng bước, hỗ trợ phân tích log lỗi thất bại v0, rà soát cú pháp schema eval cases, chẩn đoán merge conflict git và đối chiếu các tiêu chí trong rubric. Toàn bộ logic nghiệp vụ và kịch bản test case do sinh viên trực tiếp quyết định.
