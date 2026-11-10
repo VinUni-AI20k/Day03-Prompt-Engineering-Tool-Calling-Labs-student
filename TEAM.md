@@ -61,11 +61,11 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 ---
 
-## Đạt
+## Đạt - 2A202603922
 
 ### Phần việc phụ trách
 
-- Thiết kế và viết **≥ 1 tool mới** (`tools/<tên>/tool.py` + `TOOL.md`)
+- Thiết kế và viết **≥ 1 tool mới** (`tools/datetime_window/tool.py` + `TOOL.md`)
 - Đăng ký tool trong `tools/__init__.py`
 - Viết **≥ 3 unit test** trong `tests/test_tools_todo.py`
 - Scaffold UI (Streamlit hoặc tương đương) + dependency trong `requirements.txt`
@@ -73,14 +73,14 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 ### Đóng góp cụ thể
 
-- Owner các file: `tools/<mới>/`, `tools/__init__.py`, `tests/test_tools_todo.py`
+- Owner các file: `tools/datetime_window/tool.py`, `tools/datetime_window/TOOL.md`, `tools/__init__.py`, `tests/test_tools_todo.py`
 - Khung UI ban đầu để Hà hoàn thiện
 
 ### Bằng chứng
 
-- Folder tool mới + `TOOL.md`
-- Output `pytest` (0 failed; ≥ 3 test tool mới không skip)
-- Commit kỹ thuật trên `main`
+- Folder tool mới (`tools/datetime_window/`) + `TOOL.md`
+- Output lệnh `pytest` (0 failed; ≥ 3 test tool mới không skip)
+- Commit kỹ thuật trên nhánh `main`
 
 ---
 
