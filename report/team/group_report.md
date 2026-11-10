@@ -11,7 +11,7 @@
 - Tên nhóm: Hehehe (theo tên repo; cần nhóm xác nhận).
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
 - Provider/model: v0 dùng `openai` / `gpt-4o-mini`; v1–v3 chưa chạy.
-- Trạng thái: hoàn thiện bằng chứng CP1; các mục tool mới, eval nhóm, UI, live chat và bonus chưa hoàn thành.
+- Trạng thái: đã hoàn thiện bằng chứng CP1, CP3 và bonus ≥ 4 tool tự viết (12 unit test, 1 eval routing); eval nhóm còn 9 case, CP2, UI và live chat chưa hoàn thành.
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -38,8 +38,10 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| github_search | tìm repository GitHub công khai theo từ khóa, ngôn ngữ và cách sắp xếp | có |
+| deduplicate_sources | loại nguồn trùng theo URL chuẩn hóa hoặc tiêu đề | có |
+| compare_sources | so sánh metadata, độ đầy đủ và điểm giống/khác giữa các nguồn | có |
+| filter_by_date | lọc danh sách nguồn theo khoảng ngày bao gồm hai biên | có |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -53,7 +55,8 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- Thêm `github_search` để tìm implementation, thư viện và dự án mã nguồn trên GitHub; agent chỉ nên gọi tool này cho yêu cầu về repository/code, không dùng thay web search, arXiv hoặc social search.
+- Thêm ba tool xử lý cục bộ: `deduplicate_sources` loại kết quả trùng, `compare_sources` tạo bảng so sánh metadata minh bạch, và `filter_by_date` lọc nguồn theo khoảng ngày. Cả ba không gọi mạng và không có side effect.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -162,11 +165,11 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/{github_search,deduplicate_sources,compare_sources,filter_by_date}/`; registry và `artifacts/tools.yaml` | 1 tool tìm repository và 3 tool xử lý nguồn cục bộ | Validate kiểu/range/enum; mọi lỗi trả error dict; không có write side effect |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`; `starter_v0/analysis/cp3_pytest.txt` | 12 test function cho happy path, input xấu và failure path của 4 tool | HTTP GitHub được mock offline; local tools không gọi mạng |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: đã viết 12 test function cho 4 tool tự thêm. Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: GitHub trả HTTP 503, item không phải object, khoảng ngày đảo ngược; tool phải trả error dict thay vì làm agent crash.
 
 ### B5. Bonus Evidence
 
@@ -175,7 +178,7 @@ Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool c�
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
 | Small Local Model | xem B7 |  |  |
-| Hơn 3 tool mới (≥ 4) |  |  |  |
+| Hơn 3 tool mới (≥ 4) | `tools/github_search`, `tools/deduplicate_sources`, `tools/compare_sources`, `tools/filter_by_date`; `tests/test_tools_todo.py` | Đủ 4 tool tự viết, mỗi tool có `TOOL.md`, registry, declaration và ≥ 3 test | Ba tool xử lý nguồn chạy local; GitHub chỉ đọc public API; mọi tool validate input |
 | `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
 | Test challenge (0 skipped / regression test) | `pytest` output |  |  |
 
