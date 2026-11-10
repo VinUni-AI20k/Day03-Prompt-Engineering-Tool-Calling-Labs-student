@@ -85,4 +85,4 @@ Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin
 - [Run group v3](starter_v0/runs/v3_B_group_openai_20261110T193821499328.json).
 - Bảng B3 trong [báo cáo nhóm](report/team/group_report.md).
 - Báo cáo cá nhân: [`report/team/2A202603835_NguyenTrongNghia.md`](report/team/2A202603835_NguyenTrongNghia.md).
-- Nhánh `feat/check-point-4`; commit: bổ sung hash sau khi commit.
+- Commit `5d09b27` (nhánh `feat/check-point-4`); PR #3, merge commit `9fc3ddd`.

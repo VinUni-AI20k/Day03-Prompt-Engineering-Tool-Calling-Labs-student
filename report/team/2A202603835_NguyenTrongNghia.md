@@ -62,7 +62,7 @@ python run_eval.py --provider openai --version v3 --suite group --eval-cases dat
   - [`starter_v0/data/eval_group.json`](../../starter_v0/data/eval_group.json)
   - [Run group v3](../../starter_v0/runs/v3_B_group_openai_20261110T193821499328.json)
   - [Bảng B3 trong group report](group_report.md)
-  - Nhánh `feat/check-point-4`; commit: (bổ sung hash sau khi commit)
+  - Commit `5d09b27` (nhánh `feat/check-point-4`); PR #3, merge commit `9fc3ddd`
 - AI/công cụ đã dùng và cách tự kiểm tra kết quả:
   - Dùng Claude Code để đọc logic chấm trong `run_eval.py`, soạn nháp các case và điền B3.
   - Tự kiểm tra: validate schema bằng code của `run_eval.py`; chạy `pytest`; chạy eval bằng API thật; đối chiếu từng `actual_tool_calls` và `tool_results` trong run JSON với `expect`.
