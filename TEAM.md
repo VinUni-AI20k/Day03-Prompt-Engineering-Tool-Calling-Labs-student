@@ -6,7 +6,7 @@
 - Lớp: L3B.
 - Repo nhóm: `K5-L3B-DAY03-Hehehe-ResearchAgentToolEval`.
 - URL repo: https://github.com/trongnghia2304/K5-L3B-DAY03-Hehehe-ResearchAgentToolEval
-- Nền tích hợp: main GitHub `a557a55`; CP5 bổ sung trên nhánh `codex/complete-team-main`. Commit chốt bài nộp sẽ là commit sau khi nhóm review và gộp CP5 vào main.
+- Nền tích hợp: main GitHub `a557a55`; CP5 bổ sung trên nhánh `vuvanbinh`. Commit chốt bài nộp sẽ là commit sau khi nhóm review và gộp CP5 vào main.
 
 ## Thành viên
 
@@ -25,7 +25,7 @@ Thông tin Bình đã được Bình xác nhận trong phiên hoàn thiện CP5;
 
 - Cấu hình provider OpenAI, kiểm tra môi trường và chạy baseline v0.
 - Tổng hợp version log, phân tích lỗi và báo cáo CP1 với hỗ trợ của Codex.
-- CP5: yêu cầu Codex lấy main GitHub làm nền và hoàn thiện UI/live chat, hướng dẫn, hồ sơ và báo cáo tích hợp.
+- CP5: hoàn thiện UI/live chat, hướng dẫn, hồ sơ và báo cáo tích hợp.
 
 ### Đóng góp cụ thể
 
