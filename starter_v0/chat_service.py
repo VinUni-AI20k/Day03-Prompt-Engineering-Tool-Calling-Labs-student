@@ -35,7 +35,7 @@ class ChatSession:
     def __init__(
         self,
         provider_name: str = "openrouter",
-        version: str = "v0",
+        version: str = "v2",
         model: str | None = None,
         history_window: int = 5,
         max_tool_rounds: int = 4,

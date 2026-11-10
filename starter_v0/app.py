@@ -1,11 +1,10 @@
 import streamlit as st
-
 from chat_service import ChatSession
 
+PROVIDER_NAME = "openrouter"
+AGENT_VERSION = "v2"
 
-# ---------------------------------------
-# 1. Page configuration
-# ---------------------------------------
+from chat_service import ChatSession
 
 st.set_page_config(
     page_title="Research Agent",
@@ -16,34 +15,24 @@ st.set_page_config(
 st.title("🔎 Research Agent")
 st.caption("AI-powered research assistant")
 
-
-# ---------------------------------------
-# 2. Sidebar
-# ---------------------------------------
-
 with st.sidebar:
     st.header("Settings")
 
-    st.write("**Provider:** OpenRouter")
-    st.write("**Agent version:** v0")
+    st.write(f"**Provider:** {PROVIDER_NAME}")
+    st.write(f"**Agent version:** {AGENT_VERSION}")
 
     if st.button("New conversation", use_container_width=True):
         st.session_state.chat_session = ChatSession(
-            provider_name="openrouter",
-            version="v0",
+            provider_name=PROVIDER_NAME,
+            version=AGENT_VERSION,
         )
         st.session_state.messages = []
         st.rerun()
 
-
-# ---------------------------------------
-# 3. Initialize chat session
-# ---------------------------------------
-
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = ChatSession(
-        provider_name="openrouter",
-        version="v0",
+        provider_name=PROVIDER_NAME,
+        version=AGENT_VERSION,
     )
 
 if "messages" not in st.session_state:
@@ -52,19 +41,9 @@ if "messages" not in st.session_state:
 
 chat_session = st.session_state.chat_session
 
-
-# ---------------------------------------
-# 4. Display previous messages
-# ---------------------------------------
-
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-
-
-# ---------------------------------------
-# 5. Chat input
-# ---------------------------------------
 
 if prompt := st.chat_input("Nhập câu hỏi của bạn..."):
 
@@ -108,11 +87,6 @@ if prompt := st.chat_input("Nhập câu hỏi của bạn..."):
 
         # Show status
         st.caption(f"Status: {status}")
-
-
-# ---------------------------------------
-# 6. Transcript information
-# ---------------------------------------
 
 with st.sidebar:
     st.divider()
