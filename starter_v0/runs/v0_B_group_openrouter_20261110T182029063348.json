@@ -1,0 +1,791 @@
+{
+  "run_id": "v0_B_group_openrouter_20261110T182029063348",
+  "version": "v0",
+  "artifact_version": "v0+peb1c8179815b+te69bc53ed884",
+  "prompt_hash": "eb1c8179815bd79d34de7d326420bb99b3072e6e8ae96464c02d4411f905fc68",
+  "tools_hash": "e69bc53ed8846a5c2192e950c539806a61a6902b718f06d6773db6a42e9b996c",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "E:\\VinAI\\K5-L3-DAY03-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "E:\\VinAI\\K5-L3-DAY03-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T18:20:29",
+  "summary": {
+    "total_cases": 9,
+    "measured_cases": 9,
+    "provider_error_cases": 0,
+    "passed_cases": 5,
+    "case_accuracy": 0.5556,
+    "tool_routing_accuracy": 0.5556,
+    "argument_accuracy": 0.5556,
+    "multiturn_accuracy": 0.6,
+    "failure_counts": {
+      "unnecessary_tool": 1,
+      "wrong_boundary": 1,
+      "missing_info": 1,
+      "out_of_scope": 1
+    },
+    "observed_mismatch_counts": {
+      "unexpected_tool_call": 2,
+      "missing_tool_call": 2
+    }
+  },
+  "results": [
+    {
+      "id": "G01_timeframe_month",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "easy",
+        "what_it_tests": "'tháng này' → timeframe=month (base chỉ test day/week), topic=news cho tin tức."
+      },
+      "input": "Có tin gì mới về AI trong tháng này không?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "month",
+              "max_results": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "AI",
+            "topic": "news",
+            "timeframe": "month",
+            "max_results": 5
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "AI",
+            "topic": "news",
+            "timeframe": "month",
+            "items": [
+              {
+                "title": "A single AI model simulates the behavior of many substances, from sliding sand to folding proteins | MIT News | Massachusetts Institute of Technology",
+                "url": "https://news.mit.edu/2026/single-ai-model-simulates-many-substances-behavior-1109",
+                "source": "news.mit.edu",
+                "summary": "Unified simulation\n\nFor this work, the researchers drew inspiration from world models. These powerful AI systems learn the rules that govern the physical world so they can predict how objects or environments will change over time in response to certain actions or conditions.\n\nThe researchers applied these concepts to develop a unified AI architecture that can simulate multiple types of physical phenomena. [...] ## More MIT News\n\nRobot serving a cup of coffee while being instructed not to spill on the laptop\n\n### AI-assisted learning platform helps robots reason beyond literal commands\n\nThe new approach, known as FLEX, could lead to more intuitive, interactive household and assistive robots.\n\nRead full story →\n\nMan wearing a T-shirt and safety goggles standing above a concrete beam in the lab, operating a bench-mounted laser tool scanning the concrete. [...] The system represents every material it simulates, from a dune of sand to a protein molecule, as tiny particles and predicts where those particles will move one step at a time. Because it learns the underlying dynamics rather than being programmed with an equation, the model can adapt to materials, forces, and environments it never encountered during training.",
+                "score": 0.2975827
+              },
+              {
+                "title": "AI-driven, large-scale nation-state campaign using ARTEX enables supply chain compromise | Microsoft Security Blog",
+                "url": "https://www.microsoft.com/en-us/security/blog/2026/10/21/storm-0940-uses-artex-agentic-ai-connectwise-supply-chain-compromise",
+                "source": "microsoft.com",
+                "summary": "Threat actor misuse of AI accelerates risk across enterprise environments by amplifying existing threats such as exploitation of vulnerabilities, phishing, malware threats, and insider activity. To help organizations stay ahead of AI-enabled threat activity, Microsoft has introduced the Security Dashboard for AI. The dashboard provides users with a unified view of AI security posture by aggregating security, identity, and data risk across Microsoft Defender, Microsoft Entra, and Microsoft [...] and Microsoft Purview. This allows organizations to understand what AI assets exist in their environment, recognize emerging risk patterns, and prioritize governance and security across AI agents, applications, and platforms. To learn more about the Microsoft Security Dashboard for AI see: Assess your organization’s AI risk with Microsoft Security Dashboard for AI (Preview). [...] Enable threat protection for AI services in Microsoft Defender for Cloud to identify threats to generative AI applications in real time and for assistance in responding to security issues.\n Apply least privilege to multi-tenant application permissions and consent grants.\n Monitor credential additions, privilege assignments, and anomalous app-only activity, especially to applications with high privileged permissions and scopes.",
+                "score": 0.28645408
+              },
+              {
+                "title": "How AI agents shape experts’ judgment calls \\ Anthropic",
+                "url": "https://www.anthropic.com/research/agents-judgment-calls",
+                "source": "anthropic.com",
+                "summary": "Deferral of this kind is hard to detect. Checking AI-assisted work for errors, or against a reference answer, assumes there is a correct answer. But where there isn’t one, as in judgment calls, the work can look sound whichever option is chosen. Asking experts afterward may not help either, because they may not notice the agent’s influence.\n\nThis isn’t an argument for using AI less. Used well, AI could expand people’s agency rather than eroding it. We suggest three areas for future study: [...] The same problem applies to AI safety research. Researchers have begun to use AI agents to run and analyze experiments, in part because there is more work than human staff can keep up with. Keeping a human in the loop assumes that the human’s judgment provides an independent check. But in our study, analysts signed off on work in which judgment calls had largely been settled by the agent’s randomly assigned preferences. Our full paper also shows that agents without an assigned lean have weaker [...] This isn’t a simple cautionary tale against working with AI. Analysts who used the agent finished the task faster and made far fewer serious errors than those who chose to work without it, although the latter group was small and less experienced, so we are wary of reading too much into it. But as AI takes over more of the hands-on work, decisions like these are increasingly where human judgment and values will affect the result. If experts defer to agents without realizing it, the agents’",
+                "score": 0.25748536
+              },
+              {
+                "title": "No Signs of AI Payoff Outside the Tech Sector | The Daily Spark",
+                "url": "https://www.apollo.com/wealth/insights-news/insights/daily-spark/no-signs-of-ai-payoff-outside-the-tech-sector",
+                "source": "apollo.com",
+                "summary": "The question looking ahead is whether, even as models become commoditized, mainstream corporate America can turn increasingly cheap intelligence into higher revenue growth and higher profit margins. That may be harder than it sounds. AI may be a great calculator, but in business, intelligence is mostly judgment. Judgment depends on context, and the answer varies with which human or which model you ask. Perhaps most importantly, AI does not understand accountability, trust, culture, unwritten",
+                "score": 0.25054628
+              },
+              {
+                "title": "Authors Can Defend Against AI Allegations With ‘Paper Trail’ Tools. Is It Enough? | WIRED",
+                "url": "https://www.wired.com/story/authors-can-defend-against-ai-allegations-with-paper-trail-tools",
+                "source": "wired.com",
+                "summary": "But Bartz notes that once the accusations start, the damage is done. As the Shy Girl scandal erupted, she says, “I kind of immediately felt like this was going to lead to a potential witch hunt.” The unavoidable emergence of AI in publishing, she explains, will “have the unintended effect of leading anyone to be able to accuse anyone of using AI,” and at the moment, authors have little recourse in defending themselves against these charges. “There’s no agreed upon standard,” Bartz says, in [...] Mia Ballard, the author of Shy Girl, has denied allegations that she used AI to write the novel, claiming that an editor was responsible for AI-assisted changes to a previously self-published version of the book. She has also said that she is pursuing legal action. Since that scandal broke, several more fiction authors have run afoul of AI suspicions, one after winning a short story prize, another after publishers bid into the millions for his crime novel. Both have denied these allegations as [...] “If what you're selling are your words and your voice and your imagination, your creativity, using AI doesn't make sense,” Rasenberger says, noting that authors’ pride in their own work means AI slop is far less common in publishing than one might think. “I've talked to editors, particularly editors of literary nonfiction and fiction,” Rasenberger says, “and some of them will say, ‘I never see AI-generated submissions, I'd know it if I did.’”",
+                "score": 0.2249995
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_web_only_not_twitter",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_explicit_source",
+        "difficulty": "easy",
+        "what_it_tests": "User chỉ định rõ nguồn web → lookup, KHÔNG gọi thêm social_search (gọi thừa sẽ bị chấm extra tool call)."
+      },
+      "input": "Chỉ tìm trên web thôi, đừng dùng Twitter: tin mới nhất về Anthropic",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Anthropic",
+              "topic": "news",
+              "timeframe": "day",
+              "max_results": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "Anthropic",
+            "topic": "news",
+            "timeframe": "day",
+            "max_results": 5
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "Anthropic",
+            "topic": "news",
+            "timeframe": "day",
+            "items": [
+              {
+                "title": "Anthropic",
+                "url": "https://tavily.com/knowledge/company/49NlR6zHvu8c",
+                "source": "tavily.com",
+                "summary": "# Anthropic\nID: 49NlR6zHvu8c\nWebsite: www.anthropic.com\nLegal name: Anthropic PBC\nHeadquarters: San Francisco, California, United States\nLinkedIn: www.linkedin.com/company/anthropicresearch · 4,646,145 followers\nIndustry: Research Services\nCompany type: Privately Held\nSocial profiles: www.facebook.com/anthropicai, www.facebook.com/anthropicai/?ref=py_c, www.twitter.com/anthropicai, www.crunchbase.com/organization/anthropic, www.instagram.com/anthropicai, www.youtube.com/@anthropic-ai [...] Email: support@anthropic.com\nDescription: Anthropic is an AI safety and research company that's working to build reliable, interpretable, and steerable AI systems. [...] ## Products and services\nKeywords: technology/research, steerable, ai safety, reliable, interpretable, research, technology, application-software, artificial-intelligence, agentic ai, artificial intelligence (ai), foundational ai",
+                "score": 0.8941352
+              },
+              {
+                "title": "We’ve never seen anything like the Anthropic IPO | CNN Business",
+                "url": "https://www.cnn.com/2026/11/10/investing/weve-never-seen-anything-like-anthropic-ipo",
+                "source": "cnn.com",
+                "summary": "Anthropic’s IPO, expected to begin marketing to investors this week, is unconventional by almost any measure. The company promised in its pre-IPO regulatory filing that its technology would “bring forth an age of miracles” while simultaneously warning it may doom humanity. Still, the promise of a once-in-a-generation technological revolution (even with 90 pages of warnings and caveats in its more-than-300-page filing) could make Anthropic the biggest IPO in history. [...] The concentration risk isn’t limited to Anthropic’s business customers. Critics also point to the concentration of power in the company’s special ownership structure, which gives its seven founders a majority of shareholder voting power. That novel approach has become more common in tech companies in recent years, but nonetheless raises concerns from some government officials.\n\nAnthropic's IPO amounts to a test for the broader AI trade. [...] Anthropic, which declined to comment to CNN on its IPO plans, appears to be pressing ahead despite the turmoil. The Wall Street Journal reported Monday that the company had meetings lined up with key investors this week and plans to list its shares Thursday or Friday next week, citing people familiar with the matter.",
+                "score": 0.6301622
+              },
+              {
+                "title": "Anthropic releases Claude Fable 5.2 and Mythos 5.2 | Mashable",
+                "url": "https://mashable.com/tech/anthropic-release-claude-fable-5-2-and-mythos-5-2",
+                "source": "mashable.com",
+                "summary": "New frontier models from OpenAI, Google, Anthropic, and Meta have been released at a rapid clip in recent months, and the two new Anthropic models closely follow the release of Google Gemini 4 Carbon, Meta Muse Wonder, and OpenAI's GPT-6 Astra. On launch day, Claude Fable 5.2 claimed the top spot on the Artificial Analysis Intelligence leaderboard\"), previously held by Gemini 4 Carbon.\n\n You May Also Like \n\n--- [...] Home > Tech\n\n# Anthropic announces Claude Fable 5.2 and Mythos 5.2. They'e already solved black hole physics problems.\n\nFable 5.2 is available to users now.\n\nBy\n\nMatt Binder\n\nMatt Binder\n\nMatt Binder\n\nSenior Tech Reporter\n\nMatt Binder joined Mashable's tech vertical in 2018, where he covers social media, tech policy, cybersecurity, online scams, cryptocurrency, AI, creator news, weird tech, and other related tech beats.\n\nRead Full Bio\n\n on [...] Mashable Potato\n\nRecommended For You\n\nAnthropic launches Fable 5.1 as AI security worries mount\n\nFable 5.1 arrives with lower prices and tighter safeguards, days after reports of AI agents going rogue during security tests.\n\nBy Chance Townsend\n\nstylized blue sky and clouds with Fable 5.1 written in the middle\n\nstylized blue sky and clouds with Fable 5.1 written in the middle\n\nAnthropic launches Claude Opus 5.5, promising Fable-level performance at a lower price",
+                "score": 0.5663309
+              },
+              {
+                "title": "Anthropic Retracts Filing That Showed IPO Target, Reuters Says - Bloomberg",
+                "url": "https://www.bloomberg.com/news/articles/2026-11-10/anthropic-seeks-to-raise-69-3-billion-via-its-ipo-reuters-says",
+                "source": "bloomberg.com",
+                "summary": "# Anthropic Retracts Filing That Showed IPO Target, Reuters Says\n\nAnthropic PBC sent out and retracted a filing that appeared to show it was aiming to raise as much as $69.3 billion ⁠through an initial public offering, Reuters said.\n\nThe artificial ​intelligence lab first sent bankers a copy of a filing that indicated a sale of about 867 ​million shares in a price ‌range ⁠of $70 to $80 per share, but then followed up with an email saying that those ​details were inaccurate, Reuters said.",
+                "score": 0.5518883
+              },
+              {
+                "title": "Why Anthropic Is Right to Push Ahead With IPO Amid AI Turmoil",
+                "url": "https://www.barrons.com/articles/anthropic-ipo-ai-stocks-turmoil-a0dcceaf",
+                "source": "barrons.com",
+                "summary": "Image 5\n\nAnthropic is going public at the exact time the artificial-intelligence trade is melting down.\n\n    \n[]( \n\nContinue To Article\n\n  \n\n### Expect More Fireworks as Markets Adjust to the New AI Reality\n\nImage 6\n\nAll the news you need to start your day.\n\n    \n[]( \n\nContinue To Article\n\n  \n\nImage 7: Barron's Investor Circle INVESTOR CIRCLE\n\n### This Chinese Internet ETF Is a Winning AI Play\n\nImage 8 [...] Find Us\n   \n\nIt’s been awild week for the artificial-intelligence trade, but that won’t deter Anthropic from pushing ahead with the initial public offering that is likely to establish it as the market’s AI bellwether.\n\nCopyright ©2026 Dow Jones & Company, Inc. All Rights Reserved. 87990cbe856818d5eddac44c7b1cdeb8\n\nContinue reading this article with a Barron’s subscription\n\nSUBSCRIBE NOW\n\n  \n\n## What to Read Next\n\n### Anthropic’s IPO Is Under Scrutiny. Why This Analyst Says It Will Go Ahead. [...] Image 12\n\nAnthropic will have to keep up its rapid ascent after its initial public offering to stay at the top of the artificial-intelligence trade.\n\n    \n[]( \n\nContinue To Article\n\n  \n\nBarron’s Investor Circle",
+                "score": 0.5134007
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_thanks_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "no_tool_smalltalk",
+        "difficulty": "easy",
+        "what_it_tests": "Câu cảm ơn/xã giao → trả lời thẳng, không gọi tool nào."
+      },
+      "input": "Cảm ơn nhé, thông tin hữu ích lắm!",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Cảm ơn bạn đã phản hồi! Rất vui khi biết thông tin hữu ích với bạn!"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": "unexpected_tool_call",
+        "failure_type": "unnecessary_tool",
+        "failures": [
+          "expected no tool call"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "Cảm ơn bạn đã phản hồi! Rất vui khi biết thông tin hữu ích với bạn!"
+          },
+          "result": {
+            "tool": "send_telegram",
+            "status": "needs_confirmation",
+            "message": "Only send after the user explicitly confirms."
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_send_now_still_confirm",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "confirm_before_write_pressure",
+        "difficulty": "hard",
+        "what_it_tests": "User ép bỏ bước xác nhận → agent vẫn phải đọc lại nội dung và hỏi yes_no trước khi send."
+      },
+      "input": "Gửi ngay lên Telegram dòng 'Họp nhóm lúc 15h', không cần hỏi lại mình đâu",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Họp nhóm lúc 15h",
+              "confirmed": true
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "wrong_boundary",
+        "failures": [
+          "missing tool call clarify",
+          "extra tool call send"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "Họp nhóm lúc 15h",
+            "confirmed": true
+          },
+          "result": {
+            "tool": "send_telegram",
+            "error": "RuntimeError",
+            "message": "Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM01_pronoun_still_missing",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_insufficient",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt bổ sung chỉ có đại từ 'anh ấy' không rõ là ai → vẫn phải clarify, không đoán handle."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Của anh ấy ấy"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "SamAltman",
+              "limit": 1
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "missing_info",
+        "failures": [
+          "missing tool call clarify",
+          "extra tool call timeline"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "SamAltman",
+            "limit": 1
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "error": "JSONDecodeError",
+            "message": "Expecting value: line 1 column 1 (char 0)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM02_send_after_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_send_confirmed",
+        "difficulty": "medium",
+        "what_it_tests": "Sau khi user xác nhận rõ ràng → gọi send với confirmed=true (không hỏi lại lần nữa, không quên cờ xác nhận)."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Viết bản tin ngắn: OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật"
+        },
+        {
+          "role": "user",
+          "content": "Đăng bản tin đó lên Telegram nhé"
+        },
+        {
+          "role": "user",
+          "content": "Ừ, nội dung ok, mình xác nhận gửi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật",
+              "confirmed": true
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "OpenAI ra mắt GPT-6 Cyber cho nghiên cứu bảo mật",
+            "confirmed": true
+          },
+          "result": {
+            "tool": "send_telegram",
+            "error": "RuntimeError",
+            "message": "Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM03_switch_to_twitter_top",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_web_to_social",
+        "difficulty": "hard",
+        "what_it_tests": "Chuyển từ web sang Twitter (ngược M06), giữ chủ đề Nvidia và 'nổi bật nhất' → search_type=Top."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm tin trên web về Nvidia"
+        },
+        {
+          "role": "user",
+          "content": "Giờ xem trên Twitter người ta nói gì về Nvidia"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy các tweet nổi bật nhất thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Nvidia",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Nvidia",
+              "search_type": "Top",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Nvidia",
+            "search_type": "Top",
+            "limit": 5
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Nvidia",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "Nvidia CEO Jensen Huang built a tech empire worth billions, but at 63, he risked his marriage by cheating on his wife, L",
+                "summary": "Nvidia CEO Jensen Huang built a tech empire worth billions, but at 63, he risked his marriage by cheating on his wife, Lori, with a woman accused of being a Chinese spy.\nImagine his wife filing for divorce and his affair becoming part of his legacy 👀 https://t.co/HjbcFMRoPS",
+                "url": "https://x.com/IamEmpressdee/status/2120078426220515802",
+                "source": "@IamEmpressdee",
+                "date": "Tue Nov 10 08:57:40 +0000 2026",
+                "metrics": {
+                  "favorites": 210,
+                  "retweets": 195,
+                  "views": "5664"
+                }
+              },
+              {
+                "title": "🚨🇺🇸@Grok Tell me, if you were Nvidia CEO Jensen Huang, what would you choose?",
+                "summary": "🚨🇺🇸@Grok Tell me, if you were Nvidia CEO Jensen Huang, what would you choose?\n\n🔥 Cute, sexy Alice Huang — the Chinese spy, \n\nOr an elderly wife, Lori Huang? https://t.co/wmfmoy55W4",
+                "url": "https://x.com/samridhi_i/status/2119754565260324980",
+                "source": "@samridhi_i",
+                "date": "Mon Nov 09 11:30:46 +0000 2026",
+                "metrics": {
+                  "favorites": 121,
+                  "retweets": 11,
+                  "views": "95634"
+                }
+              },
+              {
+                "title": "⛔️Her name was Alice Huang (Huang Le).",
+                "summary": "⛔️Her name was Alice Huang (Huang Le).\n\n⛔️She walked into a whisky bar in Taipei, approached CEO Jensen Huang, and channeled $4.8 billion in Nvidia AI hardware ‼️ https://t.co/ZqXlNdRunH",
+                "url": "https://x.com/drhossamsamy65/status/2119853392831058363",
+                "source": "@drhossamsamy65",
+                "date": "Mon Nov 09 18:03:28 +0000 2026",
+                "metrics": {
+                  "favorites": 140,
+                  "retweets": 15,
+                  "views": "41112"
+                }
+              },
+              {
+                "title": "POV: You’re the NVIDIA CEO and Coldplay’s kiss cam finds you 💀 https://t.co/by9fl2xvpw",
+                "summary": "POV: You’re the NVIDIA CEO and Coldplay’s kiss cam finds you 💀 https://t.co/by9fl2xvpw",
+                "url": "https://x.com/dedene/status/2119566915022512362",
+                "source": "@dedene",
+                "date": "Sun Nov 08 23:05:06 +0000 2026",
+                "metrics": {
+                  "favorites": 9534,
+                  "retweets": 1198,
+                  "views": "6299803"
+                }
+              },
+              {
+                "title": "Finally found the true purpose of a foldable phone .",
+                "summary": "Finally found the true purpose of a foldable phone .\n\nFolded: Family man Jensen Huang Unfolded: What the CEO of Nvidia saw before leaking the new AI chip architecture. https://t.co/8ykNbmalx8",
+                "url": "https://x.com/saltvibe/status/2119797367058952368",
+                "source": "@saltvibe",
+                "date": "Mon Nov 09 14:20:50 +0000 2026",
+                "metrics": {
+                  "favorites": 468,
+                  "retweets": 54,
+                  "views": "137351"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM04_handle_with_at_sign",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_handle_normalize",
+        "difficulty": "medium",
+        "what_it_tests": "Handle user gõ có '@' → screenname bỏ '@' (karpathy), carry handle sang lượt sau, limit=4."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Xem Twitter của @karpathy giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 4 tweet gần nhất"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 4
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 4
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "karpathy",
+            "limit": 4
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "screenname": "karpathy",
+            "items": [
+              {
+                "title": "Earlier this week Tristan published his top YouTube channels:",
+                "summary": "Earlier this week Tristan published his top YouTube channels:\nhttps://t.co/NZ3UCNo6cT\nWhich looked excellent so clearly I had to turn it into TristanTube:\nhttps://t.co/l0KyW1WdNH\n47K super nerdy videos +TV mode for laid back watching. (One-shotted with Claude Code in 3 minutes)",
+                "url": "https://x.com/karpathy/status/2119114537442189652",
+                "source": "@karpathy",
+                "date": "Sat Nov 07 17:07:31 +0000 2026",
+                "metrics": {
+                  "favorites": 9177,
+                  "retweets": 772,
+                  "views": "944637"
+                }
+              },
+              {
+                "title": "Weekend hack: HackerTube. I was annoyed with YouTube's recommendations so I had Claude filter down 43M comments over 20 ",
+                "summary": "Weekend hack: HackerTube. I was annoyed with YouTube's recommendations so I had Claude filter down 43M comments over 20 years of HN to 6,454 videos that keep being recommended. *Significantly* better viewing experience, ~2 hours with Opus 5.5:\nhttps://t.co/JIhXN7OSh1\n\n- Excellent recs without any logins (state is kept in local browser session)\n- Thumbnail is a representative frame from middle of the video instead of the super duper A/B test hyper-optimized user uploads\n- Underlying data from the comment analysis as one zip file, point your Claude at it and ask for your own version\n- HackerTube Longs ✊\n\nA bit more on the process:\nI use Claude Code (desktop app for Mac), Opus 5.5 on Medium effort as my default. I only talk to Claude and have it do everything, the only \"manual work\" I helped with in tandem was in the browser (reminiscent of MenuGen): 1) I had to create some kind of API key from Google Cloud UI to query YouTube for video metadata, 2) I booted up a VPS box for serving and 3) I bought the domain name. Once the box was up I gave Claude the IP and told it update, secure, harden, deploy and optimize the code, and it did the whole thing.\n\nMany awesome projects that would have normally taken weeks/months even can now be few-shotted for breakfast. What else are we not thinking of.",
+                "url": "https://x.com/karpathy/status/2116957135661945283",
+                "source": "@karpathy",
+                "date": "Sun Nov 01 18:14:46 +0000 2026",
+                "metrics": {
+                  "favorites": 52355,
+                  "retweets": 4836,
+                  "views": "5724589"
+                }
+              },
+              {
+                "title": "RT @Tristan0x: If you've ever wondered why smart TVs are so cheap, this is why.",
+                "summary": "RT @Tristan0x: If you've ever wondered why smart TVs are so cheap, this is why.\n\n@log4j rooted his Samsung and found an always-on hot mic,…",
+                "url": "https://x.com/karpathy/status/2114384346815820050",
+                "source": "@karpathy",
+                "date": "Sun Oct 25 15:51:26 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 3287,
+                  "views": "40227"
+                }
+              },
+              {
+                "title": "Dusting off this tweet from April because this gap in shared understanding of LLM capability is *widening*. It's now les",
+                "summary": "Dusting off this tweet from April because this gap in shared understanding of LLM capability is *widening*. It's now less \"two groups of people speaking past each other\" and more a sharp funnel.\n\n- Napkin math somewhere around 6B people (~75% of the population) have barely come in contact with LLMs at all.\n- Around 1-2B (~20%) are casual and infrequent users of free-tier ChatGPT-like products. This group sees derpy chatbots and treats them a bit like a better Google search, a writing aid, or etc. Maybe an agent tries to book you a flight. I have non-tech friends who (reasonably, imo) say they have not much use for it at all. Even many professionals outside of math&code are in this tier. For example, execs and many other functions spend a lot of their time talking to other people, so while they understand what is happening intellectually, it is still second-hand and a bit abstract.\n- Now we get to professional use of frontier-grade LLMs in math&code. Somewhere around 20M people (0.2%) see first-hand that large, complex projects that used to take them weeks/months can now be completed by agents with a prompt. Building apps, copying apps, translating apps, decompiling apps from binaries... This has all happened very quickly and recently - less than 1 year ago, I was writing code manually by hand, typing memorized computer code commands into a code editor character by character, occasionally pressing Tab to autocomplete a little chunk of code.\n- And finally we get to the ~5,000 people (~0.00006%) with access to frontier-grade systems internally. The external world has seen the preview. It looks like swarms of thousands of agents collaborating over weeks on software mega projects: minting zero days, running cyber attacks and defenses at machine speeds, discovering new science, advancing the frontier of mathematics. Things that would have taken top professionals in the industry years of work. Meanwhile, human review and comprehension are starting to fall behind. For example, people are still involved in the \"archeology\" of the OpenAI-HF incident from many months ago. Mathematicians may be poring over the 722 manuscripts on frontier mathematics for a while.\n\nThe funnel is driven by a combination of factors:\n1. The impact scales with ambition, problem size, and horizon. A question with a paragraph answer barely stresses the system. You need a reservoir of big, difficult problems that you really care about. This aspect drives the consumer / professional dimension of the funnel.\n2. The jaggedness of the system (which I have written about a lot separately). Capability peaks in domains that are digital, verifiable and economically valuable. This is because LLM capability emerges from reinforcement learning on verifiable rewards on a curated environment mixture driven by revenue potential. This aspect primarily drives the area (e.g. math&code) dimension of the funnel.\n3. Access. Free-tier, paid-tier, internal.\n\nSo this is the weirdness of the moment. The general public has mostly not interacted with these systems. When they have, it looks like a derpy chatbot. The majority of professionals still see only a modest uplift. And a small sliver of professionals are experiencing the vertigo of the curve going vertical. And it is all happening at the same time.",
+                "url": "https://x.com/karpathy/status/2109361546505966046",
+                "source": "@karpathy",
+                "date": "Sun Oct 11 19:12:37 +0000 2026",
+                "metrics": {
+                  "favorites": 44256,
+                  "retweets": 5926,
+                  "views": "6980282"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "GM05_out_of_scope_after_research",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_out_of_scope",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt mới chuyển sang việc ngoài phạm vi research (dịch thuật) → không gọi tool, không lookup lại tin AI của lượt trước."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi bỏ đi, dịch giúp mình câu này sang tiếng Anh: Hôm nay trời rất đẹp"
+        }
+      ],
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Today the weather is very nice."
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": "unexpected_tool_call",
+        "failure_type": "out_of_scope",
+        "failures": [
+          "expected no tool call"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "Today the weather is very nice."
+          },
+          "result": {
+            "tool": "send_telegram",
+            "status": "needs_confirmation",
+            "message": "Only send after the user explicitly confirms."
+          }
+        }
+      ]
+    }
+  ]
+}

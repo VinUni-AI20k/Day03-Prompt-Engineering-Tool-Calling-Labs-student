@@ -15,6 +15,15 @@ def err(tool: str, exc: Exception) -> dict[str, Any]:
     return {"tool": tool, "error": type(exc).__name__, "message": str(exc)}
 
 
+def positive_int(value: Any, name: str, default: int) -> int:
+    if value is None:
+        return default
+    number = int(value)
+    if number < 1:
+        raise ValueError(f"{name} must be >= 1, got {value!r}")
+    return number
+
+
 def domain(url: str) -> str:
     try:
         return urlparse(url).netloc.replace("www.", "")
