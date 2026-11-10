@@ -62,8 +62,8 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
+| v0 | baseline | Đo hành vi chưa tối ưu (prompt starter còn chỉ dẫn xấu) | — | 0.70 (14/20) | `runs/v0_B_base_openrouter_20261110T174519840832.json` |
+| v1 | system_prompt.md | Bỏ chỉ dẫn đoán/gửi ngay/một bước, thêm rule `clarify` khi thiếu thông tin và xác nhận trước `send` thì R10, R11, R12 sẽ PASS | 0.70 | 0.80 (16/20) | `runs/v1_B_base_openrouter_20261110T180453970452.json` |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
 
