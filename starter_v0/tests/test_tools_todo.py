@@ -120,3 +120,107 @@ def test_my_new_tool_bad_input_from_model() -> None:
 
 def test_my_new_tool_failure_returns_error_dict() -> None:
     pytest.skip(TODO)
+
+# ---------------- github_repo (tool mới của nhóm) ----------------
+
+def test_github_repo_maps_api_fields_and_calls_correct_url(fake_http) -> None:
+    calls = fake_http(FakeResponse({"full_name": "openai/whisper", "stargazers_count": 70000,
+                                    "forks_count": 8000, "language": "Python",
+                                    "license": {"spdx_id": "MIT"}, "html_url": "https://github.com/openai/whisper"}))
+    result = TOOL_FUNCTIONS["github_repo"](repo="https://github.com/openai/whisper")
+    assert calls[0]["url"] == "https://api.github.com/repos/openai/whisper"   # request gửi đi
+    assert result["stars"] == 70000 and result["license"] == "MIT"           # kết quả trả về
+
+
+def test_github_repo_rejects_bad_repo_without_network(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+    result = TOOL_FUNCTIONS["github_repo"](repo="whisper")
+    assert result["error"] == "invalid_repo"
+    assert calls == []
+
+
+def test_github_repo_404_returns_not_found_error_dict(fake_http) -> None:
+    fake_http(FakeResponse({"message": "Not Found"}, status_code=404))
+    result = TOOL_FUNCTIONS["github_repo"](repo="openai/khong-ton-tai")
+    assert result["error"] == "not_found"
+
+# ---------------- pypi_package (tool mới) ----------------
+
+def test_pypi_package_maps_api_fields_and_install_cmd(fake_http) -> None:
+    fake_http(FakeResponse({
+        "info": {"name": "openai", "version": "1.50.0", "summary": "OpenAI Python API", "license": "Apache-2.0", "requires_python": ">=3.8"},
+        "urls": [{"upload_time_iso_8601": "2026-10-01T12:00:00Z"}]
+    }))
+    result = TOOL_FUNCTIONS["pypi_package"](package="openai")
+    assert result["tool"] == "pypi_package"
+    assert result["version"] == "1.50.0"
+    assert result["install"] == "pip install openai==1.50.0"
+
+
+def test_pypi_package_rejects_empty_or_invalid_name_without_network(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+    result = TOOL_FUNCTIONS["pypi_package"](package="")
+    assert result["error"] == "invalid_package"
+    assert calls == []
+
+
+def test_pypi_package_404_returns_not_found_error_dict(fake_http) -> None:
+    fake_http(FakeResponse({"message": "Not Found"}, status_code=404))
+    result = TOOL_FUNCTIONS["pypi_package"](package="khong_ton_tai_12345")
+    assert result["error"] == "not_found"
+
+# ---------------- wiki_summary (tool mới) ----------------
+
+def test_wiki_summary_sends_user_agent_and_maps_fields(fake_http) -> None:
+    calls = fake_http(FakeResponse({
+        "title": "Retrieval-augmented generation",
+        "description": "AI technique",
+        "extract": "RAG improves LLM outputs...",
+        "type": "standard",
+        "content_urls": {"desktop": {"page": "https://en.wikipedia.org/wiki/Retrieval-augmented_generation"}}
+    }))
+    result = TOOL_FUNCTIONS["wiki_summary"](title="Retrieval-augmented generation", lang="en")
+    assert "/page/summary/Retrieval-augmented_generation" in calls[0]["url"]
+    assert "AI20k-Day03" in calls[0]["headers"].get("User-Agent", "")
+    assert result["extract"] == "RAG improves LLM outputs..."
+
+
+def test_wiki_summary_rejects_empty_title_without_network(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+    result = TOOL_FUNCTIONS["wiki_summary"](title="")
+    assert result["error"] == "invalid_title"
+    assert calls == []
+
+
+def test_wiki_summary_404_returns_not_found(fake_http) -> None:
+    fake_http(FakeResponse({"detail": "Page not found"}, status_code=404))
+    result = TOOL_FUNCTIONS["wiki_summary"](title="UnknownConceptXYZ123")
+    assert result["error"] == "not_found"
+
+# ---------------- hn_search (tool mới) ----------------
+
+def test_hn_search_by_date_calls_search_by_date_endpoint(fake_http) -> None:
+    calls = fake_http(FakeResponse({
+        "hits": [{"objectID": "123", "title": "Claude 3.7 Released", "url": "https://anthropic.com", "points": 500, "num_comments": 150}]
+    }))
+    result = TOOL_FUNCTIONS["hn_search"](query="Claude", sort="date", timeframe="day", limit=10)
+    assert "search_by_date" in calls[0]["url"]
+    assert "numericFilters" in calls[0]["params"]
+    assert calls[0]["params"]["hitsPerPage"] == 10
+    assert result["results"][0]["title"] == "Claude 3.7 Released"
+
+
+def test_hn_search_rejects_empty_query_without_network(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+    result = TOOL_FUNCTIONS["hn_search"](query="")
+    assert result["error"] == "invalid_query"
+    assert calls == []
+
+
+def test_hn_search_clamps_bad_limits(fake_http) -> None:
+    calls = fake_http(FakeResponse({"hits": []}))
+    TOOL_FUNCTIONS["hn_search"](query="AI", limit=0)
+    assert calls[0]["params"]["hitsPerPage"] == 1
+
+    TOOL_FUNCTIONS["hn_search"](query="AI", limit=999)
+    assert calls[1]["params"]["hitsPerPage"] == 20
