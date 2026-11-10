@@ -2,11 +2,11 @@
 
 ## Thông tin nhóm
 
-- Tên nhóm:
-- Lớp: L3A / L3B
-- Repo nhóm: `K5-L3A-DAY03-TenNhom-ResearchAgentToolEval` hoặc `K5-L3B-DAY03-TenNhom-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
+- Tên nhóm: NhomBaKhi
+- Lớp: L3B
+- Repo nhóm: K5-L3B-DAY03-NhomBaKhi-ResearchAgentToolEval
 - URL repo, nhánh nộp, commit chốt:
-
+https://github.com/lam2121/K5-L3B-DAY03-NhomBaKhi-ResearchAgentToolEval, nhánh main
 ## Thành viên
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
