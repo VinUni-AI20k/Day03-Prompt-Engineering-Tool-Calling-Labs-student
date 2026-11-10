@@ -7,7 +7,10 @@ import yaml
 
 # Folder names are intentionally vague to match the tool names students see.
 # The imported function names are the underlying implementations (unchanged).
+from .citation_check.tool import check_draft_compliance
 from .clarify.tool import ask_user
+from .currency_convert.tool import convert_currency
+from .github_search.tool import search_github_repos
 from .papers.tool import arxiv_search
 from .paper_text.tool import get_arxiv_paper_text
 from .timeline.tool import get_user_tweets
@@ -17,6 +20,7 @@ from .policy.tool import search_company_policy
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
+from .weather_forecast.tool import get_weather
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -35,8 +39,10 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
-    # TODO(student): register your new tool here, e.g. "my_tool": my_tool_function,
-    # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
+    "github_search": search_github_repos,
+    "citation_check": check_draft_compliance,
+    "currency_convert": convert_currency,
+    "weather_forecast": get_weather,
 }
 
 
