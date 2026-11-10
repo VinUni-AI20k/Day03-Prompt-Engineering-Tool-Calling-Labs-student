@@ -144,3 +144,85 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  -   name: filter_sources
+      description: Filter collected items by bare domain names, matching exact hosts
+          and subdomains (case insensitive). Empty allow list allows all; blocked domains
+          take precedence. Invalid URLs or filters return invalid_input with no partial
+          results. Preserves order and deep-copies output. No search, network access,
+          or source credibility verification.
+      parameters:
+          type: object
+          properties:
+              items:
+                  type: array
+                  description: Already-collected research items; pass the full input
+                      list.
+                  items: &id001
+                      type: object
+                      properties:
+                          url:
+                              type: string
+                          title:
+                              type: string
+                          source:
+                              type: string
+                          date:
+                              type: string
+              allowed_domains:
+                  type: array
+                  items:
+                      type: string
+                  description: Bare hostnames such as arxiv.org, without scheme/path/port.
+                      Exact host and subdomains match.
+                  default: []
+              blocked_domains:
+                  type: array
+                  items:
+                      type: string
+                  description: Bare hostnames such as arxiv.org, without scheme/path/port.
+                      Exact host and subdomains match.
+                  default: []
+          required:
+          - items
+  -   name: filter_by_date
+      description: Keep collected items whose date field is within inclusive start_date/end_date.
+          All dates must be YYYY-MM-DD calendar dates; timestamps must be converted
+          by the caller first. Missing/invalid item dates are excluded with their zero-based
+          index and reason, never guessed. Invalid range or list returns invalid_input.
+          Preserves order and deep-copies output. Does not search or infer publication
+          dates.
+      parameters:
+          type: object
+          properties:
+              items:
+                  type: array
+                  description: Already-collected research items; pass the full input
+                      list.
+                  items: *id001
+              start_date:
+                  type: string
+                  description: Inclusive boundary in YYYY-MM-DD format.
+              end_date:
+                  type: string
+                  description: Inclusive boundary in YYYY-MM-DD format.
+          required:
+          - items
+          - start_date
+          - end_date
+  -   name: validate_citations
+      description: Check collected citations for nonempty title/source strings and an
+          absolute HTTP(S) URL with a valid port. Returns valid and errors with zero-based
+          item index and issues. Empty list is valid (nothing to check). Non-list input
+          returns invalid_input. Does not fetch URLs, verify reachability, assess credibility,
+          or establish that a source supports a claim. Never edits input.
+      parameters:
+          type: object
+          properties:
+              items:
+                  type: array
+                  description: Already-collected research items; pass the full input
+                      list.
+                  items: *id001
+          required:
+          - items
