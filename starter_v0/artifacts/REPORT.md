@@ -199,8 +199,7 @@ Lệnh chạy từ thư mục `starter_v0`:
 ```
 
 Kết quả tại thời điểm hoàn thiện báo cáo: **166 passed, 0 skipped**.
-Các test skipped nằm trong `tests/test_tools_todo.py`, là các bài mẫu chưa
-triển khai; không được tính là test đã đạt. Unit test chạy offline với mock
+. Unit test chạy offline với mock
 network, tách biệt với điểm eval lựa chọn tool/tham số. Chưa có phép đo
 riêng tổng số bug được phát hiện, nên báo cáo không gán số bug từ số test.
 
