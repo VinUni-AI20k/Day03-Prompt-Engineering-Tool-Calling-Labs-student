@@ -10,7 +10,8 @@
 
 - Tên nhóm: NhomSNN
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3: OpenRouter — `nvidia/nemotron-3.5-super-vl:free`
+- Provider/model dùng cho v0–v3: Gemini — `gemini-3.8-flash` (model mặc định của `providers/gemini_provider.py`; xem `provider`/`model` trong `starter_v0/runs/v0_B_base_gemini_*.json`, `v1_B_base_gemini_*.json`)
+- Provider/model của UI và live chat: cũng Gemini — `gemini-3.8-flash` (mặc định trong `starter_v0/app.py`; đổi bằng `AGENT_PROVIDER`/`AGENT_MODEL`)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -26,7 +27,7 @@ pip install -r requirements.txt      # đã thêm streamlit
 streamlit run app.py                 # http://localhost:8501
 ```
 
-UI mặc định dùng model `nvidia/nemotron-3.5-super-vl:free` (đổi ở sidebar hoặc biến môi trường `AGENT_MODEL`). Chat terminal tương đương: `python chat.py --provider openrouter --model nvidia/nemotron-3.5-super-vl:free --version v3`.
+UI mặc định dùng Gemini `gemini-3.8-flash` — cùng model với base eval v0–v3 (cần `GEMINI_API_KEY` trong `starter_v0/.env`); đổi ở sidebar hoặc qua biến môi trường `AGENT_PROVIDER`/`AGENT_MODEL`. Nhãn version được UI tự nhận bằng cách so `prompt_hash`/`tools_hash` với `artifacts/version_log.csv` (không khớp → `unversioned`). Chat terminal tương đương: `python chat.py --provider gemini --version v3`.
 
 UI hiển thị từng tool call (tên, args, kết quả, lỗi nếu có) và lưu transcript vào `starter_v0/transcripts/ui_*.transcript.json`. Sidebar cho chọn provider/model/version và hiện `prompt_hash`/`tools_hash` đang chạy.
 
@@ -56,7 +57,7 @@ URL: https://streams-stars-bucks-details.trycloudflare.com
 | policy | Tra cứu policy nội bộ công ty (markdown) | không |
 | papers | Tìm paper trên arXiv | không |
 | paper_text | Tải PDF arXiv và trích text | không |
-| _(tool mới — Nhân điền)_ |  | có |
+| github_repo | Đọc metadata repo GitHub công khai theo `owner/repo`: mô tả, số sao, fork, ngôn ngữ, thời điểm cập nhật | **có** |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -65,7 +66,7 @@ URL: https://streams-stars-bucks-details.trycloudflare.com
 3. "Mọi người trên X đang nói gì nổi bật về GPT-5?" → `social_search` (search_type=Top)
 4. "Tóm tắt giúp tôi bài viết này" → agent hỏi lại URL (`clarify`), sau đó `fetch`
 5. "Tổng hợp tin AI hôm nay rồi gửi lên Telegram" → tổng hợp xong, agent hỏi xác nhận trước khi `send`
-6. _(câu hỏi cho tool mới — Nhân bổ sung)_
+6. "Repo psf/requests có bao nhiêu sao, viết bằng ngôn ngữ gì?" → `github_repo` (repo=psf/requests)
 
 ## 3. Giải pháp
 
@@ -164,9 +165,9 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 > Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
 
 - **Model mặc định không dùng được (HTTP 402).** Provider OpenRouter trong starter mặc định gọi `openai/gpt-4o-mini` (`starter_v0/providers/openrouter_provider.py`). Preflight trả `Error code: 402 - Insufficient credits. This account never purchased credits` vì tài khoản OpenRouter của nhóm chưa nạp credit. Nếu chạy eval với model này, mọi case sẽ là `provider_error`, run không hợp lệ (`provider_error_cases > 0`).
-  - **Xử lý:** lấy danh sách model `:free` có hỗ trợ tool calling trên OpenRouter, chạy preflight từng model. `google/gemma-4-31b-it:free` bị 429 (server free quá tải); `nvidia/nemotron-3.5-super-vl:free` và `nvidia/nemotron-3-ultra-550b-a55b:free` pass và gọi đúng `timeline(screenname="sama")`. Nhóm chốt **`nvidia/nemotron-3.5-super-vl:free`** cho toàn bộ v0–v3 (truyền `--model` cho mọi lệnh `run_eval.py` / `chat.py`), và đặt làm model mặc định trong UI (`starter_v0/app.py`, biến `AGENT_MODEL`).
+  - **Xử lý:** thử các model `:free` có tool calling trên OpenRouter; một số bị 429 (server free quá tải) và tài khoản chưa nạp credit chỉ có quota request/ngày rất thấp — không đủ cho 4 lần base eval + eval nhóm + live chat. Nhóm chuyển sang provider **Gemini, model `gemini-3.8-flash`** (model mặc định của `providers/gemini_provider.py`) cho toàn bộ base eval v0–v3, eval nhóm, UI và live chat, để mọi metric và transcript dùng cùng một model.
   - **Bằng chứng:** [evidence/preflight_openrouter.txt](evidence/preflight_openrouter.txt) (output preflight của cả hai model).
-  - **Rủi ro còn lại:** model free bị giới hạn số request/ngày và có thể trả 429 khi quá tải → run có `provider_error_cases > 0` phải chạy lại, không dùng làm bằng chứng. Cả nhóm phải dùng cùng một model để metric v0–v3 so sánh được.
+  - **Rủi ro còn lại:** Gemini cũng có giới hạn request; run nào có `provider_error_cases > 0` phải chạy lại, không dùng làm bằng chứng. Mọi thành viên chạy eval/chat phải có `GEMINI_API_KEY` và dùng đúng `gemini-3.8-flash`.
 - **Link public + tool `send`.** Khi mở UI ra internet bằng Cloudflare Tunnel, bất kỳ ai có link đều có thể yêu cầu agent gửi tin lên Telegram; với prompt starter ("cứ gửi luôn"), agent sẽ gửi mà không hỏi lại.
   - **Xử lý:** instance UI public chạy với file env riêng (`DAY03_ENV_FILE`) không chứa `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`, nên `send` trả lỗi thay vì gửi thật; UI hiển thị lỗi đó (không che). Transcript gửi Telegram thật chỉ quay trên máy nhóm, sau khi prompt v3 có boundary xác nhận.
 
