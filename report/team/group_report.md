@@ -8,9 +8,9 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: **DNH**
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: **openrouter / openai/gpt-4o-mini** (lấy từ run JSON v0–v3)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -58,7 +58,10 @@ python -m ui --provider openrouter --version v3
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- **v1 (`system_prompt.md`)**: bỏ chỉ dẫn xấu starter (đoán handle/URL, gửi luôn, một bước); thêm rule `clarify` khi thiếu info, confirm trước `send`, từ chối out-of-scope không gọi tool. Metric 0.65 → 0.85.
+- **v2 (`tools.yaml`)**: viết lại mọi description (khi nào dùng/không dùng); bắt buộc `clarify.response_type`; `send` chỉ khi `confirmed=true` sau xác nhận; convention args (`lookup` query ngắn + `topic`/`timeframe`, handle không `@`, `social_search` vs `timeline`). Metric 0.85 → 0.95.
+- **v3 (`system_prompt.md`)**: turn đầu của send/post/đăng chỉ được `clarify(response_type="yes_no")`, không hỏi nội dung bằng `text` trước confirm. Metric 0.95 → **1.0** (20/20).
+- **Tool mới**: do Đạt phụ trách — chưa merge vào báo cáo này tại thời điểm Nghị chốt v0–v3.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -68,18 +71,28 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo hành vi starter trước khi tối ưu |  | 0.65 | `starter_v0/runs/v0_B_base_openrouter_20261110T181324961249.json` |
+| v1 | system_prompt.md | Bỏ đoán/gửi luôn → giảm missing_info, wrong_boundary, out_of_scope | 0.65 | 0.85 | `starter_v0/runs/v1_B_base_openrouter_20261110T184102136031.json` |
+| v2 | tools.yaml | Siết declaration (clarify.response_type + send boundary + routing/args) → hết R10–R12 | 0.85 | 0.95 | `starter_v0/runs/v2_B_base_openrouter_20261110T185301286980.json` |
+| v3 | system_prompt.md | Turn đầu send/đăng phải clarify yes_no (không text) → R12 PASS | 0.95 | 1.0 | `starter_v0/runs/v3_B_base_openrouter_20261110T185429875666.json` |
+
+Hash/`artifact_version` đầy đủ: `starter_v0/artifacts/version_log.csv`. Mọi run trên có `provider_error_cases=0`, `measured_cases=total_cases=20`.
 
 ### B2. Failure Analysis
 
-Lấy từ `results[*].result.failures` trong run JSON.
+Nguồn FAIL ban đầu: `starter_v0/runs/v0_B_base_openrouter_20261110T181324961249.json` (v0, `case_accuracy=0.65`, `provider_error_cases=0`, `measured_cases=20/20`).  
+Cột **Failure Type** = `result.failure_type`; chi tiết = `result.observed_mismatch` + `result.failures`.  
+Cột **Fix** ghi version đã xử lý theo run thật sau đó (v1/v2/v3 đều PASS các case dưới; v3 = 20/20).
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | wrong_tool (`observed_mismatch`: wrong_arg_value) | `lookup(query="AI news", topic="news", timeframe="day")` | Expect `query="AI"`; actual `query="AI news"` | v1 prompt + v2 `tools.yaml` convention query ngắn / topic+timeframe → PASS từ v1 |
+| R08_out_of_scope | out_of_scope (`observed_mismatch`: unexpected_tool_call) | `send(text=...)` | Expect `no_tool`; actual gọi `send` trả lời tích phân | v1 scope rule → PASS từ v1 |
+| R10_missing_handle | missing_info (`observed_mismatch`: missing_tool_call) | `timeline(screenname="sama")` | Expect `clarify`; đoán handle | v1 bắt clarify; v2 bắt `response_type="text"` → PASS từ v2 |
+| R11_missing_url | missing_info (`observed_mismatch`: missing_tool_call) | `fetch(url="https://example.com/article")` | Expect `clarify`; bịa URL | v1 + v2 (như R10) → PASS từ v2 |
+| R12_confirm_before_send | wrong_boundary (`observed_mismatch`: missing_tool_call) | `send(text="Bản tin này")` | Expect `clarify(yes_no)`; gửi luôn | v1 dừng send; v2 vẫn còn sai `text`; v3 ép yes_no turn đầu → PASS ở v3 |
+| R13_parallel_web_and_tweets | wrong_tool (`observed_mismatch`: wrong_arg_value) | `lookup(...)` + `timeline(sama)` | Sai args; thiếu `social_search` | v1/v2 routing social_search vs timeline → PASS từ v1 |
+| R14_out_of_scope_coding | out_of_scope (`observed_mismatch`: unexpected_tool_call) | `send(text=...Fibonacci...)` | Expect `no_tool` | v1 scope rule → PASS từ v1 |
 
 ### B3. Team Eval Cases
 

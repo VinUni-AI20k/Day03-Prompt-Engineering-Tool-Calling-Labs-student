@@ -46,11 +46,15 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 ### Đóng góp cụ thể
 
 - Owner các file: `system_prompt.md`, `tools.yaml`, `version_log.csv`, run base v0–v3
-- Khởi tạo `TEAM.md`
+- Khởi tạo `TEAM.md` + `PHAN_CONG.md`
+- Tối ưu evidence-driven: v0 0.65 → v1 0.85 → v2 0.95 → v3 **1.0** (20/20, `provider_error_cases=0`)
 
 ### Bằng chứng
 
-- `starter_v0/runs/*.json` (v0–v3)
+- `starter_v0/runs/v0_B_base_openrouter_20261110T181324961249.json`
+- `starter_v0/runs/v1_B_base_openrouter_20261110T184102136031.json`
+- `starter_v0/runs/v2_B_base_openrouter_20261110T185301286980.json`
+- `starter_v0/runs/v3_B_base_openrouter_20261110T185429875666.json`
 - `starter_v0/artifacts/version_log.csv`
 - Bảng B1 / B2 trong `report/team/group_report.md`
 - Commit kỹ thuật trên `main`
