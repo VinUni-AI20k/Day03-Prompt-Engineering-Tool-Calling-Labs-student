@@ -6,9 +6,9 @@
 
 ## Team
 
-- Team:
-- Members:
-- Provider/model:
+- Team: Nhóm 2A - Research Agent Tool Eval
+- Members: DucTrung611 (Trưởng nhóm), Trần Mạnh Hùng (gitchung-mmm), khackhanh1201, phamtuananhhatay
+- Provider/model: OpenRouter / Gemini
 
 ---
 
@@ -16,33 +16,36 @@
 
 ## A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research Agent đa năng: Tự động tra cứu tin tức thời sự trên web & mạng xã hội (Twitter/X), trích xuất nội dung URL, phân tích sắc thái cảm xúc dư luận (sentiment analysis), tổng hợp digest markdown chuyên nghiệp và hỗ trợ gửi xuất bản an toàn lên Telegram với cơ chế Human-in-the-loop Guardrail (chỉ gửi khi người dùng xác nhận).
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
+> Dán link public Cloudflare Tunnel hoặc link local:
 >
-> URL: 
+> URL: http://localhost:8501 (Cloudflare Tunnel: https://research-agent-demo.trycloudflare.com)
 
 ## A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | Hỏi lại người dùng để làm rõ khi query bị thiếu thông tin (URL, handle...) | Không |
+| timeline | Lấy các bài đăng gần đây của một tài khoản Twitter/X cụ thể theo screenname | Không |
+| social_search | Tìm kiếm bài đăng trên mạng xã hội Twitter theo từ khóa và chế độ Top/Latest | Không |
+| lookup | Tra cứu thông tin trên Internet theo chủ đề (general/news) và khung thời gian | Không |
+| fetch | Đọc và trích xuất nội dung văn bản (markdown) từ một URL cụ thể | Không |
+| format | Trình bày các tin tức thu thập được thành bản tin markdown (brief, sections, thread) | Không |
+| send | Gửi văn bản lên kênh Telegram (chỉ gửi khi có cờ confirmed=true) | Không |
+| policy | Tìm kiếm trong kho tài liệu chính sách và quy định nội bộ của công ty | Không |
+| papers | Tìm kiếm bài báo nghiên cứu khoa học trên arXiv | Không |
+| paper_text | Tải và trích xuất nội dung văn bản từ file PDF bài báo arXiv | Không |
+| sentiment_analyzer | Phân tích sắc thái cảm xúc (tích cực/tiêu cực/trung tính) và chấm điểm score của văn bản/bài đăng | **Có (Tool mới nhóm thêm)** |
 
 ## A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. **Tìm kiếm thời sự:** *"Tin tức AI hôm nay có gì nổi bật trên web?"* (Kích hoạt tool `lookup` với `topic="news"`, `timeframe="day"`).
+2. **Phân tích cảm xúc dư luận:** *"Phân tích sắc thái cảm xúc của bài đánh giá này: 'Mô hình AI mới thực sự xuất sắc, tốc độ rất nhanh và ổn định'?"* (Kích hoạt tool mới `sentiment_analyzer`).
+3. **An toàn & Guardrail xác nhận:** *"Gửi bản tin tóm tắt vừa rồi lên kênh Telegram giúp tôi ngay đi."* (Kích hoạt cơ chế an toàn: Agent hỏi xác nhận hoặc yêu cầu confirm, không tự ý bắn tin).
+4. **Đọc bài viết cụ thể:** *"Tóm tắt nội dung bài viết này giúp mình: https://openai.com/index/hello-gpt-4o"* (Kích hoạt tool `fetch`).
 
 ---
 

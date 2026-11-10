@@ -30,17 +30,41 @@ def test_clarify_choice_returns_options_and_awaits_user() -> None:
 
 def test_format_sections_groups_items_by_section() -> None:
     # Items with section "A", "B", "A" -> markdown has exactly one "## A" and one "## B".
-    pytest.skip(TODO)
+    items = [
+        {"title": "Item A1", "section": "A", "url": "https://a.com/1"},
+        {"title": "Item B1", "section": "B", "url": "https://b.com/1"},
+        {"title": "Item A2", "section": "A", "url": "https://a.com/2"},
+    ]
+    result = TOOL_FUNCTIONS["format"](items=items, template="sections")
+    markdown = result["markdown"]
+    assert markdown.count("## A") == 1
+    assert markdown.count("## B") == 1
+    assert "Item A1" in markdown
+    assert "Item B1" in markdown
+    assert "Item A2" in markdown
 
 
 def test_format_thread_numbers_items() -> None:
     # template="thread" -> lines start with "1/", "2/", ...
-    pytest.skip(TODO)
+    items = [
+        {"title": "First tweet", "url": "https://x.com/1"},
+        {"title": "Second tweet", "url": "https://x.com/2"},
+    ]
+    result = TOOL_FUNCTIONS["format"](items=items, template="thread")
+    markdown = result["markdown"]
+    assert "1/ First tweet" in markdown
+    assert "2/ Second tweet" in markdown
 
 
 def test_format_empty_items_does_not_crash() -> None:
     # items=None and items=[] -> item_count == 0, no exception.
-    pytest.skip(TODO)
+    result_none = TOOL_FUNCTIONS["format"](items=None)
+    assert result_none["item_count"] == 0
+    assert result_none["markdown"] == ""
+
+    result_empty = TOOL_FUNCTIONS["format"](items=[])
+    assert result_empty["item_count"] == 0
+    assert result_empty["markdown"] == ""
 
 
 # ---------------- send (guardrail) ----------------
@@ -48,11 +72,25 @@ def test_format_empty_items_does_not_crash() -> None:
 def test_send_confirmed_posts_to_telegram(monkeypatch, fake_http) -> None:
     # Set TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID, mock HTTP.
     # Assert: exactly one POST, URL contains the token, json has chat_id + text, status == "sent".
-    pytest.skip(TODO)
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "fake_bot_token")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-100123456789")
+    calls = fake_http(FakeResponse({"ok": True, "result": {"message_id": 123}}))
+    result = TOOL_FUNCTIONS["send"](text="Bản tin công nghệ", confirmed=True)
+
+    assert len(calls) == 1
+    assert "fake_bot_token" in calls[0]["url"]
+    assert calls[0]["json"]["chat_id"] == "-100123456789"
+    assert calls[0]["json"]["text"] == "Bản tin công nghệ"
+    assert result["status"] == "sent"
 
 
 def test_send_confirmed_without_env_returns_error_and_no_request(fake_http) -> None:
-    pytest.skip(TODO)
+    calls = fake_http(FakeResponse({"ok": True}))
+    result = TOOL_FUNCTIONS["send"](text="Bản tin công nghệ", confirmed=True)
+
+    assert len(calls) == 0
+    assert result["error"] == "RuntimeError"
+    assert "Missing TELEGRAM_BOT_TOKEN" in result["message"]
 
 
 # ---------------- lookup ----------------
@@ -111,12 +149,34 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
 def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+    result = TOOL_FUNCTIONS["sentiment_analyzer"](text="This breakthrough AI model is fantastic, innovative, and great!")
+    assert result["status"] == "ok"
+    assert result["sentiment"] == "positive"
+    assert result["score"] > 0
+    assert "fantastic" in result["details"]["positive_keywords"]
 
 
 def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+    # Empty string
+    r1 = TOOL_FUNCTIONS["sentiment_analyzer"](text="")
+    assert r1["status"] == "ok"
+    assert r1["sentiment"] == "neutral"
+    assert r1["score"] == 0.0
+
+    # None or non-string
+    r2 = TOOL_FUNCTIONS["sentiment_analyzer"](text=None)
+    assert r2["status"] == "ok"
+    assert r2["sentiment"] == "neutral"
 
 
 def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+    # Test negative sentiment and neutral sentiment
+    neg = TOOL_FUNCTIONS["sentiment_analyzer"](text="The system had a terrible crash and massive data loss failure.")
+    assert neg["status"] == "ok"
+    assert neg["sentiment"] == "negative"
+    assert neg["score"] < 0
+
+    neutral = TOOL_FUNCTIONS["sentiment_analyzer"](text="The report was published yesterday afternoon.")
+    assert neutral["status"] == "ok"
+    assert neutral["sentiment"] == "neutral"
+    assert neutral["score"] == 0.0
