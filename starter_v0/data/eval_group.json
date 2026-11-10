@@ -42,6 +42,10 @@
   ],
   "cases": [
     {
+      "id": "G03_newest_papers_sort",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm 3 paper arXiv mới được đăng gần đây nhất về multimodal agents",
       "id": "G01_web_search_month_timeframe",
       "phase": "B",
       "suite": "group",
@@ -50,6 +54,10 @@
       "expect": {
         "tool_calls": [
           {
+            "name": "papers",
+            "args": {
+              "max_results": 3,
+              "sort_by": "submittedDate"
             "name": "lookup",
             "args": {
               "query": "DeepSeek",
@@ -60,6 +68,13 @@
         ]
       },
       "metadata": {
+        "skill": "arg_papers_sort_and_limit",
+        "difficulty": "medium",
+        "what_it_tests": "'mới được đăng gần đây nhất' → papers với sort_by=submittedDate (không phải relevance mặc định), max_results=3; không dùng lookup."
+      }
+    },
+    {
+      "id": "G04_papers_then_read_text",
         "skill": "arg_timeframe_month",
         "difficulty": "medium",
         "what_it_tests": "'trong tháng này' -> timeframe=month, tin tức -> topic=news, query ngắn gọn DeepSeek."
@@ -72,6 +87,15 @@
       "turns": [
         {
           "role": "user",
+          "content": "Tìm giúp mình paper Attention Is All You Need"
+        },
+        {
+          "role": "assistant",
+          "content": "Mình tìm được paper 'Attention Is All You Need' (Vaswani et al., 2017), arXiv ID 1706.03762: https://arxiv.org/abs/1706.03762"
+        },
+        {
+          "role": "user",
+          "content": "Đọc giúp mình 3 trang đầu của paper đó"
           "content": "Tìm kiếm các tin tức mới nhất về OpenAI trong tuần này."
         },
         {
@@ -87,6 +111,9 @@
       "expect": {
         "tool_calls": [
           {
+            "name": "paper_text",
+            "args": {
+              "max_pages": 3
             "name": "export_md",
             "args": {
               "filename": "openai_report.md"
@@ -95,6 +122,9 @@
         ]
       },
       "metadata": {
+        "skill": "multiturn_papers_to_paper_text",
+        "difficulty": "hard",
+        "what_it_tests": "Lượt cuối muốn ĐỌC nội dung paper đã tìm ở lượt trước → paper_text, max_pages=3; không gọi lại papers, không dùng fetch. Không chấm arxiv_url vì tool nhận cả ID '1706.03762' lẫn URL arxiv.org/abs/... (eval so khớp chính xác nên ghi 1 dạng sẽ đánh trượt dạng còn lại)."
         "skill": "multiturn_export_report",
         "difficulty": "medium",
         "what_it_tests": "Sau khi nghiên cứu ở các lượt trước, ở lượt cuối yêu cầu lưu file md -> model phải route đúng tool mới export_md với filename='openai_report.md'."
