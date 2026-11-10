@@ -8,6 +8,10 @@ import yaml
 # Folder names are intentionally vague to match the tool names students see.
 # The imported function names are the underlying implementations (unchanged).
 from .clarify.tool import ask_user
+from .deduplicate.tool import deduplicate_items
+from .filter_sources.tool import filter_sources
+from .filter_by_date.tool import filter_by_date
+from .validate_citations.tool import validate_citations
 from .papers.tool import arxiv_search
 from .paper_text.tool import get_arxiv_paper_text
 from .timeline.tool import get_user_tweets
@@ -25,6 +29,10 @@ from .lookup.tool import web_search
 #   artifacts/tools.yaml  ->  this dict  ->  data/eval_base.json + data/eval_research_extension.json
 # Otherwise the eval raises "not declared in tools.yaml" or scores every call as a name mismatch.
 TOOL_FUNCTIONS = {
+    "filter_sources": filter_sources,
+    "filter_by_date": filter_by_date,
+    "validate_citations": validate_citations,
+    "deduplicate": deduplicate_items,
     "clarify": ask_user,
     "timeline": get_user_tweets,
     "social_search": search_tweets,

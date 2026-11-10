@@ -14,6 +14,27 @@
 #   - Make the `send` confirmation boundary explicit.
 #   - Declare your new tool(s) at the end of this file.
 tools:
+  - name: deduplicate
+    description: >-
+      Remove duplicate URLs from already-collected research items when the user
+      asks to filter duplicates, including before formatting a digest.
+      Do not use to search, fetch pages, or compare article content.
+      Ignore URL fragments only; preserve query parameters and keep the first
+      item and its metadata in input order. No network access is needed.
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: Collected articles to deduplicate; each needs an absolute HTTP(S) URL.
+          items:
+            type: object
+            properties:
+              url: {type: string, description: Absolute HTTP or HTTPS URL.}
+              title: {type: string}
+              summary: {type: string}
+            required: [url]
+      required: [items]
   # ---------------- Core tools ----------------
   - name: clarify
     description: "Hỏi người dùng đúng một câu rồi chờ lượt trả lời tiếp theo. DÙNG khi: (1) thiếu thông tin bắt buộc để gọi tool khác (tài khoản X nào, URL nào) -> response_type='text'; (2) người dùng yêu cầu gửi/đăng/publish thứ gì lên Telegram -> LUÔN hỏi xác nhận trước bằng response_type='yes_no', trong question nêu rõ nội dung và nơi sẽ gửi, rồi chỉ gọi send sau khi người dùng đồng ý; (3) cần người dùng chọn một trong vài phương án -> response_type='choice' kèm options. KHÔNG dùng khi đã đủ thông tin để gọi tool, hoặc để hỏi những điều tự suy ra được."
@@ -123,3 +144,85 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang tối đa cần trích."}
         max_chars: {type: integer, default: 8000, description: "Số ký tự tối đa trả về."}
       required: [arxiv_url]
+
+  -   name: filter_sources
+      description: Filter collected items by bare domain names, matching exact hosts
+          and subdomains (case insensitive). Empty allow list allows all; blocked domains
+          take precedence. Invalid URLs or filters return invalid_input with no partial
+          results. Preserves order and deep-copies output. No search, network access,
+          or source credibility verification.
+      parameters:
+          type: object
+          properties:
+              items:
+                  type: array
+                  description: Already-collected research items; pass the full input
+                      list.
+                  items: &id001
+                      type: object
+                      properties:
+                          url:
+                              type: string
+                          title:
+                              type: string
+                          source:
+                              type: string
+                          date:
+                              type: string
+              allowed_domains:
+                  type: array
+                  items:
+                      type: string
+                  description: Bare hostnames such as arxiv.org, without scheme/path/port.
+                      Exact host and subdomains match.
+                  default: []
+              blocked_domains:
+                  type: array
+                  items:
+                      type: string
+                  description: Bare hostnames such as arxiv.org, without scheme/path/port.
+                      Exact host and subdomains match.
+                  default: []
+          required:
+          - items
+  -   name: filter_by_date
+      description: Keep collected items whose date field is within inclusive start_date/end_date.
+          All dates must be YYYY-MM-DD calendar dates; timestamps must be converted
+          by the caller first. Missing/invalid item dates are excluded with their zero-based
+          index and reason, never guessed. Invalid range or list returns invalid_input.
+          Preserves order and deep-copies output. Does not search or infer publication
+          dates.
+      parameters:
+          type: object
+          properties:
+              items:
+                  type: array
+                  description: Already-collected research items; pass the full input
+                      list.
+                  items: *id001
+              start_date:
+                  type: string
+                  description: Inclusive boundary in YYYY-MM-DD format.
+              end_date:
+                  type: string
+                  description: Inclusive boundary in YYYY-MM-DD format.
+          required:
+          - items
+          - start_date
+          - end_date
+  -   name: validate_citations
+      description: Check collected citations for nonempty title/source strings and an
+          absolute HTTP(S) URL with a valid port. Returns valid and errors with zero-based
+          item index and issues. Empty list is valid (nothing to check). Non-list input
+          returns invalid_input. Does not fetch URLs, verify reachability, assess credibility,
+          or establish that a source supports a claim. Never edits input.
+      parameters:
+          type: object
+          properties:
+              items:
+                  type: array
+                  description: Already-collected research items; pass the full input
+                      list.
+                  items: *id001
+          required:
+          - items

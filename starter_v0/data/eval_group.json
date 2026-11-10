@@ -2,6 +2,133 @@
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_deduplicate_collected_articles",
+      "phase": "B",
+      "query": "Lọc trùng URL trong danh sách bài viết đã có sau, giữ bài đầu tiên và bỏ fragment khi so sánh. Chỉ lọc trùng, chưa cần định dạng hay tìm thêm: [{\"url\":\"https://example.com/ai#intro\",\"title\":\"AI first\"},{\"url\":\"https://example.com/robotics\",\"title\":\"Robotics\"},{\"url\":\"https://example.com/ai#end\",\"title\":\"AI duplicate\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.com/ai#intro",
+                  "title": "AI first"
+                },
+                {
+                  "url": "https://example.com/robotics",
+                  "title": "Robotics"
+                },
+                {
+                  "url": "https://example.com/ai#end",
+                  "title": "AI duplicate"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate với toàn bộ input, không tự loại trước và không gọi lookup/fetch/format."
+      }
+    },
+    {
+      "id": "G02_filter_sources",
+      "phase": "B",
+      "query": "Only keep sources on arxiv.org, including its subdomains, from this collected list. Do not search or format. Items: [{\"url\": \"https://arxiv.org/abs/1234\"}, {\"url\": \"https://example.com/post\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "filter_sources",
+            "args": {
+              "items": [
+                {
+                  "url": "https://arxiv.org/abs/1234"
+                },
+                {
+                  "url": "https://example.com/post"
+                }
+              ],
+              "allowed_domains": [
+                "arxiv.org"
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Route to filter_sources with original collected items and requested parameters, without unnecessary search."
+      }
+    },
+    {
+      "id": "G03_filter_by_date",
+      "phase": "B",
+      "query": "Filter these collected items to dates from 2026-11-01 through 2026-11-10 inclusive. Do not search or format. Items: [{\"title\": \"New\", \"date\": \"2026-11-10\"}, {\"title\": \"Old\", \"date\": \"2026-10-01\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "filter_by_date",
+            "args": {
+              "items": [
+                {
+                  "title": "New",
+                  "date": "2026-11-10"
+                },
+                {
+                  "title": "Old",
+                  "date": "2026-10-01"
+                }
+              ],
+              "start_date": "2026-11-01",
+              "end_date": "2026-11-10"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Route to filter_by_date with original collected items and requested parameters, without unnecessary search."
+      }
+    },
+    {
+      "id": "G04_validate_citations",
+      "phase": "B",
+      "query": "Check whether these collected citations have title, source and valid HTTP(S) URL fields. Report structural errors only; do not browse or format. Items: [{\"title\": \"Article\", \"url\": \"https://example.com/a\", \"source\": \"Example\"}, {\"title\": \"Missing fields\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "validate_citations",
+            "args": {
+              "items": [
+                {
+                  "title": "Article",
+                  "url": "https://example.com/a",
+                  "source": "Example"
+                },
+                {
+                  "title": "Missing fields"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Route to validate_citations with original collected items and requested parameters, without unnecessary search."
+      }
+    }
+  ]
 }
