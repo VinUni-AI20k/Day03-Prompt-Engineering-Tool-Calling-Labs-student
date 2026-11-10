@@ -12,7 +12,7 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Đào Lê Bảo Minh | 2A202604010 | 26ai.dlbminh@vinuni.edu.vn | https://github.com/lebaominh-dao | Trưởng nhóm |
-|   2 |        |      |       |        |         |
+|   2 | Trần Trung Kiên| 2A202604014 | 26ai.kientt3@vinuni.edu.vn | ttkien0710| Thành viên |
 
 ## Cá nhân
 
