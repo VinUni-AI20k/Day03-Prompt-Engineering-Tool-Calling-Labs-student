@@ -12,6 +12,7 @@ Rules:
 from __future__ import annotations
 
 import pytest
+import requests
 
 from conftest import FakeResponse  # noqa: F401  (you will need it)
 from tools import TOOL_FUNCTIONS  # noqa: F401
@@ -311,19 +312,145 @@ Company data retention follows approved privacy rules.
         policy_module.POLICY_DIR = original_policy_dir
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# ---------------- YOUR NEW TOOL(S) (CP3 & BONUS) ----------------
+# Tests for custom tools: topic_radar, evidence_finder, source_deduplicator.
+# Rules:
+#   1. happy path (mocked API calls, verify output structure)
+#   2. bad / missing input from model (empty string, wrong types, out of range -> returns error dict)
+#   3. failure path (missing key, HTTP/network error -> returns error dict, does NOT raise)
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+# 1. topic_radar tests ----------------------------------------------------
+
+def test_my_new_tool_happy_path(monkeypatch: pytest.MonkeyPatch, fake_http) -> None:
+    """Happy path for topic_radar: queries Tavily News and maps items & signals."""
+    monkeypatch.setenv("TAVILY_API_KEY", "test-tavily-key")
+    calls = fake_http(FakeResponse({
+        "results": [
+            {
+                "title": "Robotics Breakthroughs",
+                "url": "https://example.com/robotics-news",
+                "content": "Robotics and AI are transforming manufacturing globally.",
+                "published_date": "2026-11-10",
+            }
+        ]
+    }))
+
+    result = TOOL_FUNCTIONS["topic_radar"](
+        query="robotics",
+        timeframe="month",
+        limit=3,
+        include_social=False,
+        enrich_articles=False,
+    )
+
+    assert result["tool"] == "topic_radar"
+    assert result["status"] == "ok"
+    assert len(result["items"]) == 1
+    assert result["items"][0]["source"] == "example.com"
+    assert result["signals"]["news_results"] == 1
+    assert calls[0]["url"] == "https://api.tavily.com/search"
 
 
 def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+    """Bad / missing input to topic_radar returns an error dict, does not crash."""
+    # Empty query (< 2 chars)
+    res_empty = TOOL_FUNCTIONS["topic_radar"](query="")
+    assert "error" in res_empty
+    assert res_empty["tool"] == "topic_radar"
+
+    # Invalid timeframe (out of enum)
+    res_timeframe = TOOL_FUNCTIONS["topic_radar"](query="valid query", timeframe="decade")
+    assert "error" in res_timeframe
+
+    # Limit out of range (> 10)
+    res_limit = TOOL_FUNCTIONS["topic_radar"](query="valid query", limit=99)
+    assert "error" in res_limit
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_failure_returns_error_dict(monkeypatch: pytest.MonkeyPatch, fake_http) -> None:
+    """Failure path: network exception returns error dict instead of raising."""
+    monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+    fake_http(requests.RequestException("Connection timed out"))
+
+    result = TOOL_FUNCTIONS["topic_radar"](query="robotics", include_social=False)
+
+    assert "error" in result
+    assert result["tool"] == "topic_radar"
+    assert "message" in result
+
+
+# 2. evidence_finder tests ------------------------------------------------
+
+def test_evidence_finder_happy_path(monkeypatch: pytest.MonkeyPatch, fake_http) -> None:
+    """Happy path for evidence_finder: finds claim-relevant excerpts across domains."""
+    monkeypatch.setenv("TAVILY_API_KEY", "test-tavily-key")
+    calls = fake_http(FakeResponse({
+        "results": [
+            {
+                "title": "Urban Canopy Research",
+                "url": "https://nature.org/urban-trees",
+                "content": "Urban tree cover significantly lowers neighborhood temperatures during heat waves.",
+            }
+        ]
+    }))
+
+    result = TOOL_FUNCTIONS["evidence_finder"](
+        claim="Urban tree cover lowers surface temperature",
+        max_sources=2,
+        deep_read=False,
+    )
+
+    assert result["tool"] == "evidence_finder"
+    assert result["status"] == "ok"
+    assert len(result["items"]) == 1
+    assert result["items"][0]["source"] == "nature.org"
+    assert "relevance_score" in result["items"][0]
+    assert calls[0]["url"] == "https://api.tavily.com/search"
+
+
+def test_evidence_finder_bad_input() -> None:
+    """Bad input to evidence_finder returns error dict."""
+    # Claim too short (< 5 chars)
+    res_short = TOOL_FUNCTIONS["evidence_finder"](claim="tiny")
+    assert "error" in res_short
+
+    # max_sources out of range (> 5)
+    res_sources = TOOL_FUNCTIONS["evidence_finder"](claim="Valid claim about renewable energy", max_sources=15)
+    assert "error" in res_sources
+
+
+def test_evidence_finder_missing_key_returns_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Missing API key returns error dict gracefully."""
+    monkeypatch.delenv("TAVILY_API_KEY", raising=False)
+    result = TOOL_FUNCTIONS["evidence_finder"](claim="Valid claim about climate and energy")
+    assert "error" in result
+    assert "Missing TAVILY_API_KEY" in result.get("message", "")
+
+
+# 3. source_deduplicator tests --------------------------------------------
+
+def test_source_deduplicator_happy_path() -> None:
+    """Happy path for source_deduplicator: eliminates URL tracker variants."""
+    items = [
+        {"title": "AI Study", "url": "https://example.com/ai?utm_source=twitter", "summary": "AI progress"},
+        {"title": "AI Study Clone", "url": "https://example.com/ai?fbclid=xyz123", "summary": "AI progress clone"},
+        {"title": "Robotics News", "url": "https://tech.com/robotics", "summary": "Robotics advances"},
+    ]
+
+    result = TOOL_FUNCTIONS["source_deduplicator"](items=items, verify_content=False)
+
+    assert result["tool"] == "source_deduplicator"
+    assert result["checked"] == 3
+    assert result["removed"] == 1
+    assert len(result["items"]) == 2
+
+
+def test_source_deduplicator_bad_input() -> None:
+    """Bad input to source_deduplicator returns error dict."""
+    # items not a list
+    res_type = TOOL_FUNCTIONS["source_deduplicator"](items="not a list")
+    assert "error" in res_type
+
+    # localhost URL not permitted
+    res_local = TOOL_FUNCTIONS["source_deduplicator"](items=[{"url": "http://localhost/secret"}])
+    assert "error" in res_local
