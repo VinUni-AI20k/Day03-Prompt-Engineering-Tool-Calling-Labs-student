@@ -117,7 +117,9 @@ with st.sidebar:
         st.stop()
     provider_name = st.selectbox("Provider", PROVIDERS, index=0,
                                  help="Chỉ hiện provider đã có API key trong starter_v0/.env")
-    model_input = st.text_input("Model (để trống = mặc định của provider)", value="")
+    # Free OpenRouter model with tool calling (no credits needed, ~50 requests/day per account).
+    model_input = st.text_input("Model (để trống = mặc định của provider)",
+                                value="nvidia/nemotron-3-ultra-550b-a55b:free" if provider_name == "openrouter" else "")
     version = st.text_input("Version label", value="v3")
     history_window = st.number_input("History window (cặp lượt)", min_value=0, max_value=20, value=5)
     max_tool_rounds = st.number_input("Max tool rounds", min_value=1, max_value=8, value=4)
