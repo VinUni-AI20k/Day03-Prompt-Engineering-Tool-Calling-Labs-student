@@ -9,6 +9,7 @@ import json
 import os
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import streamlit as st
@@ -21,6 +22,7 @@ from tools.send.tool import send_telegram
 from versioning import artifact_version_dict, build_artifact_version
 
 
+LOGO_PATH = Path(__file__).resolve().parent / "assets" / "vinuni_logo.png"
 PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama", "groq"]
 HISTORY_WINDOW = 5
 MAX_TOOL_ROUNDS = 4
@@ -49,12 +51,16 @@ PAGE_STYLE = """
 }
 .hero .title { font-size: 1.9rem; font-weight: 800; line-height: 1.2; }
 .hero .subtitle { margin-top: .35rem; font-size: .95rem; opacity: .9; }
+.hero .note { margin-top: .5rem; font-size: .8rem; opacity: .75; }
 [data-testid="stSidebar"] { border-top: 4px solid #D7282F; }
+/* The logo has a white background, so multiply blends it into the sidebar color. */
+[data-testid="stSidebarLogo"], [data-testid="stHeaderLogo"] { height: 3rem; mix-blend-mode: multiply; }
 .stButton > button { border-radius: 2px; }
 </style>
 <div class="hero">
   <div class="title">Research Agent</div>
   <div class="subtitle">Mỗi lượt hiển thị đủ tool đã gọi, arguments, nguồn và kết quả thật, kể cả khi tool lỗi.</div>
+  <div class="note">Dự án lab của học viên</div>
 </div>
 """
 
@@ -289,6 +295,7 @@ def render_samples() -> str | None:
 
 def main() -> None:
     st.set_page_config(page_title="Research Agent", page_icon="🔎")
+    st.logo(str(LOGO_PATH))
     install_send_gate()
     st.markdown(PAGE_STYLE, unsafe_allow_html=True)
 
