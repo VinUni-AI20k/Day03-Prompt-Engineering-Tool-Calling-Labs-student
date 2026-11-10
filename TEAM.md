@@ -11,8 +11,10 @@
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 |        |      |       |        |         |
-|   2 |        |      |       |        |         |
+|   1 | Bùi Đặng Nhật Nguyên | 2A202603937 | nhatnguyenmtvt@gmail.com | nhatnguyenmtvt@gmail.com | Dev Tool |
+|   2 | Nguyễn Bá Quang Huy | 2A202603926 | quanghuynguyenba@gmail.com | quanghuynguyenba@gmail.com | Update System Prompt|
+|   3 | Đỗ Hoàng Vũ  | 2A202603920 | dohoangvu.nt2005@gmail.com | dohoangvu.nt2005@gmail.com | Tester |
+|   4 | Lê Hải Lân  | 2A202603915 | lehailan110@gmail.com | lehailan110@gmail.com | Design UI |
 
 ## Cá nhân
 
