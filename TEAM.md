@@ -2,17 +2,18 @@
 
 ## Thông tin nhóm
 
-- Tên nhóm:
-- Lớp: L3A / L3B
-- Repo nhóm: `K5-L3A-DAY03-TenNhom-ResearchAgentToolEval` hoặc `K5-L3B-DAY03-TenNhom-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
-- URL repo, nhánh nộp, commit chốt:
+- Tên nhóm: Ban5
+- Lớp: L3B
+- Repo nhóm: `K5-L3B-DAY03-Ban5-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
+- URL repo, nhánh nộp, commit chốt: https://github.com/haiquanng/K5-L3B-DAY03-Ban5-ResearchAgentToolEval, nhánh `main`, commit chốt: (điền khi nộp)
 
 ## Thành viên
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 |        |      |       |        |         |
-|   2 |        |      |       |        |         |
+|   1 | Nguyễn Văn Hải Quân | 2A202603994 | | haiquanng | Developer |
+|   2 | Lại Trọng Đức | 2A202604019 | | laitrongduc | Developer |
+|   3 | Nguyễn Bảo Trung | 2A202604013 | | trungnb | Developer |
 
 ## Cá nhân
 
