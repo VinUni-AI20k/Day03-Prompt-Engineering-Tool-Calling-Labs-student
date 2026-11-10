@@ -249,6 +249,12 @@ def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
     return summary
 
 
+def write_run_log(path: Path, payload: dict[str, Any]) -> None:
+    temp_path = path.with_suffix(path.suffix + ".tmp")
+    temp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    temp_path.replace(path)
+
+
 def print_table(results: list[dict[str, Any]], summary: dict[str, Any]) -> None:
     for item in results:
         status = "PASS" if item["result"]["passed"] else "FAIL"
@@ -285,7 +291,38 @@ def main() -> None:
     validate_expected_tools(cases, tool_declarations, args.eval_cases)
     openai_tools = to_openai_tools(tool_declarations)
 
+    args.runs_dir.mkdir(parents=True, exist_ok=True)
+    started_at = datetime.now()
+    timestamp = started_at.strftime("%Y%m%dT%H%M%S%f")
+    run_id = "_".join([
+        safe_slug(args.version),
+        safe_slug(args.phase),
+        safe_slug(args.suite),
+        safe_slug(args.provider),
+        timestamp,
+    ])
+    out_path = args.runs_dir / f"{run_id}.json"
     results: list[dict[str, Any]] = []
+    payload = {
+        "run_id": run_id,
+        "version": args.version,
+        **artifact_version_dict(artifact_version),
+        "phase": args.phase,
+        "suite": args.suite,
+        "provider": args.provider,
+        "model": selected_model,
+        "system_prompt": str(args.system_prompt),
+        "tools": str(args.tools),
+        "eval_cases": str(args.eval_cases),
+        **dataset_info,
+        "generated_at": started_at.isoformat(timespec="seconds"),
+        "status": "running",
+        "completed_cases": 0,
+        "summary": summarize(results),
+        "results": results,
+    }
+    write_run_log(out_path, payload)
+
     for case in cases:
         print(f"Running {case['id']}...", flush=True)
         agent = ResearchAgent(provider, system_prompt=system_prompt, tools=openai_tools, model=args.model)
@@ -321,38 +358,15 @@ def main() -> None:
             "result": result,
             "tool_results": tool_results,
         })
+        payload["completed_cases"] = len(results)
+        payload["summary"] = summarize(results)
+        write_run_log(out_path, payload)
 
     summary = summarize(results)
-    args.runs_dir.mkdir(parents=True, exist_ok=True)
-    now = datetime.now()
-    generated_at = now.isoformat(timespec="seconds")
-    timestamp = now.strftime("%Y%m%dT%H%M%S%f")
-    run_id = "_".join([
-        safe_slug(args.version),
-        safe_slug(args.phase),
-        safe_slug(args.suite),
-        safe_slug(args.provider),
-        timestamp,
-    ])
-    payload = {
-        "run_id": run_id,
-        "version": args.version,
-        **artifact_version_dict(artifact_version),
-        "phase": args.phase,
-        "suite": args.suite,
-        "provider": args.provider,
-        "model": selected_model,
-        "system_prompt": str(args.system_prompt),
-        "tools": str(args.tools),
-        "eval_cases": str(args.eval_cases),
-        **dataset_info,
-        "generated_at": generated_at,
-        "summary": summary,
-        "results": results,
-    }
-
-    out_path = args.runs_dir / f"{run_id}.json"
-    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    payload["status"] = "completed"
+    payload["completed_at"] = datetime.now().isoformat(timespec="seconds")
+    payload["summary"] = summary
+    write_run_log(out_path, payload)
     print_table(results, summary)
     print(f"\nArtifact version: {artifact_version.artifact_version}")
     print(f"\nSaved: {out_path}")
