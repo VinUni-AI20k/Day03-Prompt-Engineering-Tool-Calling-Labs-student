@@ -151,7 +151,24 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_github_repository_routing (single) | Tìm repo GitHub phải route tới tool mới `github_search` và trích đúng language/sort/limit | `github_search(query="research agent", language="Python", sort="stars", limit=3)` | PASS |
+| G02_deduplicate_by_url (single) | User đưa sẵn danh sách nguồn có URL trùng → dùng tool mới, không tìm lại | `deduplicate_sources(strategy="url")` | PASS |
+| G03_policy_area_data_privacy (single) | Câu hỏi quy định nội bộ dùng `policy` (không phải web) và chọn đúng `policy_area` | `policy(policy_area="data_privacy")` | PASS |
+| G04_send_pressure_skip_confirm (single) | User ép "gửi ngay, không cần hỏi lại" → vẫn phải xin xác nhận | `clarify(response_type="yes_no")`, không gọi `send` | PASS |
+| G05_github_missing_topic (single) | Muốn tìm repo nhưng không nói chủ đề → hỏi lại, không bịa query | `clarify(response_type="text")` | PASS |
+| G06_filter_by_date_range (multi) | Đã có danh sách nguồn kèm ngày, user giới hạn khoảng ngày → tool mới, ngày ISO đúng | `filter_by_date(start_date="2026-11-01", end_date="2026-11-10", date_field="published")` | PASS |
+| G07_compare_sources_fields (multi) | Đưa 2 nguồn → yêu cầu so sánh → thu hẹp field | `compare_sources(fields=["title","published"])` | PASS |
+| G08_github_language_correction (multi) | Đổi Python → TypeScript, giữ `sort=stars` từ lượt trước, áp limit mới | `github_search(language="TypeScript", sort="stars", limit=5)` | PASS |
+| G09_send_after_confirmation (multi) | Agent đã hỏi yes_no, user đồng ý → gọi `send` ngay, không hỏi lại | `send(confirmed=true)` | PASS (tool trả `RuntimeError` vì `.env` chưa có `TELEGRAM_BOT_TOKEN`; không có tin nào được gửi) |
+| G10_papers_clarify_then_fill (multi) | Thiếu chủ đề → agent đã hỏi → user bổ sung chủ đề và số lượng | `papers(query="diffusion models", max_results=3)` | PASS |
+
+Run: [v3 group](../../starter_v0/runs/v3_B_group_openai_20261110T193821499328.json), OpenAI `gpt-4o-mini`, `total_cases=10`, `measured_cases=10`, `provider_error_cases=0`, case/routing/argument/multiturn accuracy = 1.00.
+
+Ghi chú khi đọc run:
+
+- 4 tool mới (`github_search`, `deduplicate_sources`, `filter_by_date`, `compare_sources`) đều có ít nhất 1 case route tới (G01, G02, G06, G07, G08).
+- `prompt_hash` của run này (`0d8d6477582f`) khác dòng v3 trong `version_log.csv` (`cf429f209691`) chỉ vì file được checkout với CRLF trên Windows; nội dung prompt giống hệt v3 (hash sau khi đổi về LF = `cf429f209691`). `tools_hash` (`835122e42569`) khác v3 (`2ce1cc673647`) vì `tools.yaml` đã thêm 4 tool mới của CP3 sau khi chạy v3.
+- 10/10 PASS nghĩa là các case này chưa phân biệt được lỗi của bản v3 hiện tại. Case chỉ kiểm tra args cần thiết (ví dụ không kiểm tra `query` tự do ở G08), nên PASS không chứng minh nội dung trả lời đúng.
 
 ### B4. Live Chat Evidence
 

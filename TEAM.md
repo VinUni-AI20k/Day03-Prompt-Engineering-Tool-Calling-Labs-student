@@ -14,6 +14,7 @@
 | --: | ------ | ---- | ----- | ------ | ------- |
 | 1 | Vũ Văn Bình | Chưa cung cấp | Chưa cung cấp | Chưa cung cấp | Setup, chạy baseline v0, tổng hợp bằng chứng CP1 |
 | 2 | Trần Thị Hà Anh | 2A202603887 | anhtth.it.work@gmail.com | hnha02 | CP3: phát triển 4 tool mới, unit test, eval routing |
+| 3 | Nguyễn Trọng Nghĩa | 2A202603835 | nghiatrongnguyen2304@gmail.com | trongnghia2304 | CP4: viết 10 eval case nhóm, chạy suite group, bảng B3 |
 
 Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin thực tế. Không suy ra tài khoản GitHub cá nhân từ chủ sở hữu repo.
 
@@ -63,3 +64,25 @@ Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin
 - `starter_v0/tools/{github_search,deduplicate_sources,compare_sources,filter_by_date}/`.
 - `starter_v0/tests/test_tools_todo.py`, `starter_v0/analysis/cp3_pytest.txt`.
 - Báo cáo cá nhân: `report/team/2A202603887_TranThiHaAnh.md`.
+
+## Nguyễn Trọng Nghĩa — 2A202603835
+
+### Phần việc phụ trách
+
+- CP4: viết bộ eval nhóm 10 case trong `starter_v0/data/eval_group.json`, chạy `--suite group` bằng provider thật và điền bảng B3.
+
+### Đóng góp cụ thể
+
+- Giữ case G01 của CP3 và viết thêm 9 case (G02–G10): tổng 5 single turn + 5 multi turn, mỗi case có `failure_type`, `expect`, `metadata.what_it_tests`.
+- Phủ cả 4 tool mới của CP3 (`github_search`, `deduplicate_sources`, `filter_by_date`, `compare_sources`) và luồng xác nhận trước khi `send` (G04, G09).
+- Validate schema bằng code của `run_eval.py`; `pytest` 97 passed, 14 skipped, 0 failed.
+- Chạy suite group với OpenAI `gpt-4o-mini`: 10/10 case được đo, `provider_error_cases=0`, 10/10 PASS.
+- Điền bảng B3 trong báo cáo nhóm, ghi chú lý do `prompt_hash`/`tools_hash` khác dòng v3.
+
+### Bằng chứng
+
+- [`starter_v0/data/eval_group.json`](starter_v0/data/eval_group.json).
+- [Run group v3](starter_v0/runs/v3_B_group_openai_20261110T193821499328.json).
+- Bảng B3 trong [báo cáo nhóm](report/team/group_report.md).
+- Báo cáo cá nhân: [`report/team/2A202603835_NguyenTrongNghia.md`](report/team/2A202603835_NguyenTrongNghia.md).
+- Nhánh `feat/check-point-4`; commit: bổ sung hash sau khi commit.
