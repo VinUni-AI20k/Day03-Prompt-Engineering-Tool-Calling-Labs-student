@@ -72,6 +72,17 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | v2      |                  |            |               |              |          |
 | v3      |                  |            |               |              |          |
 
+Nhận xét (metric chi tiết lấy từ `summary` của run JSON):
+
+| Version | case_accuracy | tool_routing_accuracy | argument_accuracy | multiturn_accuracy |
+|---|---:|---:|---:|---:|
+| v0 | 0.70 | 0.75 | 0.70 | 1.00 |
+| v1 | 0.85 | 0.90 | 0.85 | 0.83 |
+
+- v1 sửa được 4/6 case FAIL của v0: R08, R11, R13, R14. R10 và R12 vẫn FAIL nhưng đã đổi hành vi: R10 không còn đoán `sama` mà gọi `social_search(query="")`; R12 đã hỏi lại bằng `clarify` nhưng với `response_type="text"` thay vì `"yes_no"`.
+- **Regression:** M02 (PASS ở v0) FAIL ở v1. Câu "chỉ tìm robotics thôi, vẫn là tin hôm nay" bị route sang `social_search` thay vì `lookup(topic="news", timeframe="day")`. Mục Routing trong prompt v1 chưa phân biệt "tin tức" (→ `lookup`) với "bài đăng/tweet" (→ `social_search`), và tool description vẫn mơ hồ → giả thuyết cho v2.
+- Về phạm vi thay đổi của v1: mục Routing được thêm để thay cho chỉ dẫn xấu "Pick one tool… single step" của starter, cùng một giả thuyết "chỉ dẫn xấu trong prompt gây lỗi". Từ v2 mỗi version chỉ sửa một artifact.
+
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
