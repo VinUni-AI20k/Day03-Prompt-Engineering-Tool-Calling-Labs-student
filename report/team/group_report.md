@@ -62,18 +62,27 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo hành vi của prompt/tools starter chưa sửa | — | 0.70 | `runs/v0_B_base_gemini_20261110T173451886731.json` |
+| v1 | `system_prompt.md` | Lỗi R08/R10/R11/R12/R13 do prompt khuyến khích đoán, gửi không xác nhận, ép một tool → bỏ các chỉ dẫn đó sẽ sửa được | 0.70 | 0.65 | `runs/v1_B_base_gemini_20261110T180027611008.json` |
+| v2 | `system_prompt.md` | Prompt v1 thiếu rule chọn tool → model hỏi account thừa cho tweet theo chủ đề, gọi `policy` thừa; thêm routing rule rõ ràng sẽ sửa R02/R06/R07/R12/R13 | 0.65 | 0.75 | `runs/v2_B_base_gemini_20261110T180610493163.json` |
+| v3 | `tools.yaml` | Lỗi còn lại ở v2 đều là lỗi argument (tên người → handle, query thừa chữ) do `tools.yaml` không mô tả convention; ghi rõ convention sẽ sửa R01/R05/R03/R13/M02 | 0.75 | 1.00 | `runs/v3_B_base_gemini_20261110T181259488297.json` |
 
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
+Run v0: `starter_v0/runs/v0_B_base_gemini_20261110T173451886731.json` (gemini-3.8-flash, 14/20 pass, `case_accuracy` 0.70, `provider_error_cases` 0).
+
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | `wrong_arg_value` | `lookup(query="AI news today", topic="news", timeframe="day")` | `query: expected 'AI', got 'AI news today'` — model nhồi "news today" vào query dù `topic`/`timeframe` đã thể hiện | `tools.yaml`: description `lookup` ghi rõ `query` chỉ chứa chủ đề cốt lõi; thời gian/loại tin dùng `timeframe`/`topic` |
+| R08_out_of_scope | `out_of_scope` | `lookup(query="nguyên hàm của x^2")` | `expected no tool call` — câu toán ngoài phạm vi research nhưng agent vẫn gọi tool | `system_prompt.md`: khai báo phạm vi research; yêu cầu ngoài phạm vi thì từ chối, không gọi tool |
+| R10_missing_handle | `missing_info` | `timeline(screenname="sama", limit=5)` | `missing tool call clarify`, `extra tool call timeline` — tự đoán account Sam Altman | `system_prompt.md`: bỏ chỉ dẫn "pick a well-known account"; thiếu handle thì gọi `clarify(response_type="text")` |
+| R11_missing_url | `missing_info` | `fetch(url="https://blog.samaltman.com/the-intelligence-age")` | `missing tool call clarify`, `extra tool call fetch` — bịa URL cho "bài viết này" | `system_prompt.md`: bỏ chỉ dẫn "assume a likely URL"; thiếu URL thì gọi `clarify(response_type="text")` |
+| R12_confirm_before_send | `wrong_boundary` | `send(confirmed=true, text="📢 BẢN TIN CÔNG NGHỆ & AI…")` | `missing tool call clarify`, `extra tool call send` — tự bịa nội dung bản tin và tự đặt `confirmed=true` (nghiêm trọng nhất) | `system_prompt.md`: bỏ "just go ahead and do it"; trước khi gửi phải `clarify(response_type="yes_no")`. `tools.yaml`: `send` chỉ `confirmed=true` sau khi user xác nhận |
+| R13_parallel_web_and_tweets | `wrong_tool` | `lookup(query="tin tức AI hôm nay", topic="news", timeframe="day")` | `missing tool call social_search`; `query: expected 'AI', got 'tin tức AI hôm nay'` — chỉ gọi 1 tool | `system_prompt.md`: bỏ "Pick one tool / single step", cho phép gọi nhiều tool khi yêu cầu có nhiều phần; query xử lý như R03 |
+
+Nhận xét: 5/6 lỗi (R08, R10, R11, R12, R13) bắt nguồn trực tiếp từ chỉ dẫn xấu trong `system_prompt.md` của starter (đoán thay vì hỏi, gửi không cần xác nhận, ép một bước). R03 là lỗi convention argument, thuộc `tools.yaml`.
 
 ### B3. Team Eval Cases
 
