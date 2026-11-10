@@ -8,7 +8,7 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: TeLiet
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
 - Provider/model dùng cho v0–v3:
 
@@ -63,10 +63,16 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo chất lượng ban đầu trước tối ưu | - | 0.65 | `starter_v0/runs/v0_B_base_gemini_20261110T183708553548.json` |
+| v1 | `artifacts/system_prompt.md` | Routing rõ hơn sẽ giảm `wrong_tool` | 0.65 | 0.70 | `starter_v0/runs/v1_B_base_gemini_20261110T184719240561.json` |
+| v2 | `artifacts/system_prompt.md` | Quy tắc `clarify` rõ hơn sẽ giảm `missing_info` | 0.70 | 0.80 | `starter_v0/runs/v2_B_base_gemini_20261110T185133380730.json` |
+| v3 | `artifacts/system_prompt.md` | Quy tắc args và boundary rõ hơn sẽ cải thiện kết quả | 0.80 | 0.80 | `starter_v0/runs/v3_B_base_gemini_20261110T215643805698.json` |
+
+> Run v3 hợp lệ là `v3_B_base_gemini_20261110T215643805698.json`,
+> với `total_cases=20`, `measured_cases=20`, `provider_error_cases=0`.
+> Các run v3 trước đó không được tính do provider errors từ Gemini:
+> `185620920233`, `193757883769`, `194616666952`, `195746525886`,
+> `200311115832`, `214921174144`.
 
 ### B2. Failure Analysis
 
