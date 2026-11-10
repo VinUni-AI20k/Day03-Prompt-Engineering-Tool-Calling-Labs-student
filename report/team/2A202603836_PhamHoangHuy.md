@@ -18,6 +18,7 @@
 - Bổ sung adapter Groq theo lựa chọn của nhóm trưởng, giữ nguyên artifact baseline.
 - Đã chạy preflight Groq và baseline v0 bằng openai/gpt-oss-20b: 9/20 case PASS (45%), routing 70%, arguments 45%, multiturn 33,33%; 0 lỗi provider.
 - Ghi version_log.csv, phân tích đủ 11 case FAIL trong B2; tách 7 lỗi tool RapidAPI khỏi metric model. Các vòng v1–v3 chưa thực hiện.
+- Xác minh lại RapidAPI sau đăng ký gói free: hai endpoint HTTP 200, hai tool registry đều trả 1 item, không lỗi; giữ nguyên baseline cũ.
 
 ## 4. Bằng chứng
 

@@ -38,6 +38,13 @@ Không sửa metric/query/case để làm đẹp kết quả. v1–v3 chưa th�
 
 ## Giới hạn cần xử lý
 
+**Cập nhật sau khi đăng ký gói free Twitter API45:** timeline và search đều HTTP 200,
+qua TOOL_FUNCTIONS trả đúng 1 item khi limit=1, không có error.
+Header quota lần kiểm tra endpoint thứ hai: còn 998/1000 request (trước 2 lần gọi tool xác minh tiếp theo).
+Xem [retest subscription](../starter_v0/analysis/cp1_rapidapi_subscription_retest.json).
+Lỗi quyền truy cập RapidAPI đã được khắc phục ở lần retest; vẫn giữ nguyên run v0 và metric cũ
+để thể hiện đúng điều kiện lúc đo. Không suy ra metric của một lần eval chưa chạy.
+
 Baseline **hợp lệ để đo routing/arguments theo rubric**, chưa chứng minh toàn bộ tool live hoạt động.
 Tavily và Firecrawl smoke pass; RapidAPI timeline 403, social_search 429 ở smoke và 403 trong run.
 Có 7 tool_errors RapidAPI dù provider_error_cases=0. Kiểm tra subscription/quota/quyền Twitter API45;
@@ -53,4 +60,5 @@ Tên/MSSV/email các thành viên khác còn chờ chủ tài khoản tự bổ 
 Có thể dùng run v0 này làm mốc so sánh cho issue #10: mỗi vòng một giả thuyết, cùng Groq/model.
 Ưu tiên khảo sát hỏi lại khi thiếu thông tin, boundary hành động, ưu tiên correction mới nhất;
 không sửa đồng thời nhiều giả thuyết rồi gọi là một version. Phối hợp TV2 khi tích hợp tool mới.
+RapidAPI đã pass retest; thông tin cá nhân thành viên còn thiếu và giới hạn URL 404 vẫn cần theo dõi.
 Chỉ đóng #9 khi đã kiểm tra đầy đủ checklist, thông tin nhóm và giới hạn live được nhóm chấp nhận/xử lý.

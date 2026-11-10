@@ -166,6 +166,9 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 - Tavily và Firecrawl smoke test thành công. RapidAPI timeline trả 403, search từng trả 429;
   [tool smoke](../../starter_v0/analysis/cp1_tool_smoke.json). Run v0 có 7 lỗi RapidAPI trong tool_results,
   độc lập với 0 lỗi provider. Routing PASS không chứng minh tool lấy được dữ liệu.
+- Sau khi đăng ký gói free Twitter API45, timeline/search đều HTTP 200 và qua registry trả đúng
+  1 item khi limit=1. [Evidence retest](../../starter_v0/analysis/cp1_rapidapi_subscription_retest.json).
+  Đây là kiểm tra live riêng, không thay đổi run hoặc metric baseline v0 trước đó.
 - R04, R11, M04: fetch trả nội dung trang 404. Không sửa URL của case cố định;
   đây là giới hạn dữ liệu/thực thi, không làm thay đổi metric chọn tool/args.
 - Kiểm thử offline hiện tại: 64 passed, 17 skipped, 0 failed; xem [pytest output](../../starter_v0/analysis/cp1_pytest.txt).
