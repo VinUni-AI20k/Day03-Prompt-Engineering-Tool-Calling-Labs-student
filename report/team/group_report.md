@@ -64,7 +64,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 |---|---|---|---:|---:|---|
 | v0 | baseline | Đo hành vi chưa tối ưu (prompt starter còn chỉ dẫn xấu) | — | 0.70 (14/20) | `runs/v0_B_base_openrouter_20261110T174519840832.json` |
 | v1 | system_prompt.md | Bỏ chỉ dẫn đoán/gửi ngay/một bước, thêm rule `clarify` khi thiếu thông tin và xác nhận trước `send` thì R10, R11, R12 sẽ PASS | 0.70 | 0.80 (16/20) | `runs/v1_B_base_openrouter_20261110T180453970452.json` |
-| v2 |  |  |  |  |  |
+| v2 | system_prompt.md | Thêm rule routing theo loại yêu cầu và điều kiện không cần hỏi lại thì hồi quy R01, M02, M06 của v1 sẽ được sửa | 0.80 | 0.90 (18/20) | `runs/v2_B_base_openrouter_20261110T182517635389.json` |
 | v3 |  |  |  |  |  |
 
 ### B2. Failure Analysis
