@@ -79,9 +79,14 @@ List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn)
 
 Use `transcripts/*.transcript.json`.
 
+Transcript file: `transcripts/v2_openrouter_20261110T160350562141.transcript.json`  
+Artifact version: `v2+pfa64d9b3c443+t1801279e5a91`
+
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| 1 | Tìm trên web tin AI hôm nay có gì mới và tóm tắt lại. | `lookup(query="AI", topic="news", timeframe="day")` | Prompt v2 định tuyến `lookup` đúng `topic=news`, `timeframe=day` | Trả về 3 tin tức AI nổi bật kèm liên kết nguồn và tóm tắt đầy đủ. |
+| 2 | Tóm tắt vài bài đăng mới nhất giúp mình | `lookup(query="AI", topic="news", timeframe="day", max_results=5)` | Kế thừa chủ đề AI từ ngữ cảnh trước và truy xuất cập nhật mới nhất | Tổng hợp bản tin tóm tắt cho các bài viết mới về tác tử AI. |
+| 3 | Lấy bài đăng của Sam Altman (@sama) | `timeline(screenname="sama", limit=5)` | Ánh xạ đúng tên người nổi tiếng sang handle `sama` không có `@` | Liệt kê các tweet gần đây của Sam Altman kèm số lượt like/retweet. |
 
 ## B5. Bonus Evidence
 
