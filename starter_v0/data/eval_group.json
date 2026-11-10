@@ -3,5 +3,115 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_wikipedia_knowledge_summary",
+      "phase": "B",
+      "suite": "group",
+      "query": "Ada Lovelace là ai?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "wiki_sum", "args": {"title": "Ada Lovelace"}}]},
+      "metadata": {"skill": "wiki_knowledge_baseline", "difficulty": "easy", "what_it_tests": "Câu hỏi 'X là ai?' về kiến thức nền → wiki_sum, không phải lookup tin tức."}
+    },
+    {
+      "id": "G02_validate_shortened_link",
+      "phase": "B",
+      "suite": "group",
+      "query": "Link https://bit.ly/ai-update này có phải link rút gọn và domain có bị chặn không?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "validate_url", "args": {"url": "https://bit.ly/ai-update"}}]},
+      "metadata": {"skill": "validate_specific_url", "difficulty": "easy", "what_it_tests": "Hỏi trực tiếp kiểm tra một URL → validate_url; kết quả cần được diễn giải thận trọng, không khẳng định an toàn tuyệt đối."}
+    },
+    {
+      "id": "G03_direct_local_time",
+      "phase": "B",
+      "suite": "group",
+      "query": "Bây giờ ở San Francisco là mấy giờ?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "date_localized", "args": {"timezone": "America/Los_Angeles"}}]},
+      "metadata": {"skill": "direct_localized_time", "difficulty": "easy", "what_it_tests": "Hỏi trực tiếp giờ hiện tại tại thành phố → date_localized với timezone IANA; không dùng tra cứu web."}
+    },
+    {
+      "id": "G04_today_news_uses_lookup",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tin AI hôm nay có gì mới?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "AI", "topic": "news", "timeframe": "day"}}]},
+      "metadata": {"skill": "relative_date_news_routing", "difficulty": "medium", "what_it_tests": "Từ 'hôm nay' trong câu hỏi tìm tin yêu cầu lookup timeframe=day, không dùng date_localized."}
+    },
+    {
+      "id": "G05_specific_article_uses_fetch",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tóm tắt bài viết này giúp mình: https://openai.com/research/",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "fetch", "args": {"url": "https://openai.com/research/"}}]},
+      "metadata": {"skill": "specific_url_fetch_not_validation", "difficulty": "medium", "what_it_tests": "Đã có URL và yêu cầu đọc/tóm tắt thì gọi fetch trực tiếp, không gọi validate_url trước."}
+    },
+    {
+      "id": "G06_multiturn_time_location",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Bây giờ ở đó là mấy giờ?"},
+        {"role": "user", "content": "Ý mình là ở Tokyo."},
+        {"role": "user", "content": "Cho mình giờ hiện tại tại Tokyo nhé."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "date_localized", "args": {"timezone": "Asia/Tokyo"}}]},
+      "metadata": {"skill": "multiturn_local_time_location", "difficulty": "medium", "what_it_tests": "Nhiều lượt làm rõ địa điểm; lượt cuối yêu cầu giờ hiện tại và phải truyền đúng timezone Tokyo."}
+    },
+    {
+      "id": "G07_multiturn_url_validation",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Mình có một link cần kiểm tra."},
+        {"role": "user", "content": "https://tinyurl.com/example-check"},
+        {"role": "user", "content": "Link này có hợp lệ và có phải link rút gọn không?"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "validate_url", "args": {"url": "https://tinyurl.com/example-check"}}]},
+      "metadata": {"skill": "multiturn_validate_url", "difficulty": "medium", "what_it_tests": "Lấy URL từ lượt trước để kiểm tra ở lượt hiện tại; không fetch link."}
+    },
+    {
+      "id": "G08_multiturn_wikipedia_followup",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Alan Turing là ai?"},
+        {"role": "user", "content": "Tra cứu thêm đoạn giới thiệu Wikipedia về Alan Turing nhé."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "wiki_sum", "args": {"title": "Alan Turing"}}]},
+      "metadata": {"skill": "multiturn_wiki_summary", "difficulty": "medium", "what_it_tests": "Yêu cầu lượt cuối chỉ rõ nguồn Wikipedia; dùng wiki_sum cho kiến thức nền, không dùng lookup."}
+    },
+    {
+      "id": "G09_multiturn_news_topic_correction",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm tin AI hôm nay."},
+        {"role": "user", "content": "Đổi chủ đề sang robotics."},
+        {"role": "user", "content": "Chỉ tìm tin robotics, vẫn trong hôm nay."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "robotics", "topic": "news", "timeframe": "day"}}]},
+      "metadata": {"skill": "multiturn_news_topic_and_timeframe", "difficulty": "hard", "what_it_tests": "Giữ timeframe=day từ ngữ cảnh, dùng chủ đề đã sửa robotics và route qua lookup."}
+    },
+    {
+      "id": "G10_multiturn_publish_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Soạn giúp mình nội dung đăng lên Telegram: Bản tin AI tuần này."},
+        {"role": "user", "content": "Đích đến là channel Telegram của nhóm."},
+        {"role": "user", "content": "Chuẩn bị nội dung đó và hỏi mình xác nhận trước khi gửi."}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
+      "metadata": {"skill": "multiturn_publish_confirmation", "difficulty": "hard", "what_it_tests": "Dù có nội dung và đích đến, yêu cầu chỉ hỏi xác nhận nghĩa là chưa cho phép gửi; không gọi send, phải xác nhận trước."}
+    }
+  ]
 }

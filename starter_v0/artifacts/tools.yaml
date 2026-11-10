@@ -143,3 +143,27 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: wiki_sum
+    description: "Lấy đoạn giới thiệu từ Wikipedia cho câu hỏi kiến thức nền như 'X là ai?' hoặc 'Y là gì?'. Không dùng cho tin tức mới (dùng lookup) hoặc câu hỏi về danh tính/năng lực của agent."
+    parameters:
+      type: object
+      properties:
+        title: {type: string, default: "", description: "Tên người/chủ đề hoặc tiêu đề trang Wikipedia cụ thể"}
+      required: [title]
+
+  - name: validate_url
+    description: "Kiểm tra định dạng URL, đánh dấu domain rút gọn và đối chiếu blacklist cục bộ URL_BLACKLIST_DOMAINS (kết quả báo rõ blacklist đã cấu hình hay chưa). Chỉ dùng khi người dùng hỏi độ hợp lệ/an toàn của một link cụ thể; không gọi trước fetch và không đảm bảo link an toàn."
+    parameters:
+      type: object
+      properties:
+        url: {type: string, default: "", description: "URL người dùng muốn kiểm tra"}
+      required: [url]
+
+  - name: date_localized
+    description: "Trả về ngày giờ hiện tại ở timezone IANA hoặc thành phố được hỗ trợ. Chỉ dùng khi người dùng hỏi trực tiếp giờ/ngày ở một nơi; không dùng cho truy vấn tìm kiếm có 'hôm nay', 'tuần này' (dùng lookup với timeframe)."
+    parameters:
+      type: object
+      properties:
+        timezone: {type: string, default: "UTC", description: "Múi giờ IANA (ví dụ Asia/Ho_Chi_Minh) hoặc tên thành phố được hỗ trợ"}
+      required: [timezone]

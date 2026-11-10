@@ -10,6 +10,9 @@ import yaml
 from .clarify.tool import ask_user
 from .papers.tool import arxiv_search
 from .paper_text.tool import get_arxiv_paper_text
+from .wiki_sum.tool import wiki_sum
+from .validate_url.tool import validate_url
+from .date_localized.tool import date_localized
 from .timeline.tool import get_user_tweets
 from .fetch.tool import read_url
 from .format.tool import render_digest
@@ -37,8 +40,9 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
-    # TODO CP3 (student): register your new tool here, e.g. "my_tool": my_tool_function,
-    # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
+    "wiki_sum": wiki_sum,
+    "validate_url": validate_url,
+    "date_localized": date_localized,
 }
 
 

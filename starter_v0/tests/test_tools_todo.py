@@ -10,10 +10,12 @@ Rules:
 """
 from __future__ import annotations
 
+from datetime import datetime
+
 import pytest
 
-from conftest import FakeResponse  # noqa: F401  (you will need it)
-from tools import TOOL_FUNCTIONS  # noqa: F401
+from conftest import FakeResponse
+from tools import TOOL_FUNCTIONS
 from tools.deduplicate_news.tool import deduplicate_news
 
 TODO = "TODO CP3 (student): implement this test"
@@ -170,3 +172,89 @@ def test_deduplicate_news_returns_error_for_invalid_threshold() -> None:
     assert result["tool"] == "deduplicate_news"
     assert result["error"] == "ValueError"
     assert "title_similarity_threshold" in result["message"]
+
+
+# ---------------- wiki_sum ----------------
+
+def test_wiki_sum_returns_wikipedia_summary(fake_http) -> None:
+    fake_http(FakeResponse({
+        "title": "Ada Lovelace",
+        "extract": "Ada Lovelace was an English mathematician.",
+        "description": "English mathematician",
+        "content_urls": {"desktop": {"page": "https://en.wikipedia.org/wiki/Ada_Lovelace"}},
+    }))
+
+    result = TOOL_FUNCTIONS["wiki_sum"](title="Ada Lovelace")
+
+    assert result["summary"] == "Ada Lovelace was an English mathematician."
+    assert result["url"] == "https://en.wikipedia.org/wiki/Ada_Lovelace"
+
+
+def test_wiki_sum_rejects_empty_title_without_request(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+
+    result = TOOL_FUNCTIONS["wiki_sum"](title=" ")
+
+    assert result["error"] == "ValueError"
+    assert calls == []
+
+
+def test_wiki_sum_http_error_returns_error_dict(fake_http) -> None:
+    fake_http(FakeResponse(status_code=404))
+
+    result = TOOL_FUNCTIONS["wiki_sum"](title="Missing page")
+
+    assert result["tool"] == "wiki_sum"
+    assert result["error"] == "HTTPError"
+
+
+# ---------------- validate_url ----------------
+
+def test_validate_url_flags_shortener_and_configured_blocklist(monkeypatch) -> None:
+    monkeypatch.setenv("URL_BLACKLIST_DOMAINS", "bad.example")
+
+    result = TOOL_FUNCTIONS["validate_url"](url="https://sub.bad.example/path")
+
+    assert result["valid"] is True
+    assert result["is_shortened"] is False
+    assert result["is_blocked"] is True
+    assert result["blacklist_configured"] is True
+    shortened = TOOL_FUNCTIONS["validate_url"](url="https://bit.ly/a")
+    assert shortened["is_shortened"] is True
+
+
+def test_validate_url_reports_malformed_link() -> None:
+    result = TOOL_FUNCTIONS["validate_url"](url="ftp://example.com/file")
+
+    assert result["valid"] is False
+    assert result["reason"]
+
+
+def test_validate_url_rejects_empty_model_input() -> None:
+    result = TOOL_FUNCTIONS["validate_url"](url="")
+
+    assert result["error"] == "ValueError"
+
+
+# ---------------- date_localized ----------------
+
+def test_date_localized_returns_timezone_aware_current_time() -> None:
+    result = TOOL_FUNCTIONS["date_localized"](timezone="Ho Chi Minh City")
+
+    parsed = datetime.fromisoformat(result["datetime"])
+    assert result["timezone"] == "Asia/Ho_Chi_Minh"
+    assert parsed.utcoffset() is not None
+    assert "UTC" in result["formatted"]
+
+
+def test_date_localized_rejects_empty_timezone() -> None:
+    result = TOOL_FUNCTIONS["date_localized"](timezone="")
+
+    assert result["error"] == "ValueError"
+
+
+def test_date_localized_unknown_timezone_returns_error_dict() -> None:
+    result = TOOL_FUNCTIONS["date_localized"](timezone="Not/A_Timezone")
+
+    assert result["tool"] == "date_localized"
+    assert result["error"] == "ZoneInfoNotFoundError"
