@@ -56,7 +56,7 @@ Fill from `artifacts/version_log.csv` and `runs/*.json`.
 |---|---|---|---:|---:|---|
 | v0 | baseline | Baseline trước khi tối ưu | — | case_accuracy=0.35; tool_routing_accuracy=0.5; argument_accuracy=0.35; multiturn_accuracy=0.5 | `runs/v0_B_base_ollama_20261110T095915950610.json` |
 | v1 | `artifacts/system_prompt.md` | Quy tắc định tuyến rõ ràng sẽ giảm chọn nhầm tool/args so với v0 | case_accuracy=0.35; tool_routing_accuracy=0.5; argument_accuracy=0.35; multiturn_accuracy=0.5 | case_accuracy=0.6; tool_routing_accuracy=0.65; argument_accuracy=0.6; multiturn_accuracy=0.8333 | `runs/v1_B_base_ollama_20261110T105305856367.json` |
-| v2 |  |  |  |  |  |
+| v2 | `artifacts/tools.yaml` (mô tả tool) | Hướng dẫn rõ nguồn và quy ước tham số sẽ cải thiện routing trên base so với v1 | case_accuracy=0.6; tool_routing_accuracy=0.65; argument_accuracy=0.6; multiturn_accuracy=0.8333 | case_accuracy=0.6; tool_routing_accuracy=0.8; argument_accuracy=0.6; multiturn_accuracy=0.6667 | `runs/v2_B_base_ollama_20261110T112419425370.json` |
 | v3 |  |  |  |  |  |
 
 ## B2. Failure Analysis
@@ -65,7 +65,14 @@ Use actual failures from `results[*].result.failures`.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R05_limit_arg | wrong_arg_value | `timeline(screenname=elonmusk)` | Thiếu `limit=10` | Nhấn mạnh trích số lượng trong mọi yêu cầu |
+| R06_timeframe_arg | wrong_arg_value | `lookup(query="tin công nghệ", timeframe="week")` | Thiếu `topic=news` | Phân biệt news/general rõ hơn |
+| R10_missing_handle | missing_info | `timeline(screenname=TwitterHandle)` | Tự bịa handle thay vì hỏi | Bắt buộc clarify khi chưa biết tài khoản |
+| R11_missing_url | missing_info | Không gọi tool | Không hỏi URL còn thiếu | Nêu rõ phải gọi clarify, không được im lặng |
+| R12_confirm_before_send | wrong_boundary | `clarify()` | Gọi clarify nhưng thiếu `response_type=yes_no` | Yêu cầu đúng enum và xác nhận trước send |
+| R14_out_of_scope_coding | out_of_scope | `format(items=[...], template="bullets")` | Gọi tool và dựng nội dung cho yêu cầu coding ngoài phạm vi | Chặn tool cho yêu cầu không phải research |
+| M03_correction_handle | wrong_arg_value | `timeline(screenname=karpathy)` | Bỏ sót `limit=3` từ ngữ cảnh | Mang theo số lượng đã yêu cầu qua các lượt |
+| M06_switch_tool | wrong_tool | `social_search(query="OpenAI", search_type="Latest")` | Không chuyển từ social sang web news | Ưu tiên thay đổi ý định mới nhất trong hội thoại |
 
 ## B3. Team Eval Cases
 
