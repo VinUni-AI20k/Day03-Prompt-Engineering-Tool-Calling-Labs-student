@@ -8,51 +8,60 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: <<CHỜ: người dùng/A cung cấp tên nhóm>>
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: <<CHỜ: A/người dùng gửi provider và model>>
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research Agent hỗ trợ tìm tin trên web, lấy bài đăng X theo tài khoản, đọc URL, tra cứu policy nội bộ và bài báo arXiv, rồi định dạng kết quả thành digest. UI có chốt xác nhận trước khi thực thi các tool có tác dụng phụ, gồm gửi Telegram.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+Từ thư mục `starter_v0/` với venv đã kích hoạt:
+
+```powershell
+streamlit run app.py --server.headless true
+```
+
+Dependency đã thêm: `streamlit>=1.40.0` trong `starter_v0/requirements.txt`.
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
->
-> URL:
+URL đã được người dùng xác nhận mở được từ thiết bị khác: [https://testing-alternatively-dash-cherry.trycloudflare.com](https://testing-alternatively-dash-cherry.trycloudflare.com).
 
 ### A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
+Danh sách dưới đây lấy từ `starter_v0/artifacts/tools.yaml` hiện tại; đối chiếu registry trong `starter_v0/tools/__init__.py` và lịch sử Git không thấy tool mới ngoài 10 tool gốc.
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | Đặt câu hỏi và chờ người dùng bổ sung thông tin | không |
+| timeline | Lấy bài đăng gần đây từ tài khoản X | không |
+| social_search | Tìm trên mạng xã hội | không |
+| lookup | Tra cứu thông tin trên internet | không |
+| fetch | Lấy nội dung từ một URL | không |
+| format | Trình bày dữ liệu đã có thành văn bản | không |
+| send | Gửi văn bản tới Telegram khi được xác nhận | không |
+| policy | Tìm trong tài liệu nội bộ | không |
+| papers | Tìm bài báo khoa học | không |
+| paper_text | Tải PDF arXiv và trích xuất văn bản cục bộ | không |
+| <<CHỜ: B>> | <<CHỜ: B gửi tên/mô tả tool mới hoặc xác nhận chưa thêm tool>> | <<CHỜ: B>> |
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. Tìm tin AI hôm nay và tổng hợp thành một bản tin ngắn giúp mình.
+2. Tóm tắt 5 tweet mới nhất giúp mình.
+3. Đăng bản tin AI ở lượt đầu lên Telegram giúp mình.
+4. Đọc và tóm tắt trang này giúp mình: https://example.com
 
 ## 3. Giải pháp
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- <<CHỜ: A và B gửi tóm tắt thay đổi prompt/tools/tool mới để ghép nguyên văn>>
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
