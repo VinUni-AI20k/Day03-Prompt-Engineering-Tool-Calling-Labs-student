@@ -1,0 +1,537 @@
+Log formatting: trailing whitespace removed; test output otherwise unchanged.
+Before schema fix: new regression cases against main 9b24a6a
+
+FFFF                                                                     [100%]
+================================== FAILURES ===================================
+_ test_source_check_provider_schema_accepts_incomplete_items[incomplete0-issues0] _
+
+incomplete = {}, issues = ['missing_url', 'missing_source']
+
+    @pytest.mark.parametrize("incomplete,issues", [
+        ({}, ["missing_url", "missing_source"]),
+        ({"title": "Missing citation"}, ["missing_url", "missing_source"]),
+        ({"source": "Example"}, ["missing_url"]),
+        ({"url": "https://example.com"}, ["missing_source"]),
+    ])
+    def test_source_check_provider_schema_accepts_incomplete_items(incomplete, issues) -> None:
+        """Provider validation must allow missing citation fields to reach the checker."""
+        declarations = load_tool_declarations(Path(__file__).resolve().parents[1] / "artifacts" / "tools.yaml")
+        openai_tools = to_openai_tools(declarations)
+        good = {"title": "Good item", "url": "https://example.com", "source": "Example"}
+        items = [good, incomplete]
+        original = deepcopy(items)
+
+        class ValidatingProvider:
+            def complete(self, messages, tools=None, **kwargs):
+                schema = next(tool["function"]["parameters"] for tool in tools
+                              if tool["function"]["name"] == "source_check")
+                validate(instance={"items": items}, schema=schema)
+                return ModelResponse(tool_calls=[ToolCall("source_check", {"items": items})])
+
+>       run = ResearchAgent(ValidatingProvider(), system_prompt="test", tools=openai_tools).run([
+            {"role": "user", "content": "Check existing citation metadata without filling missing fields"},
+        ])
+
+tests\test_tools_todo.py:277:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+agent.py:33: in run
+    response = self.provider.complete(
+tests\test_tools_todo.py:274: in complete
+    validate(instance={"items": items}, schema=schema)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+instance = {'items': [{'title': 'Good item', 'url': 'https://example.com', 'source': 'Example'}, {}]}
+schema = {'type': 'object', 'properties': {'items': {'type': 'array', 'description': 'Các item nghiên cứu đã thu thập; mỗi item...oặc handle; không rỗng'}, 'summary': {'type': 'string'}, ...}, 'required': ['url', 'source']}}}, 'required': ['items']}
+cls = <class 'jsonschema.validators.Draft202012Validator'>, args = ()
+kwargs = {}
+
+    def validate(instance, schema, cls=None, *args, **kwargs):  # noqa: D417
+        """
+        Validate an instance under the given schema.
+
+            >>> validate([2, 3, 4], {"maxItems": 2})
+            Traceback (most recent call last):
+                ...
+            ValidationError: [2, 3, 4] is too long
+
+        :func:`~jsonschema.validators.validate` will first verify that the
+        provided schema is itself valid, since not doing so can lead to less
+        obvious error messages and fail in less obvious or consistent ways.
+
+        If you know you have a valid schema already, especially
+        if you intend to validate multiple instances with
+        the same schema, you likely would prefer using the
+        `jsonschema.protocols.Validator.validate` method directly on a
+        specific validator (e.g. ``Draft202012Validator.validate``).
+
+
+        Arguments:
+
+            instance:
+
+                The instance to validate
+
+            schema:
+
+                The schema to validate with
+
+            cls (jsonschema.protocols.Validator):
+
+                The class that will be used to validate the instance.
+
+        If the ``cls`` argument is not provided, two things will happen
+        in accordance with the specification. First, if the schema has a
+        :kw:`$schema` keyword containing a known meta-schema [#]_ then the
+        proper validator will be used. The specification recommends that
+        all schemas contain :kw:`$schema` properties for this reason. If no
+        :kw:`$schema` property is found, the default validator class is the
+        latest released draft.
+
+        Any other provided positional and keyword arguments will be passed
+        on when instantiating the ``cls``.
+
+        Raises:
+
+            `jsonschema.exceptions.ValidationError`:
+
+                if the instance is invalid
+
+            `jsonschema.exceptions.SchemaError`:
+
+                if the schema itself is invalid
+
+        .. rubric:: Footnotes
+        .. [#] known by a validator registered with
+            `jsonschema.validators.validates`
+
+        """
+        if cls is None:
+            cls = validator_for(schema)
+
+        cls.check_schema(schema)
+        validator = cls(schema, *args, **kwargs)
+        error = exceptions.best_match(validator.iter_errors(instance))
+        if error is not None:
+>           raise error
+E           jsonschema.exceptions.ValidationError: 'url' is a required property
+E
+E           Failed validating 'required' in schema['properties']['items']['items']:
+E               {'type': 'object',
+E                'properties': {'title': {'type': 'string'},
+E                               'url': {'type': 'string',
+E                                       'description': 'URL HTTP(S) đầy đủ, không chứa '
+E                                                      'credentials hay khoảng trắng'},
+E                               'source': {'type': 'string',
+E                                          'description': 'Tên nguồn, domain hoặc '
+E                                                         'handle; không rỗng'},
+E                               'summary': {'type': 'string'},
+E                               'section': {'type': 'string'}},
+E                'required': ['url', 'source']}
+E
+E           On instance['items'][1]:
+E               {}
+
+C:\Users\Admin\AppData\Local\Programs\Python\Python314\Lib\site-packages\jsonschema\validators.py:1332: ValidationError
+_ test_source_check_provider_schema_accepts_incomplete_items[incomplete1-issues1] _
+
+incomplete = {'title': 'Missing citation'}
+issues = ['missing_url', 'missing_source']
+
+    @pytest.mark.parametrize("incomplete,issues", [
+        ({}, ["missing_url", "missing_source"]),
+        ({"title": "Missing citation"}, ["missing_url", "missing_source"]),
+        ({"source": "Example"}, ["missing_url"]),
+        ({"url": "https://example.com"}, ["missing_source"]),
+    ])
+    def test_source_check_provider_schema_accepts_incomplete_items(incomplete, issues) -> None:
+        """Provider validation must allow missing citation fields to reach the checker."""
+        declarations = load_tool_declarations(Path(__file__).resolve().parents[1] / "artifacts" / "tools.yaml")
+        openai_tools = to_openai_tools(declarations)
+        good = {"title": "Good item", "url": "https://example.com", "source": "Example"}
+        items = [good, incomplete]
+        original = deepcopy(items)
+
+        class ValidatingProvider:
+            def complete(self, messages, tools=None, **kwargs):
+                schema = next(tool["function"]["parameters"] for tool in tools
+                              if tool["function"]["name"] == "source_check")
+                validate(instance={"items": items}, schema=schema)
+                return ModelResponse(tool_calls=[ToolCall("source_check", {"items": items})])
+
+>       run = ResearchAgent(ValidatingProvider(), system_prompt="test", tools=openai_tools).run([
+            {"role": "user", "content": "Check existing citation metadata without filling missing fields"},
+        ])
+
+tests\test_tools_todo.py:277:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+agent.py:33: in run
+    response = self.provider.complete(
+tests\test_tools_todo.py:274: in complete
+    validate(instance={"items": items}, schema=schema)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+instance = {'items': [{'title': 'Good item', 'url': 'https://example.com', 'source': 'Example'}, {'title': 'Missing citation'}]}
+schema = {'type': 'object', 'properties': {'items': {'type': 'array', 'description': 'Các item nghiên cứu đã thu thập; mỗi item...oặc handle; không rỗng'}, 'summary': {'type': 'string'}, ...}, 'required': ['url', 'source']}}}, 'required': ['items']}
+cls = <class 'jsonschema.validators.Draft202012Validator'>, args = ()
+kwargs = {}
+
+    def validate(instance, schema, cls=None, *args, **kwargs):  # noqa: D417
+        """
+        Validate an instance under the given schema.
+
+            >>> validate([2, 3, 4], {"maxItems": 2})
+            Traceback (most recent call last):
+                ...
+            ValidationError: [2, 3, 4] is too long
+
+        :func:`~jsonschema.validators.validate` will first verify that the
+        provided schema is itself valid, since not doing so can lead to less
+        obvious error messages and fail in less obvious or consistent ways.
+
+        If you know you have a valid schema already, especially
+        if you intend to validate multiple instances with
+        the same schema, you likely would prefer using the
+        `jsonschema.protocols.Validator.validate` method directly on a
+        specific validator (e.g. ``Draft202012Validator.validate``).
+
+
+        Arguments:
+
+            instance:
+
+                The instance to validate
+
+            schema:
+
+                The schema to validate with
+
+            cls (jsonschema.protocols.Validator):
+
+                The class that will be used to validate the instance.
+
+        If the ``cls`` argument is not provided, two things will happen
+        in accordance with the specification. First, if the schema has a
+        :kw:`$schema` keyword containing a known meta-schema [#]_ then the
+        proper validator will be used. The specification recommends that
+        all schemas contain :kw:`$schema` properties for this reason. If no
+        :kw:`$schema` property is found, the default validator class is the
+        latest released draft.
+
+        Any other provided positional and keyword arguments will be passed
+        on when instantiating the ``cls``.
+
+        Raises:
+
+            `jsonschema.exceptions.ValidationError`:
+
+                if the instance is invalid
+
+            `jsonschema.exceptions.SchemaError`:
+
+                if the schema itself is invalid
+
+        .. rubric:: Footnotes
+        .. [#] known by a validator registered with
+            `jsonschema.validators.validates`
+
+        """
+        if cls is None:
+            cls = validator_for(schema)
+
+        cls.check_schema(schema)
+        validator = cls(schema, *args, **kwargs)
+        error = exceptions.best_match(validator.iter_errors(instance))
+        if error is not None:
+>           raise error
+E           jsonschema.exceptions.ValidationError: 'url' is a required property
+E
+E           Failed validating 'required' in schema['properties']['items']['items']:
+E               {'type': 'object',
+E                'properties': {'title': {'type': 'string'},
+E                               'url': {'type': 'string',
+E                                       'description': 'URL HTTP(S) đầy đủ, không chứa '
+E                                                      'credentials hay khoảng trắng'},
+E                               'source': {'type': 'string',
+E                                          'description': 'Tên nguồn, domain hoặc '
+E                                                         'handle; không rỗng'},
+E                               'summary': {'type': 'string'},
+E                               'section': {'type': 'string'}},
+E                'required': ['url', 'source']}
+E
+E           On instance['items'][1]:
+E               {'title': 'Missing citation'}
+
+C:\Users\Admin\AppData\Local\Programs\Python\Python314\Lib\site-packages\jsonschema\validators.py:1332: ValidationError
+_ test_source_check_provider_schema_accepts_incomplete_items[incomplete2-issues2] _
+
+incomplete = {'source': 'Example'}, issues = ['missing_url']
+
+    @pytest.mark.parametrize("incomplete,issues", [
+        ({}, ["missing_url", "missing_source"]),
+        ({"title": "Missing citation"}, ["missing_url", "missing_source"]),
+        ({"source": "Example"}, ["missing_url"]),
+        ({"url": "https://example.com"}, ["missing_source"]),
+    ])
+    def test_source_check_provider_schema_accepts_incomplete_items(incomplete, issues) -> None:
+        """Provider validation must allow missing citation fields to reach the checker."""
+        declarations = load_tool_declarations(Path(__file__).resolve().parents[1] / "artifacts" / "tools.yaml")
+        openai_tools = to_openai_tools(declarations)
+        good = {"title": "Good item", "url": "https://example.com", "source": "Example"}
+        items = [good, incomplete]
+        original = deepcopy(items)
+
+        class ValidatingProvider:
+            def complete(self, messages, tools=None, **kwargs):
+                schema = next(tool["function"]["parameters"] for tool in tools
+                              if tool["function"]["name"] == "source_check")
+                validate(instance={"items": items}, schema=schema)
+                return ModelResponse(tool_calls=[ToolCall("source_check", {"items": items})])
+
+>       run = ResearchAgent(ValidatingProvider(), system_prompt="test", tools=openai_tools).run([
+            {"role": "user", "content": "Check existing citation metadata without filling missing fields"},
+        ])
+
+tests\test_tools_todo.py:277:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+agent.py:33: in run
+    response = self.provider.complete(
+tests\test_tools_todo.py:274: in complete
+    validate(instance={"items": items}, schema=schema)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+instance = {'items': [{'title': 'Good item', 'url': 'https://example.com', 'source': 'Example'}, {'source': 'Example'}]}
+schema = {'type': 'object', 'properties': {'items': {'type': 'array', 'description': 'Các item nghiên cứu đã thu thập; mỗi item...oặc handle; không rỗng'}, 'summary': {'type': 'string'}, ...}, 'required': ['url', 'source']}}}, 'required': ['items']}
+cls = <class 'jsonschema.validators.Draft202012Validator'>, args = ()
+kwargs = {}
+
+    def validate(instance, schema, cls=None, *args, **kwargs):  # noqa: D417
+        """
+        Validate an instance under the given schema.
+
+            >>> validate([2, 3, 4], {"maxItems": 2})
+            Traceback (most recent call last):
+                ...
+            ValidationError: [2, 3, 4] is too long
+
+        :func:`~jsonschema.validators.validate` will first verify that the
+        provided schema is itself valid, since not doing so can lead to less
+        obvious error messages and fail in less obvious or consistent ways.
+
+        If you know you have a valid schema already, especially
+        if you intend to validate multiple instances with
+        the same schema, you likely would prefer using the
+        `jsonschema.protocols.Validator.validate` method directly on a
+        specific validator (e.g. ``Draft202012Validator.validate``).
+
+
+        Arguments:
+
+            instance:
+
+                The instance to validate
+
+            schema:
+
+                The schema to validate with
+
+            cls (jsonschema.protocols.Validator):
+
+                The class that will be used to validate the instance.
+
+        If the ``cls`` argument is not provided, two things will happen
+        in accordance with the specification. First, if the schema has a
+        :kw:`$schema` keyword containing a known meta-schema [#]_ then the
+        proper validator will be used. The specification recommends that
+        all schemas contain :kw:`$schema` properties for this reason. If no
+        :kw:`$schema` property is found, the default validator class is the
+        latest released draft.
+
+        Any other provided positional and keyword arguments will be passed
+        on when instantiating the ``cls``.
+
+        Raises:
+
+            `jsonschema.exceptions.ValidationError`:
+
+                if the instance is invalid
+
+            `jsonschema.exceptions.SchemaError`:
+
+                if the schema itself is invalid
+
+        .. rubric:: Footnotes
+        .. [#] known by a validator registered with
+            `jsonschema.validators.validates`
+
+        """
+        if cls is None:
+            cls = validator_for(schema)
+
+        cls.check_schema(schema)
+        validator = cls(schema, *args, **kwargs)
+        error = exceptions.best_match(validator.iter_errors(instance))
+        if error is not None:
+>           raise error
+E           jsonschema.exceptions.ValidationError: 'url' is a required property
+E
+E           Failed validating 'required' in schema['properties']['items']['items']:
+E               {'type': 'object',
+E                'properties': {'title': {'type': 'string'},
+E                               'url': {'type': 'string',
+E                                       'description': 'URL HTTP(S) đầy đủ, không chứa '
+E                                                      'credentials hay khoảng trắng'},
+E                               'source': {'type': 'string',
+E                                          'description': 'Tên nguồn, domain hoặc '
+E                                                         'handle; không rỗng'},
+E                               'summary': {'type': 'string'},
+E                               'section': {'type': 'string'}},
+E                'required': ['url', 'source']}
+E
+E           On instance['items'][1]:
+E               {'source': 'Example'}
+
+C:\Users\Admin\AppData\Local\Programs\Python\Python314\Lib\site-packages\jsonschema\validators.py:1332: ValidationError
+_ test_source_check_provider_schema_accepts_incomplete_items[incomplete3-issues3] _
+
+incomplete = {'url': 'https://example.com'}, issues = ['missing_source']
+
+    @pytest.mark.parametrize("incomplete,issues", [
+        ({}, ["missing_url", "missing_source"]),
+        ({"title": "Missing citation"}, ["missing_url", "missing_source"]),
+        ({"source": "Example"}, ["missing_url"]),
+        ({"url": "https://example.com"}, ["missing_source"]),
+    ])
+    def test_source_check_provider_schema_accepts_incomplete_items(incomplete, issues) -> None:
+        """Provider validation must allow missing citation fields to reach the checker."""
+        declarations = load_tool_declarations(Path(__file__).resolve().parents[1] / "artifacts" / "tools.yaml")
+        openai_tools = to_openai_tools(declarations)
+        good = {"title": "Good item", "url": "https://example.com", "source": "Example"}
+        items = [good, incomplete]
+        original = deepcopy(items)
+
+        class ValidatingProvider:
+            def complete(self, messages, tools=None, **kwargs):
+                schema = next(tool["function"]["parameters"] for tool in tools
+                              if tool["function"]["name"] == "source_check")
+                validate(instance={"items": items}, schema=schema)
+                return ModelResponse(tool_calls=[ToolCall("source_check", {"items": items})])
+
+>       run = ResearchAgent(ValidatingProvider(), system_prompt="test", tools=openai_tools).run([
+            {"role": "user", "content": "Check existing citation metadata without filling missing fields"},
+        ])
+
+tests\test_tools_todo.py:277:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+agent.py:33: in run
+    response = self.provider.complete(
+tests\test_tools_todo.py:274: in complete
+    validate(instance={"items": items}, schema=schema)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+instance = {'items': [{'title': 'Good item', 'url': 'https://example.com', 'source': 'Example'}, {'url': 'https://example.com'}]}
+schema = {'type': 'object', 'properties': {'items': {'type': 'array', 'description': 'Các item nghiên cứu đã thu thập; mỗi item...oặc handle; không rỗng'}, 'summary': {'type': 'string'}, ...}, 'required': ['url', 'source']}}}, 'required': ['items']}
+cls = <class 'jsonschema.validators.Draft202012Validator'>, args = ()
+kwargs = {}
+
+    def validate(instance, schema, cls=None, *args, **kwargs):  # noqa: D417
+        """
+        Validate an instance under the given schema.
+
+            >>> validate([2, 3, 4], {"maxItems": 2})
+            Traceback (most recent call last):
+                ...
+            ValidationError: [2, 3, 4] is too long
+
+        :func:`~jsonschema.validators.validate` will first verify that the
+        provided schema is itself valid, since not doing so can lead to less
+        obvious error messages and fail in less obvious or consistent ways.
+
+        If you know you have a valid schema already, especially
+        if you intend to validate multiple instances with
+        the same schema, you likely would prefer using the
+        `jsonschema.protocols.Validator.validate` method directly on a
+        specific validator (e.g. ``Draft202012Validator.validate``).
+
+
+        Arguments:
+
+            instance:
+
+                The instance to validate
+
+            schema:
+
+                The schema to validate with
+
+            cls (jsonschema.protocols.Validator):
+
+                The class that will be used to validate the instance.
+
+        If the ``cls`` argument is not provided, two things will happen
+        in accordance with the specification. First, if the schema has a
+        :kw:`$schema` keyword containing a known meta-schema [#]_ then the
+        proper validator will be used. The specification recommends that
+        all schemas contain :kw:`$schema` properties for this reason. If no
+        :kw:`$schema` property is found, the default validator class is the
+        latest released draft.
+
+        Any other provided positional and keyword arguments will be passed
+        on when instantiating the ``cls``.
+
+        Raises:
+
+            `jsonschema.exceptions.ValidationError`:
+
+                if the instance is invalid
+
+            `jsonschema.exceptions.SchemaError`:
+
+                if the schema itself is invalid
+
+        .. rubric:: Footnotes
+        .. [#] known by a validator registered with
+            `jsonschema.validators.validates`
+
+        """
+        if cls is None:
+            cls = validator_for(schema)
+
+        cls.check_schema(schema)
+        validator = cls(schema, *args, **kwargs)
+        error = exceptions.best_match(validator.iter_errors(instance))
+        if error is not None:
+>           raise error
+E           jsonschema.exceptions.ValidationError: 'source' is a required property
+E
+E           Failed validating 'required' in schema['properties']['items']['items']:
+E               {'type': 'object',
+E                'properties': {'title': {'type': 'string'},
+E                               'url': {'type': 'string',
+E                                       'description': 'URL HTTP(S) đầy đủ, không chứa '
+E                                                      'credentials hay khoảng trắng'},
+E                               'source': {'type': 'string',
+E                                          'description': 'Tên nguồn, domain hoặc '
+E                                                         'handle; không rỗng'},
+E                               'summary': {'type': 'string'},
+E                               'section': {'type': 'string'}},
+E                'required': ['url', 'source']}
+E
+E           On instance['items'][1]:
+E               {'url': 'https://example.com'}
+
+C:\Users\Admin\AppData\Local\Programs\Python\Python314\Lib\site-packages\jsonschema\validators.py:1332: ValidationError
+============================== warnings summary ===============================
+C:\Users\Admin\AppData\Local\Programs\Python\Python314\Lib\site-packages\anyio\pytest_plugin.py:14
+  C:\Users\Admin\AppData\Local\Programs\Python\Python314\Lib\site-packages\anyio\pytest_plugin.py:14: PytestRemovedIn10Warning: _pytest.python.CallSpec2 has been renamed to CallSpec.
+  The CallSpec2 alias will be removed in pytest 10.
+  Update imports to use CallSpec instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#callspec2-renamed
+    from _pytest.python import CallSpec2
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_tools_todo.py::test_source_check_provider_schema_accepts_incomplete_items[incomplete0-issues0]
+FAILED tests/test_tools_todo.py::test_source_check_provider_schema_accepts_incomplete_items[incomplete1-issues1]
+FAILED tests/test_tools_todo.py::test_source_check_provider_schema_accepts_incomplete_items[incomplete2-issues2]
+FAILED tests/test_tools_todo.py::test_source_check_provider_schema_accepts_incomplete_items[incomplete3-issues3]
+4 failed, 55 deselected, 1 warning in 1.65s

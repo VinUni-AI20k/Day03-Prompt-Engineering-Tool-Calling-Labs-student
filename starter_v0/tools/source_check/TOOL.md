@@ -19,7 +19,9 @@ Không dùng để tìm kiếm, đọc trang, xác minh sự thật hoặc đán
 
 ## Contract
 
-- `items` bắt buộc là list; mỗi phần tử cần là object có `url` và `source`.
+- `items` bắt buộc là list. Schema cho phép object thiếu `url` hoặc `source`
+  để tool kiểm tra và báo lỗi. Một item chỉ được tính hợp lệ nếu có đủ hai
+  trường hợp lệ; truyền nguyên dữ liệu, không tự điền field thiếu.
 - URL cần HTTP(S), hostname hợp lệ (tên miền IDNA hoặc IP), port hợp lệ nếu có;
   không chứa khoảng trắng, ký tự điều khiển, dấu gạch chéo ngược hay credentials.
 - `source` là chuỗi không rỗng sau khi strip, có thể là tên nhà xuất bản,

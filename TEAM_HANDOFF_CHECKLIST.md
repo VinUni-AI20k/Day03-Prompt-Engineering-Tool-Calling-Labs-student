@@ -4,6 +4,14 @@ Cập nhật: **10/11/2026**. Phân công gốc: [TASK_ASSIGNMENT.md](TASK_ASSIG
 Đây là file theo dõi tiến độ hiện tại; phân công và phạm vi sở hữu file vẫn theo
 `TASK_ASSIGNMENT.md`. Mỗi thành viên cập nhật phần của mình khi có kết quả mới.
 
+**Cập nhật của Tân — sửa schema sau group eval:** branch
+`feature/source-check-schema-03688`, base `main@9b24a6a`. Đã sửa khai báo
+`source_check` để provider cho phép item thiếu URL/source tới tool; 4 regression
+cases FAIL trước sửa và PASS sau sửa. Toàn bộ test đạt **131 passed, 0 failed,
+0 skipped**. Chi tiết và output: [bàn giao schema fix](starter_v0/tools/source_check/SCHEMA_FIX_HANDOFF.md).
+Trọng/Minh nhận bản sửa sau review/merge rồi chạy lại eval; chưa có kết quả API
+thật sau sửa, không đổi các run ERR cũ thành PASS.
+
 ## 1. Tình trạng hiện tại và việc cần làm ngay
 
 | Thành viên | Phần việc | Trạng thái đã biết | Việc tiếp theo |

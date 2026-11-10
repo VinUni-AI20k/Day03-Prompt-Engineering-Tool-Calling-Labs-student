@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 import requests
+from jsonschema import validate
 
 from agent import ResearchAgent
 from conftest import FakeResponse
@@ -228,7 +229,7 @@ def test_source_check_is_declared_and_executed_by_agent() -> None:
     tools = to_openai_tools(declarations)
     schema = next(tool["function"] for tool in tools if tool["function"]["name"] == "source_check")
     assert schema["parameters"]["required"] == ["items"]
-    assert schema["parameters"]["properties"]["items"]["items"]["required"] == ["url", "source"]
+    assert schema["parameters"]["properties"]["items"]["items"].get("required", []) == []
     items = [{"url": "https://example.com", "source": "Example"}]
 
     class FakeProvider:
@@ -250,3 +251,34 @@ def test_fetch_timeout_returns_error_dict(monkeypatch, fake_http) -> None:
     assert len(calls) == 1
     assert result["error"] == "Timeout"
     assert result["message"] == "simulated timeout"
+
+
+@pytest.mark.parametrize("incomplete,issues", [
+    ({}, ["missing_url", "missing_source"]),
+    ({"title": "Missing citation"}, ["missing_url", "missing_source"]),
+    ({"source": "Example"}, ["missing_url"]),
+    ({"url": "https://example.com"}, ["missing_source"]),
+])
+def test_source_check_provider_schema_accepts_incomplete_items(incomplete, issues) -> None:
+    """Provider validation must allow missing citation fields to reach the checker."""
+    declarations = load_tool_declarations(Path(__file__).resolve().parents[1] / "artifacts" / "tools.yaml")
+    openai_tools = to_openai_tools(declarations)
+    good = {"title": "Good item", "url": "https://example.com", "source": "Example"}
+    items = [good, incomplete]
+    original = deepcopy(items)
+
+    class ValidatingProvider:
+        def complete(self, messages, tools=None, **kwargs):
+            schema = next(tool["function"]["parameters"] for tool in tools
+                          if tool["function"]["name"] == "source_check")
+            validate(instance={"items": items}, schema=schema)
+            return ModelResponse(tool_calls=[ToolCall("source_check", {"items": items})])
+
+    run = ResearchAgent(ValidatingProvider(), system_prompt="test", tools=openai_tools).run([
+        {"role": "user", "content": "Check existing citation metadata without filling missing fields"},
+    ])
+    event = run.tool_results[0]
+    assert event["args"]["items"] == items == original
+    assert event["result"]["items"] == [good]
+    assert event["result"]["valid_count"] == event["result"]["invalid_count"] == 1
+    assert event["result"]["results"][1] == {"index": 1, "valid": False, "issues": issues}
