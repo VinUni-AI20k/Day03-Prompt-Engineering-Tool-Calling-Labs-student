@@ -22,11 +22,17 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+```bash
+cd starter_v0
+pip install -r requirements.txt   # SDK provider; UI dùng stdlib http.server (không thêm package)
+python -m ui --provider openrouter --version v3
+# mở http://127.0.0.1:8787
+```
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
+> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel:
+> `cloudflared tunnel --url http://127.0.0.1:8787`
 >
 > URL:
 
