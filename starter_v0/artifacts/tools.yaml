@@ -1,15 +1,10 @@
-# starter_v0 — tool declarations (intentionally vague).
-# Names and descriptions here are a rough first draft. Routing rules, name->handle
-# mapping, arg conventions (news/timeframe/Top), and the send-confirmation boundary
-# are NOT spelled out anywhere yet. Your job is to make these declarations + the
-# system prompt good enough that the agent routes correctly on the eval.
+# Tool declarations (v8). Mỗi description nêu tool làm gì, KHI NÀO dùng / KHÔNG dùng.
 #
 # If you rename a tool, keep the name in sync across:
 #   this file  ->  tools/__init__.py (TOOL_FUNCTIONS)  ->  data/eval_base.json + data/eval_research_extension.json
 # `pytest tests/test_tool_contract.py` checks this sync for you.
 #
-# CP2 (v4): mỗi description nêu tool làm gì, KHI NÀO dùng / KHÔNG dùng; parameter
-# description ghi convention args (handle không '@', query chỉ chủ đề cốt lõi,
+# Parameter description ghi convention args (handle không '@', query chỉ chủ đề cốt lõi,
 # topic/timeframe, search_type, response_type=yes_no khi xin xác nhận); send có boundary xác nhận.
 tools:
   # ---------------- Core tools ----------------
@@ -182,5 +177,41 @@ tools:
       properties:
         repo:
           type: string
+          default: ""
           description: "Tên theo dạng owner/repo, ví dụ psf/requests; không phải URL và không có đuôi .git."
       required: [repo]
+
+  - name: hackernews
+    description: >-
+      Tìm các story trên Hacker News theo từ khóa: tiêu đề, link, điểm và số bình luận.
+      Dùng khi user hỏi cộng đồng Hacker News/dân lập trình đang bàn gì về một chủ đề.
+      Không dùng để tìm tin web nói chung (dùng lookup) hay bài đăng trên X (dùng social_search).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa tìm kiếm, ví dụ 'rust async'."}
+        sort: {type: string, enum: [relevance, date], default: "relevance", description: "relevance = liên quan nhất; date = mới nhất."}
+        limit: {type: integer, default: 5, description: "Số story, mặc định 5, tối đa 20."}
+      required: [query]
+
+  - name: wikipedia
+    description: >-
+      Lấy đoạn tóm tắt của một bài Wikipedia theo tiêu đề để giải thích nhanh một khái niệm,
+      tổ chức hoặc nhân vật. Dùng khi user hỏi "X là gì / X là ai". Không dùng cho tin mới (dùng lookup). Nếu tiêu đề mơ hồ thì hỏi lại bằng clarify.
+    parameters:
+      type: object
+      properties:
+        title: {type: string, default: "", description: "Tiêu đề bài Wikipedia, ví dụ 'Transformer (deep learning architecture)'."}
+        lang: {type: string, enum: [en, vi], default: "en", description: "Ngôn ngữ Wikipedia; vi khi user hỏi bằng tiếng Việt về chủ đề Việt Nam."}
+      required: [title]
+
+  - name: pypi_package
+    description: >-
+      Đọc metadata package Python trên PyPI theo tên: phiên bản mới nhất, mô tả, yêu cầu Python,
+      ngày phát hành. Dùng khi user hỏi bản mới nhất của một thư viện Python. Không dùng cho repo
+      GitHub (dùng github_repo). Nếu chưa biết tên package thì hỏi lại bằng clarify.
+    parameters:
+      type: object
+      properties:
+        package: {type: string, default: "", description: "Tên project trên PyPI, ví dụ 'requests'; không phải URL, không kèm '==version'."}
+      required: [package]
