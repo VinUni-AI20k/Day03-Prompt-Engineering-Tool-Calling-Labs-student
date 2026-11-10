@@ -32,6 +32,8 @@ from versioning import artifact_version_dict, build_artifact_version
 RUNS_DIR = ROOT / "runs"
 TRANSCRIPTS_DIR = ROOT / "transcripts"
 VERSION_LOG = ARTIFACTS_DIR / "version_log.csv"
+VERSIONS_DIR = ARTIFACTS_DIR / "versions"
+CURRENT_ARTIFACTS = "current"
 PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama"]
 
 STATUS_LABEL = {
@@ -80,9 +82,30 @@ def render_tool_events(events: list[dict[str, Any]]) -> None:
             st.code(pretty(result), language="json")
 
 
-def new_session(version: str, provider_name: str, model: str | None, history_window: int, max_tool_rounds: int) -> None:
-    prompt_path = ARTIFACTS_DIR / "system_prompt.md"
-    tools_path = ARTIFACTS_DIR / "tools.yaml"
+def version_key(name: str) -> tuple:
+    """Sắp xếp v0, v1, ..., v10 theo số; tên khác (v4-local) xếp sau theo chữ."""
+    digits = name[1:] if name.startswith("v") else ""
+    return (0, int(digits), name) if digits.isdigit() else (1, 0, name)
+
+
+def list_artifact_sets() -> list[str]:
+    """'current' (artifacts/ đang sửa) + các snapshot trong artifacts/versions/<v>/."""
+    snapshots: list[str] = []
+    if VERSIONS_DIR.exists():
+        snapshots = [
+            p.name for p in VERSIONS_DIR.iterdir()
+            if p.is_dir() and (p / "system_prompt.md").exists() and (p / "tools.yaml").exists()
+        ]
+    return [CURRENT_ARTIFACTS, *sorted(snapshots, key=version_key, reverse=True)]
+
+
+def artifact_paths(artifact_set: str) -> tuple[Path, Path]:
+    base = ARTIFACTS_DIR if artifact_set == CURRENT_ARTIFACTS else VERSIONS_DIR / artifact_set
+    return base / "system_prompt.md", base / "tools.yaml"
+
+
+def new_session(version: str, artifact_set: str, provider_name: str, model: str | None, history_window: int, max_tool_rounds: int) -> None:
+    prompt_path, tools_path = artifact_paths(artifact_set)
     artifact_version = build_artifact_version(version, prompt_path, tools_path)
     timestamp = datetime.now().strftime("%Y%m%dT%H%M%S%f")
     transcript_id = "_".join([safe_slug(version), safe_slug(provider_name), "ui", timestamp])
@@ -92,8 +115,9 @@ def new_session(version: str, provider_name: str, model: str | None, history_win
         **artifact_version_dict(artifact_version),
         "provider": provider_name,
         "model": model,
-        "system_prompt": str(prompt_path),
-        "tools": str(tools_path),
+        "artifact_set": artifact_set,
+        "system_prompt": str(prompt_path.relative_to(ROOT)),
+        "tools": str(tools_path.relative_to(ROOT)),
         "history_window": history_window,
         "max_tool_rounds": max_tool_rounds,
         "ui": "streamlit",
@@ -107,8 +131,10 @@ def new_session(version: str, provider_name: str, model: str | None, history_win
 
 
 def run_turn(user_text: str, provider_name: str, model: str | None, history_window: int, max_tool_rounds: int) -> dict[str, Any]:
-    system_prompt = (ARTIFACTS_DIR / "system_prompt.md").read_text(encoding="utf-8")
-    openai_tools = to_openai_tools(load_tool_declarations(ARTIFACTS_DIR / "tools.yaml"))
+    # Dùng đúng prompt/tools của phiên chat (chọn ở sidebar), không phải file đang sửa.
+    transcript = st.session_state.transcript
+    system_prompt = (ROOT / transcript["system_prompt"]).read_text(encoding="utf-8")
+    openai_tools = to_openai_tools(load_tool_declarations(ROOT / transcript["tools"]))
 
     messages = [
         {"role": "system", "content": system_prompt},
@@ -158,12 +184,22 @@ with st.sidebar:
     provider_name = st.selectbox("Provider", PROVIDERS, index=0)
     model_input = st.text_input("Model (bỏ trống = mặc định của provider)", value="")
     model = model_input.strip() or None
-    version = st.text_input("Version label", value="v0", help="Nhãn ghi vào transcript, ví dụ v0, v1, v3.")
+    artifact_set = st.selectbox(
+        "Prompt + tools",
+        list_artifact_sets(),
+        index=0,
+        format_func=lambda s: "current (artifacts/ đang sửa)" if s == CURRENT_ARTIFACTS else f"{s} (artifacts/versions/{s})",
+        help="Chọn version để chat. Snapshot tạo bằng: python scripts/snapshot_version.py <version>",
+    )
+    if artifact_set == CURRENT_ARTIFACTS:
+        version = st.text_input("Version label", value="dev", help="Nhãn ghi vào transcript khi dùng file đang sửa, ví dụ v3.")
+    else:
+        version = artifact_set
     history_window = st.number_input("History window (cặp lượt)", min_value=0, max_value=20, value=5)
     max_tool_rounds = st.number_input("Max tool rounds", min_value=1, max_value=10, value=4)
 
     if st.button("🆕 Phiên chat mới", width="stretch") or "transcript" not in st.session_state:
-        new_session(version, provider_name, model, int(history_window), int(max_tool_rounds))
+        new_session(version, artifact_set, provider_name, model, int(history_window), int(max_tool_rounds))
 
     st.divider()
     t = st.session_state.transcript
@@ -171,7 +207,14 @@ with st.sidebar:
     st.code(t["artifact_version"], language=None)
     st.caption("Transcript")
     st.code(str(Path(st.session_state.transcript_path).relative_to(ROOT)), language=None)
-    if t["version"] != version or t["provider"] != provider_name or t["model"] != model:
+    st.caption("Prompt / tools đang dùng")
+    st.code(f"{t['system_prompt']}\n{t['tools']}", language=None)
+    if (
+        t["version"] != version
+        or t.get("artifact_set") != artifact_set
+        or t["provider"] != provider_name
+        or t["model"] != model
+    ):
         st.warning("Bạn đã đổi version/provider/model. Bấm **Phiên chat mới** để áp dụng.")
 
 
