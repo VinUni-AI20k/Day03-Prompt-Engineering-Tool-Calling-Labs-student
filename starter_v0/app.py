@@ -9,6 +9,7 @@ sessions are valid live-chat evidence. Tool errors are shown, never hidden.
 """
 from __future__ import annotations
 
+import csv
 import os
 from datetime import datetime
 from pathlib import Path
@@ -30,6 +31,11 @@ from tools import load_tool_declarations, to_openai_tools
 from versioning import artifact_version_dict, build_artifact_version
 
 PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama"]
+# Provider/model for the UI — same as the eval runs v0–v3 (Gemini gemini-3.8-flash).
+# Override with AGENT_PROVIDER / AGENT_MODEL.
+DEFAULT_PROVIDER = os.getenv("AGENT_PROVIDER", "gemini")
+DEFAULT_MODEL = os.getenv("AGENT_MODEL", "gemini-3.8-flash")
+VERSION_LOG_PATH = ARTIFACTS_DIR / "version_log.csv"
 SYSTEM_PROMPT_PATH = ARTIFACTS_DIR / "system_prompt.md"
 TOOLS_PATH = ARTIFACTS_DIR / "tools.yaml"
 TRANSCRIPTS_DIR = ROOT / "transcripts"
@@ -45,6 +51,25 @@ st.set_page_config(page_title="Research Agent — NhomSNN", page_icon="🔎", la
 
 
 # ---------------------------------------------------------------- helpers
+def detect_version_label() -> str:
+    """Return the version_log label whose prompt+tools hashes match the current files.
+
+    Prevents transcripts labelled e.g. "v3" while the starter prompt is still running.
+    """
+    current = build_artifact_version("probe", SYSTEM_PROMPT_PATH, TOOLS_PATH)
+    try:
+        with VERSION_LOG_PATH.open(encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+    except OSError:
+        rows = []
+    for row in reversed(rows):
+        if (row.get("prompt_hash") or "").strip() == current.prompt_hash and (
+            row.get("tools_hash") or ""
+        ).strip() == current.tools_hash:
+            return (row.get("version") or "").strip() or "unversioned"
+    return "unversioned"
+
+
 def new_transcript(provider_name: str, model: str | None, version: str, history_window: int, max_rounds: int) -> dict[str, Any]:
     artifact_version = build_artifact_version(version, SYSTEM_PROMPT_PATH, TOOLS_PATH)
     timestamp = datetime.now().strftime("%Y%m%dT%H%M%S%f")
@@ -149,9 +174,16 @@ def run_turn(user_text: str) -> None:
 # ---------------------------------------------------------------- sidebar
 with st.sidebar:
     st.header("⚙️ Cấu hình")
-    provider_name = st.selectbox("Provider", PROVIDERS, index=0)
-    model = st.text_input("Model (để trống = mặc định của provider)", value="").strip() or None
-    version = st.text_input("Version label", value=os.getenv("AGENT_VERSION", "v3")).strip() or "v3"
+    provider_name = st.selectbox(
+        "Provider", PROVIDERS, index=PROVIDERS.index(DEFAULT_PROVIDER) if DEFAULT_PROVIDER in PROVIDERS else 0
+    )
+    model = st.text_input("Model (để trống = mặc định của provider)", value=DEFAULT_MODEL).strip() or None
+    detected_version = detect_version_label()
+    version = st.text_input(
+        "Version label (tự nhận theo hash trong version_log.csv)", value=detected_version
+    ).strip() or detected_version
+    if detected_version == "unversioned":
+        st.warning("Prompt/tools hiện tại chưa khớp version nào trong version_log.csv.")
     history_window = st.slider("History window (cặp lượt)", 0, 10, 5)
     max_rounds = st.slider("Max tool rounds", 1, 8, 4)
     config = (provider_name, model, version, history_window, max_rounds)

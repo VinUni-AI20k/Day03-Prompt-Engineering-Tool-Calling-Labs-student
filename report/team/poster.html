@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NhomSNN Research Agent</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --panel: #ffffff; --ink: #1c1d1f; --muted: #5d6066;
+    --line: #e2e0d8; --accent: #1f6f5c; --accent-soft: #e3f1ec;
+    --warn: #9a4b00; --warn-soft: #fbeedd; --new: #6b3fa0; --new-soft: #efe7f8;
+    --code: #f0eee7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #131416; --panel: #1c1d20; --ink: #ecebe6; --muted: #a3a5aa;
+      --line: #2e3034; --accent: #5cc3a6; --accent-soft: #17302a;
+      --warn: #f0a560; --warn-soft: #33240f; --new: #b896e6; --new-soft: #2a2236;
+      --code: #26282c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #131416; --panel: #1c1d20; --ink: #ecebe6; --muted: #a3a5aa;
+    --line: #2e3034; --accent: #5cc3a6; --accent-soft: #17302a;
+    --warn: #f0a560; --warn-soft: #33240f; --new: #b896e6; --new-soft: #2a2236;
+    --code: #26282c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .page { max-width: 1080px; margin: 0 auto; padding: 32px 16px 48px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 18px; margin-bottom: 24px; }
+  .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.1; margin: 6px 0 10px; letter-spacing: -.02em; }
+  .lede { font-size: 17px; max-width: 760px; margin: 0; }
+  .lede strong { color: var(--accent); }
+  .try {
+    margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  .try a {
+    background: var(--accent); color: var(--bg); text-decoration: none; font-weight: 600;
+    padding: 8px 14px; border-radius: 6px; word-break: break-all;
+  }
+  .try span { color: var(--muted); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+  h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 12px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 7px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  tr:first-child td { border-top: 0; }
+  td:first-child { width: 128px; padding-right: 10px; }
+  code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 13px;
+         background: var(--code); padding: 1px 6px; border-radius: 4px; }
+  .tag { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px; white-space: nowrap; }
+  .tag.new { background: var(--new-soft); color: var(--new); }
+  .tag.guard { background: var(--warn-soft); color: var(--warn); }
+  ol { margin: 0; padding-left: 20px; }
+  ol li { margin-bottom: 12px; }
+  ol li q { font-weight: 600; }
+  .expect { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .rules { display: grid; gap: 10px; margin-top: 20px; }
+  .rule { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; }
+  .rule.guard { border-color: var(--warn); }
+  .rule b { display: block; }
+  .rule span { color: var(--muted); font-size: 14px; }
+  footer { margin-top: 24px; color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="kicker">NhomSNN · K5-L3B · Day 03 Research Agent Tool Eval</div>
+    <h1>Research Agent</h1>
+    <p class="lede">Tìm tin AI/công nghệ trên web và X, đọc URL, tra arXiv, policy nội bộ và repo GitHub, rồi tổng hợp thành digest.
+      Agent <strong>hỏi lại khi thiếu thông tin</strong> và <strong>chỉ gửi Telegram sau khi bạn xác nhận</strong>.</p>
+    <div class="try">
+      <a href="https://streams-stars-bucks-details.trycloudflare.com">streams-stars-bucks-details.trycloudflare.com</a>
+      <span>Link tạm thời (Cloudflare Tunnel) · model <code>gemini-3.8-flash</code> (Gemini)</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section>
+      <h2>Tool agent có</h2>
+      <table>
+        <tr><td><code>clarify</code></td><td>Hỏi lại khi thiếu thông tin (account, URL, repo…), chờ bạn trả lời</td></tr>
+        <tr><td><code>lookup</code></td><td>Tìm web qua Tavily, <code>topic</code> general/news, có <code>timeframe</code></td></tr>
+        <tr><td><code>fetch</code></td><td>Đọc nội dung một URL cụ thể (Firecrawl)</td></tr>
+        <tr><td><code>timeline</code></td><td>Bài đăng gần đây của một tài khoản X (handle không có <code>@</code>)</td></tr>
+        <tr><td><code>social_search</code></td><td>Tìm bài đăng X theo từ khóa, <code>Latest</code> hoặc <code>Top</code></td></tr>
+        <tr><td><code>format</code></td><td>Trình bày item đã thu thập thành digest markdown</td></tr>
+        <tr><td><code>papers</code></td><td>Tìm paper trên arXiv</td></tr>
+        <tr><td><code>paper_text</code></td><td>Tải PDF arXiv và trích text</td></tr>
+        <tr><td><code>policy</code></td><td>Tra policy nội bộ công ty</td></tr>
+        <tr><td><code>github_repo</code><span class="tag new">MỚI</span></td><td>Metadata repo GitHub công khai theo <code>owner/repo</code>: mô tả, sao, fork, ngôn ngữ</td></tr>
+        <tr><td><code>send</code><span class="tag guard">XÁC NHẬN</span></td><td>Gửi lên Telegram của nhóm, chỉ khi <code>confirmed=true</code></td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Thử ngay</h2>
+      <ol>
+        <li><q>Tin tức mới nhất về AI agent trong tuần này?</q>
+          <span class="expect">→ <code>lookup</code> topic=news, timeframe=week</span></li>
+        <li><q>Sam Altman gần đây đăng gì trên X?</q>
+          <span class="expect">→ <code>timeline</code> screenname=sama</span></li>
+        <li><q>Trên X đang nói gì nổi bật về GPT-5?</q>
+          <span class="expect">→ <code>social_search</code> search_type=Top</span></li>
+        <li><q>Repo psf/requests có bao nhiêu sao, viết bằng ngôn ngữ gì?</q>
+          <span class="expect">→ <code>github_repo</code> repo=psf/requests</span></li>
+        <li><q>Tóm tắt giúp tôi bài viết này</q>
+          <span class="expect">→ <code>clarify</code> hỏi URL, rồi <code>fetch</code></span></li>
+        <li><q>Tổng hợp tin AI hôm nay rồi gửi lên Telegram</q>
+          <span class="expect">→ tổng hợp, rồi hỏi xác nhận trước khi <code>send</code></span></li>
+      </ol>
+
+      <div class="rules">
+        <div class="rule"><b>Không đoán</b><span>Thiếu account, URL hay repo → hỏi lại thay vì tự chọn.</span></div>
+        <div class="rule guard"><b>Không hành động khi chưa xác nhận</b><span>Bản public này tắt Telegram: <code>send</code> sẽ trả lỗi, UI hiện lỗi đó.</span></div>
+        <div class="rule"><b>Minh bạch</b><span>UI hiện mọi tool call, args, kết quả và lỗi; mỗi phiên lưu transcript JSON.</span></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <span>Bùi Thái Sỹ · Nguyễn Lương Nguyên · Mai Xuân Nhân · Bùi Đức Hiếu</span>
+    <span>Chi tiết và bằng chứng: <code>report/team/group_report.md</code></span>
+  </footer>
+</div>
+</body>
+</html>

@@ -8,8 +8,15 @@ import requests
 from tools._shared import TIMEOUT, err
 
 
+def _is_confirmed(value: Any) -> bool:
+    # Chỉ boolean True hoặc chuỗi "true" mới là xác nhận; chuỗi "false"/"no" là truthy trong Python.
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return value is True
+
+
 def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
-    if not confirmed:
+    if not _is_confirmed(confirmed):
         return {
             "tool": "send_telegram",
             "status": "needs_confirmation",
