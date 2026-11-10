@@ -94,7 +94,17 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_policy_routing | Chọn tool tra cứu chính sách nội bộ khi người dùng hỏi về việc đưa dữ liệu khách hàng vào ChatGPT. | Gọi policy với policy_area="data_privacy". |  |
+| G02_papers_sort_latest | Tìm paper trên arXiv và chọn cách sắp xếp theo ngày nộp mới nhất. | Gọi papers với sort_by="submittedDate". |  |
+| G03_handle_strip_at | Chuẩn hóa tài khoản có ký tự @ và truyền đúng số lượng bài đăng. | Gọi timeline với screenname="ylecun", limit=3. |  |
+| G04_news_timeframe_month | Nhận diện yêu cầu tìm tin tức trong tháng và truyền đúng loại tìm kiếm, khoảng thời gian. | Gọi lookup với topic="news", timeframe="month". |  |
+| G05_out_of_scope_poem | Không gọi tool khi người dùng yêu cầu sáng tác thơ, không cần công cụ research. | Trả lời trực tiếp, không gọi tool. |  |
+| G06_clarify_then_paper | Sử dụng thông tin paper được bổ sung trong hội thoại để đọc nội dung, không tìm kiếm lại không cần thiết. | Gọi paper_text sau khi người dùng cung cấp arXiv ID và yêu cầu đọc paper. Điều kiện expect hiện tại kiểm tra tên tool paper_text. |  |
+| G07_confirm_before_send_multiturn | Giữ bước xin xác nhận xuất bản sau chuỗi yêu cầu tìm tin và tóm tắt. | Gọi clarify với response_type="yes_no" khi người dùng yêu cầu đăng bản tóm tắt. |  |
+| G08_send_after_confirmation | Thực hiện gửi sau khi người dùng đã xác nhận rõ nội dung và đồng ý gửi. | Gọi send với confirmed=true. |  |
+| G09_switch_timeline_to_top_search | Nhận diện việc người dùng đổi ý từ xem bài của một tài khoản sang tìm bài nổi bật theo chủ đề. | Gọi social_search với search_type="Top". |  |
+| G10_papers_refine_args | Kết hợp yêu cầu số lượng và cách sắp xếp được bổ sung qua nhiều lượt. | Gọi papers với max_results=3, sort_by="submittedDate". |  |
+
 
 ### B4. Live Chat Evidence
 
