@@ -23,6 +23,7 @@ ROOT = Path(__file__).parent
 ARTIFACTS_DIR = ROOT / "artifacts"
 TRANSCRIPTS_DIR = ROOT / "transcripts"
 TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
+RUNS_DIR = ROOT / "runs"
 
 # Load environment
 load_lab_env(ROOT)
@@ -257,6 +258,96 @@ with st.sidebar:
         st.error(f"Lỗi đọc tools.yaml: {e}")
 
     st.markdown("---")
+    st.subheader("📊 File Đánh giá (Eval Runs)")
+
+    all_runs = sorted(list(RUNS_DIR.glob("*.json")), key=lambda p: p.stat().st_mtime, reverse=True)
+    matching_runs = [rf for rf in all_runs if rf.name.startswith(f"{version_label}_")]
+
+    show_all = st.checkbox(
+        "Hiển thị tất cả version",
+        value=False,
+        help="Bỏ chọn để chỉ lọc đúng file run của version đang chọn.",
+    )
+    active_runs = all_runs if show_all else (matching_runs if matching_runs else all_runs)
+
+    if active_runs:
+        run_file_names = [rf.name for rf in active_runs]
+        default_idx = 0
+        if version_label == "v0" and "v0_B_base_openai_20261110T101352671219.json" in run_file_names:
+            default_idx = run_file_names.index("v0_B_base_openai_20261110T101352671219.json")
+
+        selected_run_file = st.selectbox(
+            f"File Run Eval ứng với {version_label}:",
+            options=run_file_names,
+            index=default_idx,
+            help=f"Chỉ hiển thị các lần chạy đánh giá cho phiên bản {version_label}.",
+        )
+
+        selected_run_path = RUNS_DIR / selected_run_file
+        try:
+            with open(selected_run_path, encoding="utf-8") as rf_fp:
+                run_data = json.load(rf_fp)
+
+            r_summary = run_data.get("summary", {})
+            r_acc = r_summary.get("case_accuracy", 0) * 100
+            r_passed = r_summary.get("passed_cases", 0)
+            r_total = r_summary.get("total_cases", 0)
+            r_ver = run_data.get("version", "N/A")
+            r_provider = run_data.get("provider", "N/A")
+            r_model = run_data.get("model", "N/A")
+            r_art_ver = run_data.get("artifact_version", "")
+
+            # Compact stats card
+            acc_color = "#16a34a" if r_acc >= 80 else ("#ca8a04" if r_acc >= 70 else "#dc2626")
+            st.markdown(
+                f"""
+                <div style="background-color: #f8fafc; border-radius: 8px; padding: 0.85rem; margin-bottom: 0.6rem; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Version: <code style="color: #0284c7;">{r_ver}</code></span>
+                        <span style="color: {acc_color}; font-size: 1.05rem;">{r_acc:.1f}%</span>
+                    </div>
+                    <div style="font-size: 0.82rem; color: #475569; margin-top: 0.35rem; line-height: 1.4;">
+                        <b>Passed:</b> {r_passed}/{r_total} cases ({r_provider} / {r_model})<br>
+                        <b>Routing:</b> {r_summary.get('tool_routing_accuracy', 0)*100:.1f}% | <b>Args:</b> {r_summary.get('argument_accuracy', 0)*100:.1f}%<br>
+                        <b>Multiturn:</b> {r_summary.get('multiturn_accuracy', 0)*100:.1f}%
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # Failure Breakdown tags
+            r_failures = r_summary.get("failure_counts", {})
+            if r_failures:
+                fail_tags = " | ".join([f"<b>{k}</b>: {v}" for k, v in r_failures.items()])
+                st.caption(f"⚠️ **Phân bố lỗi:** {fail_tags}", unsafe_allow_html=True)
+
+            # Cases Inspector Expander
+            with st.expander(f"📋 Chi tiết {r_total} Test Cases (PASS / FAIL)", expanded=False):
+                cases_list = run_data.get("results", [])
+                for idx, c in enumerate(cases_list):
+                    c_id = c.get("id", f"case_{idx+1}")
+                    c_res = c.get("result", {})
+                    c_passed = c_res.get("passed", False)
+                    c_badge = "🟢 PASS" if c_passed else "🔴 FAIL"
+
+                    st.markdown(f"**{c_badge}** `{c_id}`")
+                    if not c_passed:
+                        st.markdown(f"- **Loại lỗi:** `{c_res.get('failure_type')}`")
+                        st.markdown(f"- **Kỳ vọng:** `{c.get('expect')}`")
+                        st.markdown(f"- **Thực tế:** `{c_res.get('actual_tool_calls')}`")
+                    st.divider()
+
+            # Raw JSON Viewer Expander
+            with st.expander("🔍 Xem Raw JSON file Run", expanded=False):
+                st.json(run_data)
+
+        except Exception as e:
+            st.error(f"Lỗi đọc file run: {e}")
+    else:
+        st.info("Chưa có file nào trong thư mục runs/")
+
+    st.markdown("---")
     if st.button("🗑️ Xóa lịch sử chat & làm mới", use_container_width=True):
         st.session_state.messages = []
         st.session_state.chat_history = []
@@ -267,6 +358,12 @@ with st.sidebar:
 
 
 # ---------------- Session State Initialization ----------------
+if "current_version" not in st.session_state:
+    st.session_state.current_version = version_label
+elif st.session_state.current_version != version_label:
+    st.session_state.current_version = version_label
+    st.session_state.transcript = None
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
