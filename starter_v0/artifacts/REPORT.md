@@ -198,7 +198,7 @@ Lệnh chạy từ thư mục `starter_v0`:
 .\.venv\Scripts\python.exe -X utf8 -m pytest tests/ -q
 ```
 
-Kết quả tại thời điểm hoàn thiện báo cáo: **109 passed, 17 skipped**.
+Kết quả tại thời điểm hoàn thiện báo cáo: **166 passed, 0 skipped**.
 Các test skipped nằm trong `tests/test_tools_todo.py`, là các bài mẫu chưa
 triển khai; không được tính là test đã đạt. Unit test chạy offline với mock
 network, tách biệt với điểm eval lựa chọn tool/tham số. Chưa có phép đo
