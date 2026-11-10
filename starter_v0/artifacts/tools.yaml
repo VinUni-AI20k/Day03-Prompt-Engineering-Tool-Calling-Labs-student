@@ -171,3 +171,64 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tools (public APIs, no key) ----------------
+  - name: hackernews
+    description: >-
+      Search Hacker News stories (tech community discussion, points, comments).
+      USE when the user mentions Hacker News / HN / "dân tech bàn gì trên HN".
+      DO NOT use for general web news (use lookup) or Twitter (use social_search).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Core keyword only, e.g. 'LLM agents'."}
+        sort: {type: string, enum: [relevance, date], default: "relevance", description: "date = newest stories (mới nhất); relevance = best match/popular."}
+        limit: {type: integer, default: 5, description: "Number of stories; the number the user asked for, otherwise 5."}
+      required: [query]
+
+  - name: wikipedia
+    description: >-
+      Get the encyclopedia intro of a concept, person, company or technology from Wikipedia.
+      USE for background/definitions: "X là gì", "giới thiệu về X", "ai là X".
+      DO NOT use for recent news (use lookup) or when you can answer a trivial question directly.
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Article subject, e.g. 'Transformer (deep learning)', 'Andrej Karpathy'."}
+        lang: {type: string, enum: [en, vi], default: "en", description: "vi only if the user asks for the Vietnamese Wikipedia article; otherwise en."}
+      required: [query]
+
+  - name: openalex
+    description: >-
+      Find scholarly papers by AUTHOR NAME and/or TOPIC (OpenAlex: all venues, citation counts).
+      USE when the user NAMES AN AUTHOR: "bài báo của <tác giả>", "tác giả X viết gì về Y".
+      DO NOT use for a topic-only ranking such as "top / trích dẫn nhiều nhất về <chủ đề> trong N tháng qua" (use top_papers),
+      for the newest arXiv preprints by keyword (use papers), or for news (use lookup).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Topic keywords only, e.g. 'retrieval-augmented generation'. Leave empty when the user only names an author."}
+        author: {type: string, default: "", description: "Author full name as the user wrote it, e.g. 'Geoffrey Hinton'. Leave empty when searching by topic only."}
+        sort: {type: string, enum: [cited, recent], default: "cited", description: "cited = most cited / quan trọng nhất (default); recent = newest / mới nhất."}
+        limit: {type: integer, default: 5, description: "Number of papers; the number the user asked for, otherwise 5."}
+      required: []
+
+  # ---------------- Team tool (CP3) ----------------
+  - name: top_papers
+    description: >-
+      Trả về danh sách bài báo ĐÃ XUẤT BẢN trên tạp chí (journal) và/hoặc hội nghị (conference)
+      trong N tháng gần đây, xếp hạng theo số trích dẫn, độ liên quan hoặc mới nhất.
+      DÙNG khi user hỏi "top / nổi bật / được trích dẫn nhiều nhất / có ảnh hưởng nhất / mới nhất"
+      về bài báo, paper trên tạp chí, hội nghị trong một khoảng thời gian.
+      KHÔNG DÙNG cho preprint arXiv (dùng `papers`), đọc nội dung một paper (dùng `paper_text`),
+      hay tin tức AI (dùng `lookup`).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Chủ đề/từ khóa tiếng Anh, ví dụ 'AI agents', 'large language models'. Để rỗng nếu user không nêu chủ đề."}
+        months: {type: integer, default: 9, description: "Số tháng tính lùi từ hôm nay (1-24). '9 tháng qua' -> 9, 'nửa năm' -> 6, 'một năm' -> 12. User không nói -> 9."}
+        limit: {type: integer, default: 10, description: "Số bài trả về (1-25). 'top 5' -> 5, 'top 20' -> 20. User không nói -> 10."}
+        venue_type: {type: string, enum: [all, journal, conference], default: "all", description: "'journal' nếu user chỉ muốn tạp chí, 'conference' nếu chỉ hội nghị, 'all' nếu cả hai hoặc không nói."}
+        sort_by: {type: string, enum: [citations, relevance, newest], default: "citations", description: "'citations' = trích dẫn nhiều nhất / top / có ảnh hưởng (mặc định); 'relevance' = liên quan nhất tới chủ đề (cần query); 'newest' = mới đăng gần đây nhất."}
+        source: {type: string, enum: [openalex, semantic_scholar], default: "openalex", description: "Nguồn dữ liệu. Mặc định 'openalex'; chỉ dùng 'semantic_scholar' khi user yêu cầu rõ Semantic Scholar."}
+      required: [query]
