@@ -127,16 +127,7 @@ Các lỗi dưới đây được đối chiếu từ `results[*].result.failure
 | Thời tiết, lượt 1–2 | Hỏi thời tiết chưa có địa điểm, sau đó cung cấp Hà Nội. | `clarify` → `weather` | Hỏi địa điểm trước, sau đó trả một kết quả thời tiết. | `transcripts/v0_openai_20261110T120343293078.transcript.json` |
 | Tìm repository, lượt 3 | Tìm repository GitHub về MCP. | `github_search` | Trả năm repository, trạng thái `answered`. | `transcripts/v0_openai_20261110T115237434966.transcript.json` |
 
-Transcript nghiên cứu mang artifact `v0+p5b45e7b378fd+t2e26a10b1217`;
-hai transcript thời tiết/GitHub mang artifact `v0+p0a06a45d5839+tb6abd0e93afa`.
-Đây là bằng chứng tương tác của các snapshot đó, không phải transcript của
-artifact v3 trong bảng B1. Kết quả `citation_audit` xác nhận metadata đầy đủ
-hoặc thiếu trường; cách diễn đạt “verified for citation accuracy” trong câu
-trả lời model không chứng minh nội dung nguồn đã được xác minh.
-
-Các lượt `lookup` trong transcript nghiên cứu còn ghi nhận lỗi dịch vụ.
-Lượt `papers` và hai lượt xử lý nguồn nêu trên hoàn tất mà không có lỗi tool;
-báo cáo không coi các lượt tìm kiếm thất bại là truy xuất nguồn thành công.
+Transcript ghi nhận các phiên bản thử nghiệm trước v3. papers và hai tool xử lý nguồn đã có lượt chạy thành công; một số lượt lookup gặp lỗi dịch vụ. citation_audit chỉ kiểm tra thông tin trích dẫn, không xác minh nội dung nguồn.
 
 ## B5. Bonus Evidence
 
