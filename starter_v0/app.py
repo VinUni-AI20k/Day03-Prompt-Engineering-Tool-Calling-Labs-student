@@ -11,6 +11,7 @@ Tool calls, tool results and tool errors are always shown (never hidden).
 """
 from __future__ import annotations
 
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -29,6 +30,14 @@ from chat import (
 from providers import make_provider
 from tools import load_tool_declarations, to_openai_tools
 from versioning import artifact_version_dict, build_artifact_version
+
+# chat.run_model_tool_loop prints "🔧 tool(...)" logs. On Windows, stdout may be
+# cp1252 (e.g. when piped), which cannot encode emoji and would abort the turn.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
 
 PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama"]
 SAMPLE_QUESTIONS = [
