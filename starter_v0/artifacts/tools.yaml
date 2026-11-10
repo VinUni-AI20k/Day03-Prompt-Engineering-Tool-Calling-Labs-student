@@ -16,14 +16,14 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: "Hỏi lại người dùng khi thiếu thông tin cần thiết để gọi tool khác (ví dụ thiếu handle, thiếu URL), hoặc khi cần xin xác nhận trước khi thực hiện một hành động không thể hoàn tác (ví dụ gửi/đăng). Luôn truyền response_type phù hợp."
     parameters:
       type: object
       properties:
         question: {type: string, default: "", description: "Câu hỏi"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
-        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
-      required: [question]
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "BẮT BUỘC chọn đúng: 'text' khi hỏi lại thông tin còn thiếu (handle, URL, topic...); 'yes_no' khi xin xác nhận trước khi gửi/đăng/thực hiện hành động; 'choice' khi đưa ra các lựa chọn cụ thể (dùng kèm options)."}
+        options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn, chỉ dùng khi response_type=choice"}
+      required: [question, response_type]
 
   - name: timeline
     description: "Lấy các bài đăng gần đây."
@@ -86,13 +86,13 @@ tools:
 
   # ---------------- Bonus tools ----------------
   - name: send
-    description: "Gửi một đoạn văn bản đi."
+    description: "Gửi một đoạn văn bản lên kênh Telegram của nhóm. CHỈ gọi tool này khi confirmed=true. Nếu user chưa xác nhận rõ ràng (chưa trả lời 'có'/'đồng ý' sau khi được hỏi), PHẢI gọi clarify(response_type=yes_no) để hỏi xác nhận trước, không được tự gọi send."
     parameters:
       type: object
       properties:
-        text: {type: string, default: "", description: "Nội dung"}
-        confirmed: {type: boolean, default: false, description: "Cờ xác nhận"}
-      required: [text]
+        text: {type: string, default: "", description: "Nội dung cần gửi"}
+        confirmed: {type: boolean, default: false, description: "Chỉ true sau khi user đã xác nhận đồng ý gửi. Mặc định false — không được tự suy ra true."}
+      required: [text, confirmed]
 
   - name: policy
     description: "Tìm trong tài liệu nội bộ."
@@ -123,3 +123,12 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  - name: wiki
+    description: "Lấy tóm tắt bài Wikipedia theo tên bài. DÙNG khi user hỏi định nghĩa/kiến thức nền ổn định (\"X là gì\", \"giới thiệu về Y\", tiểu sử, khái niệm). KHÔNG dùng cho tin tức/sự kiện mới (dùng lookup với topic=news), bài đăng mạng xã hội, hay URL cụ thể (dùng fetch). Nếu kết quả found=false thì thử lại bằng tên tiếng Anh với lang=en; nếu is_disambiguation=true thì hỏi lại user muốn nghĩa nào."
+    parameters:
+      type: object
+      properties:
+        title: {type: string, default: "", description: "Tên bài Wikipedia, ví dụ \"Large language model\" hoặc \"Trí tuệ nhân tạo\". Không phải câu hỏi đầy đủ."}
+        lang: {type: string, default: "vi", description: "Mã ngôn ngữ Wikipedia: \"vi\" cho tiếng Việt, \"en\" cho tiếng Anh. Dùng \"en\" khi chủ đề là thuật ngữ kỹ thuật tiếng Anh."}
+      required: [title]

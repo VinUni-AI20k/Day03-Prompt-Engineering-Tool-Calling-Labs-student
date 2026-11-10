@@ -110,13 +110,50 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+wiki_tool = TOOL_FUNCTIONS["wiki"]
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_wiki_builds_request_url_and_maps_summary(fake_http) -> None:
+    calls = fake_http(FakeResponse({
+        "type": "standard",
+        "title": "Large language model",
+        "description": "Type of machine learning model",
+        "extract": "A large language model (LLM) is ...",
+        "content_urls": {"desktop": {"page": "https://en.wikipedia.org/wiki/Large_language_model"}},
+    }))
+
+    result = wiki_tool(title="Large language model", lang="en")
+
+    assert calls[0]["method"] == "GET"
+    assert calls[0]["url"] == "https://en.wikipedia.org/api/rest_v1/page/summary/Large_language_model"
+    assert "User-Agent" in calls[0]["headers"]
+    assert result["found"] is True
+    assert result["is_disambiguation"] is False
+    assert result["summary"].startswith("A large language model")
+    assert result["url"] == "https://en.wikipedia.org/wiki/Large_language_model"
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_wiki_rejects_empty_title_without_calling_network(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+    assert wiki_tool(title="   ")["error"] == "ValueError"
+    assert wiki_tool(title=None)["error"] == "ValueError"
+    assert calls == []
+
+
+def test_wiki_rejects_lang_that_would_change_hostname(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+    result = wiki_tool(title="AI", lang="evil.com/x")
+    assert result["error"] == "ValueError"
+    assert calls == []
+
+
+def test_wiki_404_means_not_found_not_error(fake_http) -> None:
+    fake_http(FakeResponse(status_code=404))
+    result = wiki_tool(title="Khong ton tai xyz", lang="vi")
+    assert result["found"] is False
+    assert "error" not in result
+
+
+def test_wiki_http_error_returns_error_dict(fake_http) -> None:
+    fake_http(FakeResponse(status_code=503))
+    assert wiki_tool(title="AI")["error"] == "HTTPError"
