@@ -11,9 +11,9 @@
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 | Nguyễn Văn Hải Quân | 2A202603994 | | haiquanng | Developer |
+|   1 | Nguyễn Văn Hải Quân | 2A202603994 | 26ai.quannvh@vinuni.edu.vn | haiquanng | Developer |
 |   2 | Lại Trọng Đức | 2A202604019 | | laitrongduc | Developer |
-|   3 | Nguyễn Bảo Trung | 2A202604013 | | trungnb | Developer |
+|   3 | Nguyễn Bảo Trung | 2A202604013 | nbtrungrhm@gmail.com | trungnb | Developer |
 
 ## Cá nhân
 
@@ -23,11 +23,11 @@ Mỗi thành viên đồng thời tạo một báo cáo riêng trong `report/` t
 report/team/MSSV_HoTen.md
 ```
 
-Ví dụ: `report/team/20241234_NguyenVanAn.md`.
+Ví dụ: `report/team/2A202604013_NguyenBaoTrung.md`.
 
 Sao chép mục dưới đây cho từng thành viên.
 
-## HoVaTen-MSSV
+## Nguyễn Bảo Trung - 2A202604013
 
 ### Phần việc phụ trách
 
