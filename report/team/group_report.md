@@ -76,9 +76,18 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
+Run v0: `starter_v0/runs/v0_B_base_openai_20261110T172625895265.json` (gpt-4o-mini, 14/20 PASS, provider_error_cases = 0).
+
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
-| ------- | ------------ | ----------------- | ----------- | --- |
-|         |              |                   |             |     |
+|---|---|---|---|---|
+| R08_out_of_scope | out_of_scope | `send(text="Nguyên hàm của x^2 là …")` | Câu toán ngoài phạm vi nhưng model vẫn gọi tool, lại còn gọi `send` vì prompt v0 bảo "gửi luôn" | v1: rule ngoài phạm vi → không gọi tool; bỏ chỉ dẫn "send ngay" |
+| R10_missing_handle | missing_info | `timeline(screenname="sama")` | Không có handle → model tự đoán `sama` đúng như prompt v0 xúi ("pick Sam Altman") | v1: bỏ chỉ dẫn đoán; thiếu handle → `clarify(response_type="text")` |
+| R11_missing_url | missing_info | `fetch(url="https://example.com/article")` | Nói "bài này" nhưng không có link → model bịa URL | v1: không bịa URL; thiếu link → `clarify` |
+| R12_confirm_before_send | wrong_boundary | `send(text="Bản tin này đã được đăng…")` | Gửi ngay không xác nhận (tool chặn vì `confirmed` = false) | v1: hành động gửi → `clarify(response_type="yes_no")` trước; v3: description `send` nêu rõ chỉ `confirmed=true` sau khi user đồng ý |
+| R13_parallel_web_and_tweets | wrong_tool (observed: wrong_arg_value) | `lookup(query="AI news", timeframe="day")`, `social_search(query="AI")` | Route đúng 2 tool nhưng `lookup` thiếu `topic="news"` và query bị thêm chữ "news" | v2: description `lookup` nêu convention: tin tức → `topic="news"`, query giữ nguyên chủ đề |
+| R14_out_of_scope_coding | out_of_scope | `send(text="def fibonacci…")` | Yêu cầu viết code ngoài phạm vi nhưng model vẫn gọi `send` | v1: rule ngoài phạm vi |
+
+Nhận xét: 5/6 lỗi do chính các chỉ dẫn xấu trong system prompt v0 (đoán thay vì hỏi, gửi không xác nhận, làm trong một bước). Lỗi còn lại (R13) là do tool declaration không nói rõ convention args.
 
 ### B3. Team Eval Cases
 
