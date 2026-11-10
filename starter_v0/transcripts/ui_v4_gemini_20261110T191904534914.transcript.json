@@ -1,0 +1,989 @@
+{
+  "transcript_id": "ui_v4_gemini_20261110T191904534914",
+  "interface": "web_ui",
+  "session_id": "4ced5043-6e6e-4c07-841f-12a04e164b6a",
+  "version": "v4",
+  "artifact_version": "v4+p847ff3f91285+t03650ac3fd4e",
+  "prompt_hash": "847ff3f912859152e985e7229746a90d71cc3aa969a02878f10121235dfacb90",
+  "tools_hash": "03650ac3fd4e2bf3ad750cd80be4b4f9ecf4a674ff9fdc6498637c787f6c58c0",
+  "provider": "gemini",
+  "model": "gemini-3.8-flash",
+  "system_prompt": "artifacts\\system_prompt.md",
+  "tools": "artifacts\\tools.yaml",
+  "history_window": 5,
+  "max_tool_rounds": 4,
+  "created_at": "2026-11-10T19:19:04",
+  "updated_at": "2026-11-10T19:30:24",
+  "turns": [
+    {
+      "turn_index": 1,
+      "started_at": "2026-11-10T19:19:04",
+      "user": "Tin tức AI hôm nay có gì nổi bật?",
+      "status": "answered",
+      "assistant_text": "Hiện tại, hệ thống tìm kiếm tin tức và mạng xã hội đang gặp lỗi kết nối (thiếu cấu hình API key cho công cụ tìm kiếm), nên tôi chưa thể cập nhật trực tiếp các tin tức AI mới nhất trong ngày hôm nay cho bạn.\n\nBạn có quan tâm đến một chủ đề cụ thể nào (ví dụ: mô hình ngôn ngữ lớn, công cụ AI tạo sinh, nghiên cứu học thuật arXiv gần đây...) để tôi kiểm tra qua các nguồn khác hỗ trợ được không?",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "lookup",
+              "args": {
+                "topic": "news",
+                "timeframe": "day",
+                "query": "AI"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "lookup",
+              "args": {
+                "topic": "news",
+                "timeframe": "day",
+                "query": "AI"
+              },
+              "result": {
+                "tool": "web_search",
+                "error": "RuntimeError",
+                "message": "Missing TAVILY_API_KEY env var"
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "social_search",
+              "args": {
+                "search_type": "Top",
+                "query": "AI"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "social_search",
+              "args": {
+                "search_type": "Top",
+                "query": "AI"
+              },
+              "result": {
+                "tool": "search_tweets",
+                "error": "RuntimeError",
+                "message": "Missing RAPIDAPI_KEY env var"
+              }
+            }
+          ]
+        },
+        {
+          "round": 3,
+          "assistant_text": "Hiện tại, hệ thống tìm kiếm tin tức và mạng xã hội đang gặp lỗi kết nối (thiếu cấu hình API key cho công cụ tìm kiếm), nên tôi chưa thể cập nhật trực tiếp các tin tức AI mới nhất trong ngày hôm nay cho bạn.\n\nBạn có quan tâm đến một chủ đề cụ thể nào (ví dụ: mô hình ngôn ngữ lớn, công cụ AI tạo sinh, nghiên cứu học thuật arXiv gần đây...) để tôi kiểm tra qua các nguồn khác hỗ trợ được không?",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "lookup",
+          "args": {
+            "topic": "news",
+            "timeframe": "day",
+            "query": "AI"
+          },
+          "result": {
+            "tool": "web_search",
+            "error": "RuntimeError",
+            "message": "Missing TAVILY_API_KEY env var"
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "search_type": "Top",
+            "query": "AI"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:19:17"
+    },
+    {
+      "turn_index": 2,
+      "started_at": "2026-11-10T19:19:40",
+      "user": "Mô hình tranformer là gì",
+      "status": "answered",
+      "assistant_text": "**Transformer** là một kiến trúc mô hình học sâu (deep learning) được các nhà nghiên cứu của Google giới thiệu vào năm 2017 qua bài báo nổi tiếng *\"Attention Is All You Need\"*. Đây chính là nền tảng cốt lõi của hầu hết các mô hình ngôn ngữ lớn (LLM) và AI hiện đại như GPT (ChatGPT), BERT, Gemini, Claude,...\n\n### 1. Điểm đột phá của Transformer\nTrước khi có Transformer, việc xử lý ngôn ngữ tự nhiên chủ yếu dùng mạng nơ-ron hồi quy (**RNN**) hoặc **LSTM**:\n* **Hạn chế của RNN/LSTM:** Phải đọc dữ liệu theo thứ tự tuần tự từng từ một (từ đầu câu đến cuối câu), khiến việc huấn luyện chậm, khó song song hóa và dễ \"quên\" ngữ cảnh của các từ ở xa.\n* **Cách Transformer giải quyết:** Xử lý **toàn bộ câu cùng một lúc** thay vì tuần tự, giúp tận dụng tối đa sức mạnh tính toán song song của GPU/TPU, rút ngắn thời gian huấn luyện và xử lý được lượng dữ liệu khổng lồ.\n\n### 2. Các thành phần cốt lõi\n* **Cơ chế Chú ý Tự thân (Self-Attention):** Giúp mô hình xác định mức độ liên quan giữa mỗi từ với tất cả các từ khác trong câu, qua đó hiểu được ngữ cảnh chính xác (ví dụ: trong câu *\"Ngân hàng nước này đã phá sản\"*, từ \"ngân hàng\" sẽ liên kết ngữ nghĩa chặt chẽ với \"nước này\" và \"phá sản\" để hiểu đúng nghĩa là tổ chức tài chính chứ không phải bờ sông).\n* **Mã hóa vị trí (Positional Encoding):** Do đọc toàn bộ câu cùng lúc, mô hình gắn thêm thông tin về thứ tự/vị trí của từng từ để giữ được cấu trúc ngữ pháp.\n* **Cấu trúc Encoder - Decoder:**\n  * **Encoder:** Đọc và hiểu ngữ cảnh của dữ liệu đầu vào.\n  * **Decoder:** Tạo ra chuỗi kết quả đầu ra (ví dụ: câu đã được dịch hoặc câu trả lời).\n\n---\n*Nguồn tham khảo:* [Transformer (mô hình học máy) - Wikipedia](https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y))",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "wiki",
+              "args": {
+                "lang": "vi",
+                "query": "Transformer (kiến trúc học sâu)",
+                "max_results": 1
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "wiki",
+              "args": {
+                "lang": "vi",
+                "query": "Transformer (kiến trúc học sâu)",
+                "max_results": 1
+              },
+              "result": {
+                "tool": "wiki_search",
+                "query": "Transformer (kiến trúc học sâu)",
+                "lang": "vi",
+                "items": [
+                  {
+                    "title": "Transformer (mô hình học máy)",
+                    "url": "https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y)",
+                    "source": "vi.wikipedia.org",
+                    "summary": "Transformer là một mô hình học sâu được giới thiệu năm 2017, được dùng chủ yếu ở lĩnh vực xử lý ngôn ngữ tự nhiên (NLP) và thị giác máy tính (CV). Giống như các mạng thần kinh hồi quy (recurrent neural network - RNN), các Transformer được thiết kế để xử lý dữ liệu tuần tự, chẳng hạn như ngôn ngữ tự nhiên, cho các tác vụ như dịch máy thống kê hay tóm tắt tự động. Tuy nhiên, khác với RNN, các Transformer không yêu cầu dữ liệu tuần tự được xử lý theo thứ tự. Ví dụ, nếu dữ liệu đầu vào là một câu ngôn ngữ tự nhiên, Transformer không cần phải xử lý phần đầu câu trước phần cuối câu.",
+                    "pageid": 19517817
+                  }
+                ],
+                "item_count": 1
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": "**Transformer** là một kiến trúc mô hình học sâu (deep learning) được các nhà nghiên cứu của Google giới thiệu vào năm 2017 qua bài báo nổi tiếng *\"Attention Is All You Need\"*. Đây chính là nền tảng cốt lõi của hầu hết các mô hình ngôn ngữ lớn (LLM) và AI hiện đại như GPT (ChatGPT), BERT, Gemini, Claude,...\n\n### 1. Điểm đột phá của Transformer\nTrước khi có Transformer, việc xử lý ngôn ngữ tự nhiên chủ yếu dùng mạng nơ-ron hồi quy (**RNN**) hoặc **LSTM**:\n* **Hạn chế của RNN/LSTM:** Phải đọc dữ liệu theo thứ tự tuần tự từng từ một (từ đầu câu đến cuối câu), khiến việc huấn luyện chậm, khó song song hóa và dễ \"quên\" ngữ cảnh của các từ ở xa.\n* **Cách Transformer giải quyết:** Xử lý **toàn bộ câu cùng một lúc** thay vì tuần tự, giúp tận dụng tối đa sức mạnh tính toán song song của GPU/TPU, rút ngắn thời gian huấn luyện và xử lý được lượng dữ liệu khổng lồ.\n\n### 2. Các thành phần cốt lõi\n* **Cơ chế Chú ý Tự thân (Self-Attention):** Giúp mô hình xác định mức độ liên quan giữa mỗi từ với tất cả các từ khác trong câu, qua đó hiểu được ngữ cảnh chính xác (ví dụ: trong câu *\"Ngân hàng nước này đã phá sản\"*, từ \"ngân hàng\" sẽ liên kết ngữ nghĩa chặt chẽ với \"nước này\" và \"phá sản\" để hiểu đúng nghĩa là tổ chức tài chính chứ không phải bờ sông).\n* **Mã hóa vị trí (Positional Encoding):** Do đọc toàn bộ câu cùng lúc, mô hình gắn thêm thông tin về thứ tự/vị trí của từng từ để giữ được cấu trúc ngữ pháp.\n* **Cấu trúc Encoder - Decoder:**\n  * **Encoder:** Đọc và hiểu ngữ cảnh của dữ liệu đầu vào.\n  * **Decoder:** Tạo ra chuỗi kết quả đầu ra (ví dụ: câu đã được dịch hoặc câu trả lời).\n\n---\n*Nguồn tham khảo:* [Transformer (mô hình học máy) - Wikipedia](https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y))",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "wiki",
+          "args": {
+            "lang": "vi",
+            "query": "Transformer (kiến trúc học sâu)",
+            "max_results": 1
+          },
+          "result": {
+            "tool": "wiki_search",
+            "query": "Transformer (kiến trúc học sâu)",
+            "lang": "vi",
+            "items": [
+              {
+                "title": "Transformer (mô hình học máy)",
+                "url": "https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y)",
+                "source": "vi.wikipedia.org",
+                "summary": "Transformer là một mô hình học sâu được giới thiệu năm 2017, được dùng chủ yếu ở lĩnh vực xử lý ngôn ngữ tự nhiên (NLP) và thị giác máy tính (CV). Giống như các mạng thần kinh hồi quy (recurrent neural network - RNN), các Transformer được thiết kế để xử lý dữ liệu tuần tự, chẳng hạn như ngôn ngữ tự nhiên, cho các tác vụ như dịch máy thống kê hay tóm tắt tự động. Tuy nhiên, khác với RNN, các Transformer không yêu cầu dữ liệu tuần tự được xử lý theo thứ tự. Ví dụ, nếu dữ liệu đầu vào là một câu ngôn ngữ tự nhiên, Transformer không cần phải xử lý phần đầu câu trước phần cuối câu.",
+                "pageid": 19517817
+              }
+            ],
+            "item_count": 1
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:19:55"
+    },
+    {
+      "turn_index": 3,
+      "started_at": "2026-11-10T19:21:52",
+      "user": "Mô hình tranformer là gì",
+      "status": "answered",
+      "assistant_text": "**Transformer** là một kiến trúc mạng nơ-ron nhân tạo trong học sâu (deep learning), được xây dựng chủ yếu dựa trên cơ chế chú ý đa đầu (*multi-head attention mechanism*). Đây là nền tảng cốt lõi của hầu hết các mô hình ngôn ngữ lớn (LLM) và AI tạo sinh hiện đại ngày nay (như dòng GPT của OpenAI, BERT, Gemini,...).\n\n### 1. Nguyên lý hoạt động cơ bản\n* **Token hóa và nhúng (Embeddings):** Dữ liệu đầu vào (văn bản, hình ảnh hoặc âm thanh) được chuyển đổi thành chuỗi các biểu diễn số gọi là *token*, sau đó mỗi token được ánh xạ thành một vector thông qua lớp embedding.\n* **Cơ chế Chú ý Tự thân (Multi-head Self-Attention):** Tại mỗi lớp, mỗi token được đặt vào ngữ cảnh chung cùng với các token khác trong cửa sổ ngữ cảnh. Cơ chế này cho phép mô hình khuếch đại tín hiệu của các token quan trọng và giảm thiểu ảnh hưởng của các token ít liên quan.\n* **Mã hóa vị trí (Positional Encoding):** Do cơ chế chú ý tự thân có tính bất biến theo hoán vị (không phân biệt trước/sau), Transformer bổ sung thông tin vị trí vào các vector embedding để mô hình hiểu được thứ tự của các từ trong câu.\n\n### 2. Ưu điểm đột phá\nTrước Transformer, các mô hình xử lý chuỗi phổ biến là mạng nơ-ron hồi quy (RNN hoặc LSTM), vốn phải đọc dữ liệu tuần tự từng từ một. Transformer không xử lý tuần tự mà xử lý song song toàn bộ chuỗi vị trí, giúp:\n* Tận dụng tối đa khả năng tính toán song song của phần cứng (GPU/TPU).\n* Huấn luyện nhanh hơn đáng kể trên các tập dữ liệu khổng lồ.\n* Nắm bắt ngữ cảnh và mối quan hệ giữa các từ ở khoảng cách xa tốt hơn.\n\n---\n*Nguồn tham khảo:* [Transformer (deep learning) - Wikipedia](https://en.wikipedia.org/wiki/Transformer_(deep_learning))",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "wiki",
+              "args": {
+                "query": "Transformer (deep learning architecture)",
+                "lang": "en"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "wiki",
+              "args": {
+                "query": "Transformer (deep learning architecture)",
+                "lang": "en"
+              },
+              "result": {
+                "tool": "wiki_search",
+                "query": "Transformer (deep learning architecture)",
+                "lang": "en",
+                "items": [
+                  {
+                    "title": "Transformer (deep learning)",
+                    "url": "https://en.wikipedia.org/wiki/Transformer_(deep_learning)",
+                    "source": "en.wikipedia.org",
+                    "summary": "In deep learning, the transformer is a family of artificial neural network architectures based on the multi-head attention mechanism, in which input data such as text, images, or audio is converted to a sequence of numerical representations called tokens, and each token is converted into a vector through an embedding layer. At each layer, each token is then contextualized within the scope of the context window with other (unmasked) tokens via a parallel multi-head attention mechanism, allowing the signal for key tokens to be amplified and less important tokens to be diminished. Because self-attention alone is permutation-invariant, transformers inject positional information, typically through positional encodings or learned positional embeddings, so token order can affect the output. Because transformers do not process tokens one at a time, their computations can be parallelized across sequence positions during training more readily than those of recurrent neural networks like long short-term memory (LSTM).",
+                    "pageid": 61603971
+                  },
+                  {
+                    "title": "Mamba (deep learning architecture)",
+                    "url": "https://en.wikipedia.org/wiki/Mamba_(deep_learning_architecture)",
+                    "source": "en.wikipedia.org",
+                    "summary": "Mamba is a deep learning architecture focused on sequence modeling. It was developed by two researchers Albert Gu from Carnegie Mellon University and Tri Dao from Princeton University to address some limitations of transformer models, especially in processing long sequences, and it is based on the Structured State Space sequence (S4) model.",
+                    "pageid": 75795581
+                  },
+                  {
+                    "title": "Generative pre-trained transformer",
+                    "url": "https://en.wikipedia.org/wiki/Generative_pre-trained_transformer",
+                    "source": "en.wikipedia.org",
+                    "summary": "A generative pre-trained transformer (GPT) is a type of large language model (LLM) that is widely used in generative artificial intelligence chatbots. GPTs are based on the transformer, a deep learning architecture. They are pre-trained on large datasets of unlabeled content, and are able to generate novel content. OpenAI was the first to apply generative pre-training to the transformer architecture, introducing the GPT-1 model in 2018.",
+                    "pageid": 72970020
+                  }
+                ],
+                "item_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": "**Transformer** là một kiến trúc mạng nơ-ron nhân tạo trong học sâu (deep learning), được xây dựng chủ yếu dựa trên cơ chế chú ý đa đầu (*multi-head attention mechanism*). Đây là nền tảng cốt lõi của hầu hết các mô hình ngôn ngữ lớn (LLM) và AI tạo sinh hiện đại ngày nay (như dòng GPT của OpenAI, BERT, Gemini,...).\n\n### 1. Nguyên lý hoạt động cơ bản\n* **Token hóa và nhúng (Embeddings):** Dữ liệu đầu vào (văn bản, hình ảnh hoặc âm thanh) được chuyển đổi thành chuỗi các biểu diễn số gọi là *token*, sau đó mỗi token được ánh xạ thành một vector thông qua lớp embedding.\n* **Cơ chế Chú ý Tự thân (Multi-head Self-Attention):** Tại mỗi lớp, mỗi token được đặt vào ngữ cảnh chung cùng với các token khác trong cửa sổ ngữ cảnh. Cơ chế này cho phép mô hình khuếch đại tín hiệu của các token quan trọng và giảm thiểu ảnh hưởng của các token ít liên quan.\n* **Mã hóa vị trí (Positional Encoding):** Do cơ chế chú ý tự thân có tính bất biến theo hoán vị (không phân biệt trước/sau), Transformer bổ sung thông tin vị trí vào các vector embedding để mô hình hiểu được thứ tự của các từ trong câu.\n\n### 2. Ưu điểm đột phá\nTrước Transformer, các mô hình xử lý chuỗi phổ biến là mạng nơ-ron hồi quy (RNN hoặc LSTM), vốn phải đọc dữ liệu tuần tự từng từ một. Transformer không xử lý tuần tự mà xử lý song song toàn bộ chuỗi vị trí, giúp:\n* Tận dụng tối đa khả năng tính toán song song của phần cứng (GPU/TPU).\n* Huấn luyện nhanh hơn đáng kể trên các tập dữ liệu khổng lồ.\n* Nắm bắt ngữ cảnh và mối quan hệ giữa các từ ở khoảng cách xa tốt hơn.\n\n---\n*Nguồn tham khảo:* [Transformer (deep learning) - Wikipedia](https://en.wikipedia.org/wiki/Transformer_(deep_learning))",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "wiki",
+          "args": {
+            "query": "Transformer (deep learning architecture)",
+            "lang": "en"
+          },
+          "result": {
+            "tool": "wiki_search",
+            "query": "Transformer (deep learning architecture)",
+            "lang": "en",
+            "items": [
+              {
+                "title": "Transformer (deep learning)",
+                "url": "https://en.wikipedia.org/wiki/Transformer_(deep_learning)",
+                "source": "en.wikipedia.org",
+                "summary": "In deep learning, the transformer is a family of artificial neural network architectures based on the multi-head attention mechanism, in which input data such as text, images, or audio is converted to a sequence of numerical representations called tokens, and each token is converted into a vector through an embedding layer. At each layer, each token is then contextualized within the scope of the context window with other (unmasked) tokens via a parallel multi-head attention mechanism, allowing the signal for key tokens to be amplified and less important tokens to be diminished. Because self-attention alone is permutation-invariant, transformers inject positional information, typically through positional encodings or learned positional embeddings, so token order can affect the output. Because transformers do not process tokens one at a time, their computations can be parallelized across sequence positions during training more readily than those of recurrent neural networks like long short-term memory (LSTM).",
+                "pageid": 61603971
+              },
+              {
+                "title": "Mamba (deep learning architecture)",
+                "url": "https://en.wikipedia.org/wiki/Mamba_(deep_learning_architecture)",
+                "source": "en.wikipedia.org",
+                "summary": "Mamba is a deep learning architecture focused on sequence modeling. It was developed by two researchers Albert Gu from Carnegie Mellon University and Tri Dao from Princeton University to address some limitations of transformer models, especially in processing long sequences, and it is based on the Structured State Space sequence (S4) model.",
+                "pageid": 75795581
+              },
+              {
+                "title": "Generative pre-trained transformer",
+                "url": "https://en.wikipedia.org/wiki/Generative_pre-trained_transformer",
+                "source": "en.wikipedia.org",
+                "summary": "A generative pre-trained transformer (GPT) is a type of large language model (LLM) that is widely used in generative artificial intelligence chatbots. GPTs are based on the transformer, a deep learning architecture. They are pre-trained on large datasets of unlabeled content, and are able to generate novel content. OpenAI was the first to apply generative pre-training to the transformer architecture, introducing the GPT-1 model in 2018.",
+                "pageid": 72970020
+              }
+            ],
+            "item_count": 3
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:22:06"
+    },
+    {
+      "turn_index": 4,
+      "started_at": "2026-11-10T19:24:18",
+      "user": "Tìm paper arXiv mới về AI agent evaluation",
+      "status": "answered",
+      "assistant_text": "Dưới đây là một số nghiên cứu học thuật mới nhất trên arXiv liên quan đến **đánh giá AI Agent (AI Agent Evaluation)**:\n\n---\n\n### 1. **Can Frontier Auto Researchers Reconstruct Human Research Decisions in AI?**\n* **Tác giả:** Shengyun Si, Junjie Chu, Ye Leng, Yang Zhang\n* **Mã arXiv:** `2611.12429v1` | [PDF](https://arxiv.org/pdf/2611.12429v1)\n* **Tóm tắt:** Đề xuất khung đánh giá **AutoHRS** (*AutoResearcher-Human Research Similarity*) nhằm đo lường mức độ các AI agent tự động nghiên cứu (Auto Researchers) có thể tái tạo quyết định và kết quả nghiên cứu của các chuyên gia con người. Thử nghiệm trên 152 bài báo oral của ICLR cho thấy các agent hiện nay vẫn gặp khó khăn trong việc mô phỏng các quyết định then chốt của con người.\n\n---\n\n### 2. **WanderBench: Can World Models Explore Dynamic Worlds from Video?**\n* **Tác giả:** Yuhang Chen, Jiheng Li, Jiale Wang, Zai Wang, Guangyue Liu\n* **Mã arXiv:** `2611.12557v1` | [PDF](https://arxiv.org/pdf/2611.12557v1)\n* **Tóm tắt:** Giới thiệu **WanderBench**, bộ benchmark đánh giá khả năng khám phá thế giới động của các mô hình thế giới video (world models) dùng cho embodied agents. Benchmark kiểm tra 6 chiều với 24 chỉ số đánh giá về tính nhất quán không gian và đối tượng khi agent quay lại vị trí cũ.\n\n---\n\n### 3. **Detecting Shadow AI: Unsanctioned LLM Agents on Enterprise Endpoints**\n* **Tác giả:** Jeremy Canale, Fabien Soulis\n* **Mã arXiv:** `2611.12377v1` | [PDF](https://arxiv.org/pdf/2611.12377v1)\n* **Tóm tắt:** Nghiên cứu phân loại và đánh giá phương pháp phát hiện các LLM agent tự phát, không được cấp phép (*Shadow AI / Unsanctioned Agents*) trên máy trạm doanh nghiệp. Đề xuất công cụ mã nguồn mở **Agent Detector** và thực hiện kiểm thử đối chứng trên Windows.\n\n---\n\n### 4. **Predictability of Collective Behavior in Networks of LLM Agents**\n* **Tác giả:** Fabian Baumann, Michele Starnini\n* **Mã arXiv:** `2611.12256v1` | [PDF](https://arxiv.org/pdf/2611.12256v1)\n* **Tóm tắt:** Khảo sát và đánh giá hành vi tập thể của mạng lưới các LLM agent tương tác ở quy mô lớn (ví dụ: lan truyền thông tin theo tầng). Nghiên cứu chỉ ra rằng để dự đoán chính xác hành vi tập thể, việc đánh giá agent cần đặt trong bối cảnh mạng cục bộ thay vì chỉ xét trên cấu trúc liên kết đơn thuần.\n\n---\n\nNếu bạn muốn đọc chi tiết hoặc tóm tắt sâu nội dung của bất kỳ bài báo nào ở trên, hãy cho tôi biết nhé!",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "papers",
+              "args": {
+                "sort_by": "submittedDate",
+                "query": "AI agent evaluation"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "papers",
+              "args": {
+                "sort_by": "submittedDate",
+                "query": "AI agent evaluation"
+              },
+              "result": {
+                "tool": "arxiv_search",
+                "query": "AI agent evaluation",
+                "api_query": "all:AI AND all:agent AND all:evaluation",
+                "total_results": 6047,
+                "items": [
+                  {
+                    "arxiv_id": "2611.12557v1",
+                    "title": "WanderBench: Can World Models Explore Dynamic Worlds from Video?",
+                    "summary": "Video world models conditioned on an input video make it possible to explore real, recorded dynamic scenes, enabling re-shooting of footage, free-viewpoint replay, and real-to-sim environments for embodied agents. Such uses require the generated rollout to stay faithful to the recorded world, yet existing benchmarks start from a single image or a text prompt, and video-conditioned generation is evaluated mainly on perceptual quality and camera following. These evaluations do not directly assess whether exploration preserves subject identity, event progression, and scene consistency upon revisiting a location. We introduce WanderBench, a benchmark for exploring dynamic worlds from video. It comprises 745 single-shot source videos of real and AI-generated content in three difficulty tiers (3-25 s), paired with camera routes given as keyboard actions, and evaluates six dimensions with 24 human-validated sub-metrics. Benchmarking eight models, we find that as clips grow longer, models keep the static scene and visual quality but lose camera control and the source dynamics, and that none keeps revisited places consistent. We further propose WanderLand, a training-free framework that conditions each frame of a frozen model on the same-instant source and, on revisits, on its own earlier static content. WanderLand improves five models on every dimension, by up to 8.3 points in source-dynamics fidelity.",
+                    "authors": [
+                      "Yuhang Chen",
+                      "Jiheng Li",
+                      "Jiale Wang",
+                      "Zai Wang",
+                      "Guangyue Liu"
+                    ],
+                    "published": "2026-11-09T15:23:53Z",
+                    "updated": "2026-11-09T15:23:53Z",
+                    "url": "http://arxiv.org/abs/2611.12557v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.12557v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.CV",
+                    "categories": [
+                      "cs.CV",
+                      "cs.AI"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.12429v1",
+                    "title": "Can Frontier Auto Researchers Reconstruct Human Research Decisions in AI?",
+                    "summary": "Scientific research has long been driven by substantial human effort, from reviewing prior work and identifying research gaps to designing specific solutions. Recent advances in harness-based agent systems have given rise to increasingly capable Auto Researchers, which can autonomously carry out these tasks and, increasingly, entire end-to-end research workflows. Yet despite their rapidly growing capabilities, how closely the research decisions and outputs produced by auto researchers align with those of human experts remains underexplored. We investigate this gap through the lens of research reconstruction and study: Given comparable research context, how similar are the research decisions and outputs produced by Auto Researchers to those of human researchers in AI research? To answer this question, we introduce AutoResearcher-Human Research Similarity (AutoHRS), a stage-wise evaluation framework for assessing how faithfully auto researchers reconstruct human research artifacts across different stages of the scientific workflow. Using 152 ICLR oral papers as our corpus, we generate 456 research trajectories spanning different stages of the research process. Applying AutoHRS to these trajectories, we find that current Auto Researchers frequently fail to recover key research decisions and their resulting artifacts across multiple stages of the research process.",
+                    "authors": [
+                      "Shengyun Si",
+                      "Junjie Chu",
+                      "Ye Leng",
+                      "Yang Zhang"
+                    ],
+                    "published": "2026-11-09T13:54:46Z",
+                    "updated": "2026-11-09T13:54:46Z",
+                    "url": "http://arxiv.org/abs/2611.12429v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.12429v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.CL",
+                    "categories": [
+                      "cs.CL"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.12377v1",
+                    "title": "Detecting Shadow AI: Unsanctioned LLM Agents on Enterprise Endpoints: A Taxonomy, an Open Detector and a Controlled Evaluation",
+                    "summary": "Shadow IT, the use of technology that the IT organisation has not approved, is a long-standing governance problem. We argue that autonomous AI agents can make it grow much faster: agents make building tools nearly free, act with their user's privileges, and leave behind scripts, automations and MCP servers that are themselves unsanctioned. A simple compounding model shows that, under its assumptions, shadow IT grows exponentially once agentic artifacts reproduce faster than the organisation retires them; retiring them starts with detecting them. We then ask whether unsanctioned agents can be detected on Windows endpoints. We propose a taxonomy of nine classes of agents and six layers of endpoint footprint, and argue that rules based only on the structure of processes and connections cannot separate an agent from its behavioural twin, the same program talking to a non-AI service. We present Agent Detector, an open-source Windows detector that anchors behaviour to the identity of the remote service and correlates it with configuration, installation and execution history, using a catalog of 39 tools and 184 LLM endpoint entries; it informs users through a notice they must acknowledge instead of blocking. On a controlled bench of 12 synthetic agents, 3 AI components and 9 benign workloads, repeated 5 times on one workstation, two behavioural rules flagged every behavioural twin, while Agent Detector flagged none and detected every agent in the majority of runs. Its limits are temporal: a connection to a provider behind a shared content-delivery network is attributable only while the DNS cache holds the provider's name, one to five minutes, and an intermittent agent was seen by about one scan in three. A scan costs about 154 ms. The bench is too small to rank detectors; it maps what each kind of evidence can see: unsanctioned agents can be partly detected, and not by behaviour alone.",
+                    "authors": [
+                      "Jeremy Canale",
+                      "Fabien Soulis"
+                    ],
+                    "published": "2026-11-09T13:19:45Z",
+                    "updated": "2026-11-09T13:19:45Z",
+                    "url": "http://arxiv.org/abs/2611.12377v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.12377v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.AI",
+                    "categories": [
+                      "cs.AI",
+                      "cs.CR"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.12269v1",
+                    "title": "Agent4Crypto: A Dual-Reflective and Market-Feedback-Aligned LLM-Based Multi-Agent System for Cryptocurrency Trading",
+                    "summary": "Cryptocurrency markets provide a natural testbed for autonomous AI agents because they are digital-native, high-frequency, and machine-speed environments, yet existing methods often struggle with non-stationary market regimes, opaque decisions, and fixed aggregation rules. In this paper, we propose Agent4Crypto, a dual-reflective and market-feedback-aligned multi-agent system. The framework coordinates specialized agents for data collection, analysis, risk assessment, reflection, and trading, synthesizing heterogeneous signals from prices, indicators, news, and charts in an interpretable decision pipeline. Our central design is a trader-centric decision mechanism: three style-specific trader agents, Aggressive, Neutral, and Conservative, generate candidate actions and natural-language rationales from the same market context, while their influence is learned rather than manually fixed. A PPO-based gating policy dynamically allocates trader weights through a dual-reflective feedback process. One reflection stream evaluates post-trade decision quality from realized portfolio outcomes and distills reusable lessons into a Financial ReasoningBank for retrieval in subsequent trader prompts, while the other estimates trader-level counterfactual contribution, indicating which style has recently aligned better with market movements. The PPO state combines Counterfactual Contribution Memory with market features, previous trader weights, and current trader actions, so trader influence adapts across bull, sideways, and bear regimes. Experiments on BTC, ETH, and XRP show that Agent4Crypto improves total return and Sharpe ratio over traditional strategies, machine learning and reinforcement learning baselines, and existing LLM-based trading systems, demonstrating the value of interpretable trader competition and market-feedback-driven adaptation in volatile cryptocurrency markets.",
+                    "authors": [
+                      "Guangyan Gan",
+                      "Jiahao Li",
+                      "Jiashun Wang",
+                      "Lin William Cong"
+                    ],
+                    "published": "2026-11-09T11:57:33Z",
+                    "updated": "2026-11-09T11:57:33Z",
+                    "url": "http://arxiv.org/abs/2611.12269v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.12269v1",
+                    "source": "arxiv.org",
+                    "primary_category": "cs.MA",
+                    "categories": [
+                      "cs.MA",
+                      "cs.CL"
+                    ]
+                  },
+                  {
+                    "arxiv_id": "2611.12256v1",
+                    "title": "Predictability of Collective Behavior in Networks of LLM Agents",
+                    "summary": "As AI agents built on large language models (LLMs) increasingly interact at scale, anticipating their collective behavior becomes necessary. Unlike humans, individual LLM agents can be probed in {controlled scenarios}; however, the predictability of their collective outcomes hinges on what such measurements capture. We study information cascades on networks of LLM agents that decide whether to share a post given how many of their contacts have shared it. At the same fraction of sharing contacts, an agent's response depends on how many contacts it has and on the post. Responses that ignore the number of contacts mispredict the cascades, increasingly on heterogeneous networks, by an error we derive analytically and that network topology alone cannot reveal. Measured in context, the response predicts, through mean-field theory, the cascades of full LLM simulations, tipping points included. Anticipating the collective behavior of AI agents thus requires evaluating them in their local network context.",
+                    "authors": [
+                      "Fabian Baumann",
+                      "Michele Starnini"
+                    ],
+                    "published": "2026-11-09T11:47:33Z",
+                    "updated": "2026-11-09T11:47:33Z",
+                    "url": "http://arxiv.org/abs/2611.12256v1",
+                    "pdf_url": "https://arxiv.org/pdf/2611.12256v1",
+                    "source": "arxiv.org",
+                    "primary_category": "physics.soc-ph",
+                    "categories": [
+                      "physics.soc-ph"
+                    ]
+                  }
+                ],
+                "rate_limit_note": "arXiv may return 429 if called too frequently; this tool waits at least 3 seconds between requests in-process."
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": "Dưới đây là một số nghiên cứu học thuật mới nhất trên arXiv liên quan đến **đánh giá AI Agent (AI Agent Evaluation)**:\n\n---\n\n### 1. **Can Frontier Auto Researchers Reconstruct Human Research Decisions in AI?**\n* **Tác giả:** Shengyun Si, Junjie Chu, Ye Leng, Yang Zhang\n* **Mã arXiv:** `2611.12429v1` | [PDF](https://arxiv.org/pdf/2611.12429v1)\n* **Tóm tắt:** Đề xuất khung đánh giá **AutoHRS** (*AutoResearcher-Human Research Similarity*) nhằm đo lường mức độ các AI agent tự động nghiên cứu (Auto Researchers) có thể tái tạo quyết định và kết quả nghiên cứu của các chuyên gia con người. Thử nghiệm trên 152 bài báo oral của ICLR cho thấy các agent hiện nay vẫn gặp khó khăn trong việc mô phỏng các quyết định then chốt của con người.\n\n---\n\n### 2. **WanderBench: Can World Models Explore Dynamic Worlds from Video?**\n* **Tác giả:** Yuhang Chen, Jiheng Li, Jiale Wang, Zai Wang, Guangyue Liu\n* **Mã arXiv:** `2611.12557v1` | [PDF](https://arxiv.org/pdf/2611.12557v1)\n* **Tóm tắt:** Giới thiệu **WanderBench**, bộ benchmark đánh giá khả năng khám phá thế giới động của các mô hình thế giới video (world models) dùng cho embodied agents. Benchmark kiểm tra 6 chiều với 24 chỉ số đánh giá về tính nhất quán không gian và đối tượng khi agent quay lại vị trí cũ.\n\n---\n\n### 3. **Detecting Shadow AI: Unsanctioned LLM Agents on Enterprise Endpoints**\n* **Tác giả:** Jeremy Canale, Fabien Soulis\n* **Mã arXiv:** `2611.12377v1` | [PDF](https://arxiv.org/pdf/2611.12377v1)\n* **Tóm tắt:** Nghiên cứu phân loại và đánh giá phương pháp phát hiện các LLM agent tự phát, không được cấp phép (*Shadow AI / Unsanctioned Agents*) trên máy trạm doanh nghiệp. Đề xuất công cụ mã nguồn mở **Agent Detector** và thực hiện kiểm thử đối chứng trên Windows.\n\n---\n\n### 4. **Predictability of Collective Behavior in Networks of LLM Agents**\n* **Tác giả:** Fabian Baumann, Michele Starnini\n* **Mã arXiv:** `2611.12256v1` | [PDF](https://arxiv.org/pdf/2611.12256v1)\n* **Tóm tắt:** Khảo sát và đánh giá hành vi tập thể của mạng lưới các LLM agent tương tác ở quy mô lớn (ví dụ: lan truyền thông tin theo tầng). Nghiên cứu chỉ ra rằng để dự đoán chính xác hành vi tập thể, việc đánh giá agent cần đặt trong bối cảnh mạng cục bộ thay vì chỉ xét trên cấu trúc liên kết đơn thuần.\n\n---\n\nNếu bạn muốn đọc chi tiết hoặc tóm tắt sâu nội dung của bất kỳ bài báo nào ở trên, hãy cho tôi biết nhé!",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "papers",
+          "args": {
+            "sort_by": "submittedDate",
+            "query": "AI agent evaluation"
+          },
+          "result": {
+            "tool": "arxiv_search",
+            "query": "AI agent evaluation",
+            "api_query": "all:AI AND all:agent AND all:evaluation",
+            "total_results": 6047,
+            "items": [
+              {
+                "arxiv_id": "2611.12557v1",
+                "title": "WanderBench: Can World Models Explore Dynamic Worlds from Video?",
+                "summary": "Video world models conditioned on an input video make it possible to explore real, recorded dynamic scenes, enabling re-shooting of footage, free-viewpoint replay, and real-to-sim environments for embodied agents. Such uses require the generated rollout to stay faithful to the recorded world, yet existing benchmarks start from a single image or a text prompt, and video-conditioned generation is evaluated mainly on perceptual quality and camera following. These evaluations do not directly assess whether exploration preserves subject identity, event progression, and scene consistency upon revisiting a location. We introduce WanderBench, a benchmark for exploring dynamic worlds from video. It comprises 745 single-shot source videos of real and AI-generated content in three difficulty tiers (3-25 s), paired with camera routes given as keyboard actions, and evaluates six dimensions with 24 human-validated sub-metrics. Benchmarking eight models, we find that as clips grow longer, models keep the static scene and visual quality but lose camera control and the source dynamics, and that none keeps revisited places consistent. We further propose WanderLand, a training-free framework that conditions each frame of a frozen model on the same-instant source and, on revisits, on its own earlier static content. WanderLand improves five models on every dimension, by up to 8.3 points in source-dynamics fidelity.",
+                "authors": [
+                  "Yuhang Chen",
+                  "Jiheng Li",
+                  "Jiale Wang",
+                  "Zai Wang",
+                  "Guangyue Liu"
+                ],
+                "published": "2026-11-09T15:23:53Z",
+                "updated": "2026-11-09T15:23:53Z",
+                "url": "http://arxiv.org/abs/2611.12557v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12557v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.CV",
+                "categories": [
+                  "cs.CV",
+                  "cs.AI"
+                ]
+              },
+              {
+                "arxiv_id": "2611.12429v1",
+                "title": "Can Frontier Auto Researchers Reconstruct Human Research Decisions in AI?",
+                "summary": "Scientific research has long been driven by substantial human effort, from reviewing prior work and identifying research gaps to designing specific solutions. Recent advances in harness-based agent systems have given rise to increasingly capable Auto Researchers, which can autonomously carry out these tasks and, increasingly, entire end-to-end research workflows. Yet despite their rapidly growing capabilities, how closely the research decisions and outputs produced by auto researchers align with those of human experts remains underexplored. We investigate this gap through the lens of research reconstruction and study: Given comparable research context, how similar are the research decisions and outputs produced by Auto Researchers to those of human researchers in AI research? To answer this question, we introduce AutoResearcher-Human Research Similarity (AutoHRS), a stage-wise evaluation framework for assessing how faithfully auto researchers reconstruct human research artifacts across different stages of the scientific workflow. Using 152 ICLR oral papers as our corpus, we generate 456 research trajectories spanning different stages of the research process. Applying AutoHRS to these trajectories, we find that current Auto Researchers frequently fail to recover key research decisions and their resulting artifacts across multiple stages of the research process.",
+                "authors": [
+                  "Shengyun Si",
+                  "Junjie Chu",
+                  "Ye Leng",
+                  "Yang Zhang"
+                ],
+                "published": "2026-11-09T13:54:46Z",
+                "updated": "2026-11-09T13:54:46Z",
+                "url": "http://arxiv.org/abs/2611.12429v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12429v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.CL",
+                "categories": [
+                  "cs.CL"
+                ]
+              },
+              {
+                "arxiv_id": "2611.12377v1",
+                "title": "Detecting Shadow AI: Unsanctioned LLM Agents on Enterprise Endpoints: A Taxonomy, an Open Detector and a Controlled Evaluation",
+                "summary": "Shadow IT, the use of technology that the IT organisation has not approved, is a long-standing governance problem. We argue that autonomous AI agents can make it grow much faster: agents make building tools nearly free, act with their user's privileges, and leave behind scripts, automations and MCP servers that are themselves unsanctioned. A simple compounding model shows that, under its assumptions, shadow IT grows exponentially once agentic artifacts reproduce faster than the organisation retires them; retiring them starts with detecting them. We then ask whether unsanctioned agents can be detected on Windows endpoints. We propose a taxonomy of nine classes of agents and six layers of endpoint footprint, and argue that rules based only on the structure of processes and connections cannot separate an agent from its behavioural twin, the same program talking to a non-AI service. We present Agent Detector, an open-source Windows detector that anchors behaviour to the identity of the remote service and correlates it with configuration, installation and execution history, using a catalog of 39 tools and 184 LLM endpoint entries; it informs users through a notice they must acknowledge instead of blocking. On a controlled bench of 12 synthetic agents, 3 AI components and 9 benign workloads, repeated 5 times on one workstation, two behavioural rules flagged every behavioural twin, while Agent Detector flagged none and detected every agent in the majority of runs. Its limits are temporal: a connection to a provider behind a shared content-delivery network is attributable only while the DNS cache holds the provider's name, one to five minutes, and an intermittent agent was seen by about one scan in three. A scan costs about 154 ms. The bench is too small to rank detectors; it maps what each kind of evidence can see: unsanctioned agents can be partly detected, and not by behaviour alone.",
+                "authors": [
+                  "Jeremy Canale",
+                  "Fabien Soulis"
+                ],
+                "published": "2026-11-09T13:19:45Z",
+                "updated": "2026-11-09T13:19:45Z",
+                "url": "http://arxiv.org/abs/2611.12377v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12377v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.AI",
+                "categories": [
+                  "cs.AI",
+                  "cs.CR"
+                ]
+              },
+              {
+                "arxiv_id": "2611.12269v1",
+                "title": "Agent4Crypto: A Dual-Reflective and Market-Feedback-Aligned LLM-Based Multi-Agent System for Cryptocurrency Trading",
+                "summary": "Cryptocurrency markets provide a natural testbed for autonomous AI agents because they are digital-native, high-frequency, and machine-speed environments, yet existing methods often struggle with non-stationary market regimes, opaque decisions, and fixed aggregation rules. In this paper, we propose Agent4Crypto, a dual-reflective and market-feedback-aligned multi-agent system. The framework coordinates specialized agents for data collection, analysis, risk assessment, reflection, and trading, synthesizing heterogeneous signals from prices, indicators, news, and charts in an interpretable decision pipeline. Our central design is a trader-centric decision mechanism: three style-specific trader agents, Aggressive, Neutral, and Conservative, generate candidate actions and natural-language rationales from the same market context, while their influence is learned rather than manually fixed. A PPO-based gating policy dynamically allocates trader weights through a dual-reflective feedback process. One reflection stream evaluates post-trade decision quality from realized portfolio outcomes and distills reusable lessons into a Financial ReasoningBank for retrieval in subsequent trader prompts, while the other estimates trader-level counterfactual contribution, indicating which style has recently aligned better with market movements. The PPO state combines Counterfactual Contribution Memory with market features, previous trader weights, and current trader actions, so trader influence adapts across bull, sideways, and bear regimes. Experiments on BTC, ETH, and XRP show that Agent4Crypto improves total return and Sharpe ratio over traditional strategies, machine learning and reinforcement learning baselines, and existing LLM-based trading systems, demonstrating the value of interpretable trader competition and market-feedback-driven adaptation in volatile cryptocurrency markets.",
+                "authors": [
+                  "Guangyan Gan",
+                  "Jiahao Li",
+                  "Jiashun Wang",
+                  "Lin William Cong"
+                ],
+                "published": "2026-11-09T11:57:33Z",
+                "updated": "2026-11-09T11:57:33Z",
+                "url": "http://arxiv.org/abs/2611.12269v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12269v1",
+                "source": "arxiv.org",
+                "primary_category": "cs.MA",
+                "categories": [
+                  "cs.MA",
+                  "cs.CL"
+                ]
+              },
+              {
+                "arxiv_id": "2611.12256v1",
+                "title": "Predictability of Collective Behavior in Networks of LLM Agents",
+                "summary": "As AI agents built on large language models (LLMs) increasingly interact at scale, anticipating their collective behavior becomes necessary. Unlike humans, individual LLM agents can be probed in {controlled scenarios}; however, the predictability of their collective outcomes hinges on what such measurements capture. We study information cascades on networks of LLM agents that decide whether to share a post given how many of their contacts have shared it. At the same fraction of sharing contacts, an agent's response depends on how many contacts it has and on the post. Responses that ignore the number of contacts mispredict the cascades, increasingly on heterogeneous networks, by an error we derive analytically and that network topology alone cannot reveal. Measured in context, the response predicts, through mean-field theory, the cascades of full LLM simulations, tipping points included. Anticipating the collective behavior of AI agents thus requires evaluating them in their local network context.",
+                "authors": [
+                  "Fabian Baumann",
+                  "Michele Starnini"
+                ],
+                "published": "2026-11-09T11:47:33Z",
+                "updated": "2026-11-09T11:47:33Z",
+                "url": "http://arxiv.org/abs/2611.12256v1",
+                "pdf_url": "https://arxiv.org/pdf/2611.12256v1",
+                "source": "arxiv.org",
+                "primary_category": "physics.soc-ph",
+                "categories": [
+                  "physics.soc-ph"
+                ]
+              }
+            ],
+            "rate_limit_note": "arXiv may return 429 if called too frequently; this tool waits at least 3 seconds between requests in-process."
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:24:32"
+    },
+    {
+      "turn_index": 5,
+      "started_at": "2026-11-10T19:25:16",
+      "user": "Transformer trong deep learning là gì?",
+      "status": "answered",
+      "assistant_text": "**Transformer** là một kiến trúc mô hình học sâu (deep learning) được giới thiệu vào năm 2017, được ứng dụng chủ yếu trong lĩnh vực xử lý ngôn ngữ tự nhiên (NLP) và thị giác máy tính (Computer Vision - CV). \n\nMột số điểm nổi bật về Transformer:\n\n* **Xử lý dữ liệu tuần tự mà không cần tuần tự:** Tương tự như mạng thần kinh hồi quy (RNN), Transformer được thiết kế để xử lý dữ liệu dạng chuỗi (như văn bản, ngôn ngữ tự nhiên) cho các tác vụ như dịch máy hoặc tóm tắt tự động. Tuy nhiên, điểm khác biệt lớn nhất là Transformer không bắt buộc phải xử lý dữ liệu theo thứ tự từ đầu đến cuối; mô hình có thể tiếp nhận và xử lý toàn bộ câu cùng một lúc.\n* **Cơ sở cho AI hiện đại:** Nhờ khả năng huấn luyện song song hiệu quả trên lượng dữ liệu khổng lồ, Transformer đã trở thành nền tảng cốt lõi cho các mô hình ngôn ngữ lớn (LLM) và AI tạo sinh ngày nay, tiêu biểu là dòng mô hình GPT (*Generative Pre-trained Transformer*).\n\n---\n*Nguồn tham khảo:* [Transformer (mô hình học máy) - Wikipedia](https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y))",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "wiki",
+              "args": {
+                "lang": "vi",
+                "query": "Transformer (mô hình học máy)"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "wiki",
+              "args": {
+                "lang": "vi",
+                "query": "Transformer (mô hình học máy)"
+              },
+              "result": {
+                "tool": "wiki_search",
+                "query": "Transformer (mô hình học máy)",
+                "lang": "vi",
+                "items": [
+                  {
+                    "title": "Transformer (mô hình học máy)",
+                    "url": "https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y)",
+                    "source": "vi.wikipedia.org",
+                    "summary": "Transformer là một mô hình học sâu được giới thiệu năm 2017, được dùng chủ yếu ở lĩnh vực xử lý ngôn ngữ tự nhiên (NLP) và thị giác máy tính (CV). Giống như các mạng thần kinh hồi quy (recurrent neural network - RNN), các Transformer được thiết kế để xử lý dữ liệu tuần tự, chẳng hạn như ngôn ngữ tự nhiên, cho các tác vụ như dịch máy thống kê hay tóm tắt tự động. Tuy nhiên, khác với RNN, các Transformer không yêu cầu dữ liệu tuần tự được xử lý theo thứ tự. Ví dụ, nếu dữ liệu đầu vào là một câu ngôn ngữ tự nhiên, Transformer không cần phải xử lý phần đầu câu trước phần cuối câu.",
+                    "pageid": 19517817
+                  },
+                  {
+                    "title": "GPT (mô hình ngôn ngữ)",
+                    "url": "https://vi.wikipedia.org/wiki/GPT_(m%C3%B4_h%C3%ACnh_ng%C3%B4n_ng%E1%BB%AF)",
+                    "source": "vi.wikipedia.org",
+                    "summary": "Generative pre-trained transformer (GPT) là một loại mô hình ngôn ngữ lớn (LLM) được sử dụng rộng rãi trong các chatbot AI tạo sinh. GPT dựa trên một kiến trúc học sâu gọi là transformer. Chúng được huấn luyện trước trên các bộ dữ liệu lớn gồm nội dung không gắn nhãn, và có khả năng tạo ra nội dung mới. OpenAI là tổ chức đầu tiên áp dụng phương pháp tiền huấn luyện tạo sinh vào kiến trúc transformer, giới thiệu mô hình GPT-1 vào năm 2018.",
+                    "pageid": 19983366
+                  },
+                  {
+                    "title": "Học máy",
+                    "url": "https://vi.wikipedia.org/wiki/H%E1%BB%8Dc_m%C3%A1y",
+                    "source": "vi.wikipedia.org",
+                    "summary": "Học máy (tiếng Anh: Machine learning) là một lĩnh vực của trí tuệ nhân tạo (AI), hướng tới việc xây dựng các thuật toán và mô hình có khả năng \"học\" từ dữ liệu huấn luyện. Từ đó, các mô hình này có thể đưa ra dự đoán hoặc quyết định mà không cần được lập trình chi tiết cho từng tình huống cụ thể. Gần đây, một nhánh nhỏ của học máy là học sâu đã sử dụng mạng thần kinh nhân tạo giúp đạt kết quả vượt trội so với các phương pháp học máy khác. Học máy có liên hệ mật thiết với thống kê, vì cả hai lĩnh vực đều xây dựng mô hình từ dữ liệu để đưa ra suy luận.",
+                    "pageid": 24278
+                  }
+                ],
+                "item_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": "**Transformer** là một kiến trúc mô hình học sâu (deep learning) được giới thiệu vào năm 2017, được ứng dụng chủ yếu trong lĩnh vực xử lý ngôn ngữ tự nhiên (NLP) và thị giác máy tính (Computer Vision - CV). \n\nMột số điểm nổi bật về Transformer:\n\n* **Xử lý dữ liệu tuần tự mà không cần tuần tự:** Tương tự như mạng thần kinh hồi quy (RNN), Transformer được thiết kế để xử lý dữ liệu dạng chuỗi (như văn bản, ngôn ngữ tự nhiên) cho các tác vụ như dịch máy hoặc tóm tắt tự động. Tuy nhiên, điểm khác biệt lớn nhất là Transformer không bắt buộc phải xử lý dữ liệu theo thứ tự từ đầu đến cuối; mô hình có thể tiếp nhận và xử lý toàn bộ câu cùng một lúc.\n* **Cơ sở cho AI hiện đại:** Nhờ khả năng huấn luyện song song hiệu quả trên lượng dữ liệu khổng lồ, Transformer đã trở thành nền tảng cốt lõi cho các mô hình ngôn ngữ lớn (LLM) và AI tạo sinh ngày nay, tiêu biểu là dòng mô hình GPT (*Generative Pre-trained Transformer*).\n\n---\n*Nguồn tham khảo:* [Transformer (mô hình học máy) - Wikipedia](https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y))",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "wiki",
+          "args": {
+            "lang": "vi",
+            "query": "Transformer (mô hình học máy)"
+          },
+          "result": {
+            "tool": "wiki_search",
+            "query": "Transformer (mô hình học máy)",
+            "lang": "vi",
+            "items": [
+              {
+                "title": "Transformer (mô hình học máy)",
+                "url": "https://vi.wikipedia.org/wiki/Transformer_(m%C3%B4_h%C3%ACnh_h%E1%BB%8Dc_m%C3%A1y)",
+                "source": "vi.wikipedia.org",
+                "summary": "Transformer là một mô hình học sâu được giới thiệu năm 2017, được dùng chủ yếu ở lĩnh vực xử lý ngôn ngữ tự nhiên (NLP) và thị giác máy tính (CV). Giống như các mạng thần kinh hồi quy (recurrent neural network - RNN), các Transformer được thiết kế để xử lý dữ liệu tuần tự, chẳng hạn như ngôn ngữ tự nhiên, cho các tác vụ như dịch máy thống kê hay tóm tắt tự động. Tuy nhiên, khác với RNN, các Transformer không yêu cầu dữ liệu tuần tự được xử lý theo thứ tự. Ví dụ, nếu dữ liệu đầu vào là một câu ngôn ngữ tự nhiên, Transformer không cần phải xử lý phần đầu câu trước phần cuối câu.",
+                "pageid": 19517817
+              },
+              {
+                "title": "GPT (mô hình ngôn ngữ)",
+                "url": "https://vi.wikipedia.org/wiki/GPT_(m%C3%B4_h%C3%ACnh_ng%C3%B4n_ng%E1%BB%AF)",
+                "source": "vi.wikipedia.org",
+                "summary": "Generative pre-trained transformer (GPT) là một loại mô hình ngôn ngữ lớn (LLM) được sử dụng rộng rãi trong các chatbot AI tạo sinh. GPT dựa trên một kiến trúc học sâu gọi là transformer. Chúng được huấn luyện trước trên các bộ dữ liệu lớn gồm nội dung không gắn nhãn, và có khả năng tạo ra nội dung mới. OpenAI là tổ chức đầu tiên áp dụng phương pháp tiền huấn luyện tạo sinh vào kiến trúc transformer, giới thiệu mô hình GPT-1 vào năm 2018.",
+                "pageid": 19983366
+              },
+              {
+                "title": "Học máy",
+                "url": "https://vi.wikipedia.org/wiki/H%E1%BB%8Dc_m%C3%A1y",
+                "source": "vi.wikipedia.org",
+                "summary": "Học máy (tiếng Anh: Machine learning) là một lĩnh vực của trí tuệ nhân tạo (AI), hướng tới việc xây dựng các thuật toán và mô hình có khả năng \"học\" từ dữ liệu huấn luyện. Từ đó, các mô hình này có thể đưa ra dự đoán hoặc quyết định mà không cần được lập trình chi tiết cho từng tình huống cụ thể. Gần đây, một nhánh nhỏ của học máy là học sâu đã sử dụng mạng thần kinh nhân tạo giúp đạt kết quả vượt trội so với các phương pháp học máy khác. Học máy có liên hệ mật thiết với thống kê, vì cả hai lĩnh vực đều xây dựng mô hình từ dữ liệu để đưa ra suy luận.",
+                "pageid": 24278
+              }
+            ],
+            "item_count": 3
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:25:31"
+    },
+    {
+      "turn_index": 6,
+      "started_at": "2026-11-10T19:25:58",
+      "user": "Đăng bản tin AI hôm nay lên Telegram giúp mình",
+      "status": "waiting_for_user",
+      "assistant_text": "Bạn có chắc chắn muốn đăng bản tin AI lên kênh Telegram không?",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "clarify",
+              "args": {
+                "question": "Bạn có chắc chắn muốn đăng bản tin AI lên kênh Telegram không?",
+                "response_type": "yes_no"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "clarify",
+              "args": {
+                "question": "Bạn có chắc chắn muốn đăng bản tin AI lên kênh Telegram không?",
+                "response_type": "yes_no"
+              },
+              "result": {
+                "tool": "ask_user",
+                "question": "Bạn có chắc chắn muốn đăng bản tin AI lên kênh Telegram không?",
+                "response_type": "yes_no",
+                "options": [],
+                "awaiting_user": true
+              }
+            }
+          ]
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có chắc chắn muốn đăng bản tin AI lên kênh Telegram không?",
+            "response_type": "yes_no"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có chắc chắn muốn đăng bản tin AI lên kênh Telegram không?",
+            "response_type": "yes_no",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:26:17"
+    },
+    {
+      "turn_index": 7,
+      "started_at": "2026-11-10T19:26:42",
+      "user": "tôi có",
+      "status": "answered",
+      "assistant_text": "Rất tiếc, hiện tại hệ thống tìm kiếm tin tức trực tuyến đang gặp sự cố kết nối (thiếu cấu hình API tìm kiếm tin tức và mạng xã hội) nên tôi chưa thể tổng hợp bản tin AI mới nhất trong ngày hôm nay cho bạn.\n\nBạn có thể cung cấp nội dung hoặc dàn ý bản tin bạn muốn đăng, tôi sẽ định dạng lại và hỗ trợ gửi lên kênh Telegram ngay nhé!",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "lookup",
+              "args": {
+                "timeframe": "day",
+                "topic": "news",
+                "query": "AI"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "lookup",
+              "args": {
+                "timeframe": "day",
+                "topic": "news",
+                "query": "AI"
+              },
+              "result": {
+                "tool": "web_search",
+                "error": "RuntimeError",
+                "message": "Missing TAVILY_API_KEY env var"
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "social_search",
+              "args": {
+                "search_type": "Latest",
+                "query": "AI news"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "social_search",
+              "args": {
+                "search_type": "Latest",
+                "query": "AI news"
+              },
+              "result": {
+                "tool": "search_tweets",
+                "error": "RuntimeError",
+                "message": "Missing RAPIDAPI_KEY env var"
+              }
+            }
+          ]
+        },
+        {
+          "round": 3,
+          "assistant_text": "Rất tiếc, hiện tại hệ thống tìm kiếm tin tức trực tuyến đang gặp sự cố kết nối (thiếu cấu hình API tìm kiếm tin tức và mạng xã hội) nên tôi chưa thể tổng hợp bản tin AI mới nhất trong ngày hôm nay cho bạn.\n\nBạn có thể cung cấp nội dung hoặc dàn ý bản tin bạn muốn đăng, tôi sẽ định dạng lại và hỗ trợ gửi lên kênh Telegram ngay nhé!",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "lookup",
+          "args": {
+            "timeframe": "day",
+            "topic": "news",
+            "query": "AI"
+          },
+          "result": {
+            "tool": "web_search",
+            "error": "RuntimeError",
+            "message": "Missing TAVILY_API_KEY env var"
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "search_type": "Latest",
+            "query": "AI news"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:27:11"
+    },
+    {
+      "turn_index": 8,
+      "started_at": "2026-11-10T19:27:26",
+      "user": "Mọi người đang bàn gì về GPT-5 trên Twitter?",
+      "status": "answered",
+      "assistant_text": "Hiện tại tôi không thể tìm kiếm các bài thảo luận trên X (Twitter) được do công cụ tìm kiếm mạng xã hội đang gặp lỗi cấu hình (`Missing RAPIDAPI_KEY`). \n\nRất xin lỗi bạn vì sự bất tiện này! Nếu bạn quan tâm đến các khía cạnh cụ thể hoặc thông tin tổng quan đã được công bố về GPT-5, tôi có thể giải thích và cung cấp thêm cho bạn.",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "social_search",
+              "args": {
+                "limit": 5,
+                "search_type": "Latest",
+                "query": "GPT-5"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "social_search",
+              "args": {
+                "limit": 5,
+                "search_type": "Latest",
+                "query": "GPT-5"
+              },
+              "result": {
+                "tool": "search_tweets",
+                "error": "RuntimeError",
+                "message": "Missing RAPIDAPI_KEY env var"
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": "Hiện tại tôi không thể tìm kiếm các bài thảo luận trên X (Twitter) được do công cụ tìm kiếm mạng xã hội đang gặp lỗi cấu hình (`Missing RAPIDAPI_KEY`). \n\nRất xin lỗi bạn vì sự bất tiện này! Nếu bạn quan tâm đến các khía cạnh cụ thể hoặc thông tin tổng quan đã được công bố về GPT-5, tôi có thể giải thích và cung cấp thêm cho bạn.",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "social_search",
+          "args": {
+            "limit": 5,
+            "search_type": "Latest",
+            "query": "GPT-5"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "RuntimeError",
+            "message": "Missing RAPIDAPI_KEY env var"
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:27:36"
+    },
+    {
+      "turn_index": 9,
+      "started_at": "2026-11-10T19:30:02",
+      "user": "Transformer trong deep learning là gì?",
+      "status": "answered",
+      "assistant_text": "**Transformer** là một họ kiến trúc mạng nơ-ron nhân tạo trong học sâu (deep learning), chủ yếu dựa trên cơ chế **chú ý đa đầu (multi-head attention mechanism)**:\n\n* **Cách thức hoạt động:** Dữ liệu đầu vào (như văn bản, hình ảnh, âm thanh) được chuyển đổi thành chuỗi các biểu diễn số gọi là *token*, sau đó được đưa qua lớp nhúng (*embedding layer*) để biến thành các vector. Ở mỗi lớp, các token được đặt trong ngữ cảnh chung với những token khác trong cửa sổ ngữ cảnh thông qua cơ chế self-attention song song, giúp khuếch đại thông tin quan trọng và giảm thiểu các yếu tố ít liên quan.\n* **Mã hóa vị trí (Positional Encoding):** Vì bản thân cơ chế self-attention có tính chất hoán vị bất biến (*permutation-invariant*), mô hình Transformer bổ sung thông tin vị trí vào token (qua positional encoding hoặc positional embeddings) để thứ tự của từ/token ảnh hưởng đúng đến kết quả đầu ra.\n* **Xử lý song song:** Khác với các mạng nơ-ron hồi quy truyền thống (RNN, LSTM) vốn phải đọc tuần tự từng từ một, Transformer có thể xử lý đồng thời toàn bộ chuỗi token. Nhờ đó, quá trình huấn luyện có thể tính toán song song rất nhanh và hiệu quả trên quy mô dữ liệu lớn.\n* **Nền tảng của AI hiện đại:** Kiến trúc Transformer là nền tảng cốt lõi cho phần lớn các mô hình ngôn ngữ lớn (LLM) và AI tạo sinh hiện nay, tiêu biểu như BERT, T5 và dòng mô hình Generative Pre-trained Transformer (GPT).\n\n---\n*Nguồn tham khảo:* [Transformer (deep learning) - Wikipedia](https://en.wikipedia.org/wiki/Transformer_(deep_learning))",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "wiki",
+              "args": {
+                "query": "Transformer (deep learning)"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "wiki",
+              "args": {
+                "query": "Transformer (deep learning)"
+              },
+              "result": {
+                "tool": "wiki_search",
+                "query": "Transformer (deep learning)",
+                "lang": "en",
+                "items": [
+                  {
+                    "title": "Transformer (deep learning)",
+                    "url": "https://en.wikipedia.org/wiki/Transformer_(deep_learning)",
+                    "source": "en.wikipedia.org",
+                    "summary": "In deep learning, the transformer is a family of artificial neural network architectures based on the multi-head attention mechanism, in which input data such as text, images, or audio is converted to a sequence of numerical representations called tokens, and each token is converted into a vector through an embedding layer. At each layer, each token is then contextualized within the scope of the context window with other (unmasked) tokens via a parallel multi-head attention mechanism, allowing the signal for key tokens to be amplified and less important tokens to be diminished. Because self-attention alone is permutation-invariant, transformers inject positional information, typically through positional encodings or learned positional embeddings, so token order can affect the output. Because transformers do not process tokens one at a time, their computations can be parallelized across sequence positions during training more readily than those of recurrent neural networks like long short-term memory (LSTM).",
+                    "pageid": 61603971
+                  },
+                  {
+                    "title": "Generative pre-trained transformer",
+                    "url": "https://en.wikipedia.org/wiki/Generative_pre-trained_transformer",
+                    "source": "en.wikipedia.org",
+                    "summary": "A generative pre-trained transformer (GPT) is a type of large language model (LLM) that is widely used in generative artificial intelligence chatbots. GPTs are based on the transformer, a deep learning architecture. They are pre-trained on large datasets of unlabeled content, and are able to generate novel content. OpenAI was the first to apply generative pre-training to the transformer architecture, introducing the GPT-1 model in 2018.",
+                    "pageid": 72970020
+                  },
+                  {
+                    "title": "Attention (machine learning)",
+                    "url": "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
+                    "source": "en.wikipedia.org",
+                    "summary": "In machine learning, attention is a method that determines the importance of, or \"attends to\", each component in a sequence relative to the other components in that sequence. In natural language processing, importance is represented by weights assigned to each word in a sentence. More generally, attention encodes vectors called token embeddings across a fixed-width sequence that can range from tens to millions of tokens in size. Earlier designs implemented the attention mechanism in a serial recurrent neural network (RNN) language translation system, but a more recent design, namely the transformer, removed the slower sequential RNN and relied more heavily on the faster parallel attention scheme, which has largely replaced RNN in frontier models since BERT, T5 and GPT. Inspired by ideas about attention in humans, the attention mechanism was developed to address the weaknesses of using information from the hidden layers of recurrent neural networks.",
+                    "pageid": 66001552
+                  }
+                ],
+                "item_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": "**Transformer** là một họ kiến trúc mạng nơ-ron nhân tạo trong học sâu (deep learning), chủ yếu dựa trên cơ chế **chú ý đa đầu (multi-head attention mechanism)**:\n\n* **Cách thức hoạt động:** Dữ liệu đầu vào (như văn bản, hình ảnh, âm thanh) được chuyển đổi thành chuỗi các biểu diễn số gọi là *token*, sau đó được đưa qua lớp nhúng (*embedding layer*) để biến thành các vector. Ở mỗi lớp, các token được đặt trong ngữ cảnh chung với những token khác trong cửa sổ ngữ cảnh thông qua cơ chế self-attention song song, giúp khuếch đại thông tin quan trọng và giảm thiểu các yếu tố ít liên quan.\n* **Mã hóa vị trí (Positional Encoding):** Vì bản thân cơ chế self-attention có tính chất hoán vị bất biến (*permutation-invariant*), mô hình Transformer bổ sung thông tin vị trí vào token (qua positional encoding hoặc positional embeddings) để thứ tự của từ/token ảnh hưởng đúng đến kết quả đầu ra.\n* **Xử lý song song:** Khác với các mạng nơ-ron hồi quy truyền thống (RNN, LSTM) vốn phải đọc tuần tự từng từ một, Transformer có thể xử lý đồng thời toàn bộ chuỗi token. Nhờ đó, quá trình huấn luyện có thể tính toán song song rất nhanh và hiệu quả trên quy mô dữ liệu lớn.\n* **Nền tảng của AI hiện đại:** Kiến trúc Transformer là nền tảng cốt lõi cho phần lớn các mô hình ngôn ngữ lớn (LLM) và AI tạo sinh hiện nay, tiêu biểu như BERT, T5 và dòng mô hình Generative Pre-trained Transformer (GPT).\n\n---\n*Nguồn tham khảo:* [Transformer (deep learning) - Wikipedia](https://en.wikipedia.org/wiki/Transformer_(deep_learning))",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "wiki",
+          "args": {
+            "query": "Transformer (deep learning)"
+          },
+          "result": {
+            "tool": "wiki_search",
+            "query": "Transformer (deep learning)",
+            "lang": "en",
+            "items": [
+              {
+                "title": "Transformer (deep learning)",
+                "url": "https://en.wikipedia.org/wiki/Transformer_(deep_learning)",
+                "source": "en.wikipedia.org",
+                "summary": "In deep learning, the transformer is a family of artificial neural network architectures based on the multi-head attention mechanism, in which input data such as text, images, or audio is converted to a sequence of numerical representations called tokens, and each token is converted into a vector through an embedding layer. At each layer, each token is then contextualized within the scope of the context window with other (unmasked) tokens via a parallel multi-head attention mechanism, allowing the signal for key tokens to be amplified and less important tokens to be diminished. Because self-attention alone is permutation-invariant, transformers inject positional information, typically through positional encodings or learned positional embeddings, so token order can affect the output. Because transformers do not process tokens one at a time, their computations can be parallelized across sequence positions during training more readily than those of recurrent neural networks like long short-term memory (LSTM).",
+                "pageid": 61603971
+              },
+              {
+                "title": "Generative pre-trained transformer",
+                "url": "https://en.wikipedia.org/wiki/Generative_pre-trained_transformer",
+                "source": "en.wikipedia.org",
+                "summary": "A generative pre-trained transformer (GPT) is a type of large language model (LLM) that is widely used in generative artificial intelligence chatbots. GPTs are based on the transformer, a deep learning architecture. They are pre-trained on large datasets of unlabeled content, and are able to generate novel content. OpenAI was the first to apply generative pre-training to the transformer architecture, introducing the GPT-1 model in 2018.",
+                "pageid": 72970020
+              },
+              {
+                "title": "Attention (machine learning)",
+                "url": "https://en.wikipedia.org/wiki/Attention_(machine_learning)",
+                "source": "en.wikipedia.org",
+                "summary": "In machine learning, attention is a method that determines the importance of, or \"attends to\", each component in a sequence relative to the other components in that sequence. In natural language processing, importance is represented by weights assigned to each word in a sentence. More generally, attention encodes vectors called token embeddings across a fixed-width sequence that can range from tens to millions of tokens in size. Earlier designs implemented the attention mechanism in a serial recurrent neural network (RNN) language translation system, but a more recent design, namely the transformer, removed the slower sequential RNN and relied more heavily on the faster parallel attention scheme, which has largely replaced RNN in frontier models since BERT, T5 and GPT. Inspired by ideas about attention in humans, the attention mechanism was developed to address the weaknesses of using information from the hidden layers of recurrent neural networks.",
+                "pageid": 66001552
+              }
+            ],
+            "item_count": 3
+          }
+        }
+      ],
+      "ended_at": "2026-11-10T19:30:24"
+    }
+  ]
+}
