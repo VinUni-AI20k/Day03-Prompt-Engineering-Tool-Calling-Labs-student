@@ -2,6 +2,73 @@
   "dataset_id": "day04_v2_research_group",
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_web_search_month_timeframe",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tin tức nổi bật về DeepSeek trong tháng này có gì?",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "DeepSeek",
+              "topic": "news",
+              "timeframe": "month"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_timeframe_month",
+        "difficulty": "medium",
+        "what_it_tests": "'trong tháng này' -> timeframe=month, tin tức -> topic=news, query ngắn gọn DeepSeek."
+      }
+    },
+    {
+      "id": "G02_multiturn_research_then_export",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm kiếm các tin tức mới nhất về OpenAI trong tuần này."
+        },
+        {
+          "role": "user",
+          "content": "Tổng hợp lại các ý chính giúp mình."
+        },
+        {
+          "role": "user",
+          "content": "Hãy xuất toàn bộ bản báo cáo này ra file markdown với tên openai_report.md nhé."
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "export_md",
+            "args": {
+              "filename": "openai_report.md"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_export_report",
+        "difficulty": "medium",
+        "what_it_tests": "Sau khi nghiên cứu ở các lượt trước, ở lượt cuối yêu cầu lưu file md -> model phải route đúng tool mới export_md với filename='openai_report.md'."
+      }
+    }
+  ]
 }
