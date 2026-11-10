@@ -232,6 +232,15 @@ tools:
           default: 8000
           description: "Số ký tự tối đa của văn bản trích xuất (mặc định 8000)."
       required: [arxiv_url]
+
+  - name: source_credibility
+    description: "Đánh giá mức độ uy tín và phân cấp nguồn tin (academic, verified_news, tech_media, community) của URL hoặc tên miền. Dùng khi cần thẩm định độ tin cậy của bài báo hoặc nguồn thông tin trước khi trích dẫn. KHÔNG dùng để tìm kiếm web (dùng lookup) hoặc cào bài viết (dùng fetch)."
+    parameters:
+      type: object
+      properties:
+        url: {type: string, default: "", description: "Địa chỉ URL hoặc tên miền cần kiểm tra độ uy tín"}
+        min_tier: {type: string, enum: [all, academic, verified_news, tech_media, community], default: "all", description: "Bậc uy tín tối thiểu mong muốn"}
+      required: [url]
   - name: text_stats
     description: >
       Calculate word count, character count, and estimated reading time for a given text.

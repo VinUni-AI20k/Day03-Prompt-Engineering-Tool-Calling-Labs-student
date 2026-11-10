@@ -37,15 +37,16 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
-| timeline | lấy các bài đăng gần đây của một tài khoản | không |
+| timeline | lấy bài đăng gần đây của tài khoản X/Twitter | không |
 | social_search | tìm kiếm bài đăng trên mạng xã hội | không |
-| lookup | tra cứu thông tin và tin tức trên internet | không |
-| fetch | lấy nội dung văn bản từ một URL | không |
-| format | trình bày dữ liệu đã có thành văn bản theo template | không |
-| send | gửi một đoạn văn bản lên Telegram (khi được xác nhận) | không |
+| lookup | tra cứu tin tức và thông tin trên web | không |
+| fetch | cào nội dung chi tiết từ một URL | không |
+| format | trình bày dữ liệu thành văn bản bản tin | không |
+| send | gửi tin nhắn lên Telegram sau xác nhận | không |
 | policy | tra cứu tài liệu quy định nội bộ công ty | không |
 | papers | tìm kiếm bài báo khoa học trên arXiv | không |
-| paper_text | trích xuất nội dung text từ bài báo arXiv | không |
+| paper_text | trích xuất text PDF từ bài báo arXiv | không |
+| source_credibility | thẩm định độ tin cậy và phân cấp nguồn tin của URL | Có (Nguyễn Hoàng Trung) |
 | text_stats | tính số từ, số ký tự và thời gian đọc ước tính cho văn bản | Có (Nguyễn Tuấn Dũng) |
 
 ### A3. Câu hỏi mẫu để thử
@@ -60,6 +61,12 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
+- **Tool mới do Nguyễn Hoàng Trung thực hiện (CP3): `source_credibility`**:
+  - *Chức năng*: Kiểm tra và phân cấp độ tin cậy của tên miền/URL (`academic`, `verified_news`, `tech_media`, `community`, `unverified`), tính toán điểm độ tin cậy (0.0 - 1.0) và đưa ra khuyến nghị cách sử dụng nguồn tin.
+  - *Khi nào agent nên gọi*: Khi người dùng hoặc luồng nghiên cứu cần xác minh tính xác thực, kiểm tra nguồn gốc bài viết trước khi trích dẫn hoặc tổng hợp thành báo cáo/digest chính thức.
+  - *Thiết kế an toàn (Guardrail)*: Xử lý chuẩn hóa tên miền, bắt toàn bộ ngoại lệ và trả về error dict dạng `{"tool": "source_credibility", "error": ..., "message": ...}` thay vì raise runtime error làm crash agent.
+  - *Tích hợp*: Đăng ký trong `starter_v0/tools/__init__.py`, khai báo schema trong `starter_v0/artifacts/tools.yaml`, kèm file tài liệu đặc tả `starter_v0/tools/source_credibility/TOOL.md`.
+  - *Kiểm thử*: Đã viết 5 unit test chuyên biệt và hoàn thiện toàn bộ các stubs trong `starter_v0/tests/test_tools_todo.py`, đạt kết quả toàn suite `pytest` 86 passed, 0 skipped, 0 failed.
 - **Tool mới `text_stats` (Nguyễn Tuấn Dũng - 2A202603859, CP3)**:
   - **Làm gì**: nhận `text` (chuỗi không rỗng) và `wpm` (mặc định 200 từ/phút, > 0), trả về số từ (`word_count`), số ký tự (`char_count`) và thời gian đọc ước tính theo giây (`estimated_reading_seconds`). Nếu input rỗng/sai kiểu hoặc `wpm <= 0`, tool trả về error dict (`status: "error"`) thay vì raise exception.
   - **Khi nào agent nên gọi**: khi người dùng yêu cầu đếm từ/ký tự, kiểm tra độ dài đoạn tóm tắt/bản nháp hoặc ước tính thời gian đọc (ví dụ trước khi gửi); không dùng để tìm kiếm web hay đọc URL.
@@ -106,6 +113,13 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/source_credibility/` (`tool.py`, `TOOL.md`) | Phân cấp uy tín chính xác cho học thuật, tin tức, lab công nghệ và MXH | Bắt mọi ngoại lệ (URL rỗng, DNS lỗi), trả error dict, không raise runtime error |
+| Unit test tool mới (≥ 3 test/tool) | `pytest tests/ -v` output (0 failed, 0 skipped: 86 passed) | 5 tests cho tool mới (happy path, input rỗng/xấu, failure path, domain lạ, filter tier) | Chạy 100% offline, mock đầy đủ với fake_http và monkeypatch |
+| UI (lệnh chạy + link dùng thử) |  |  |  |
+
+**Tool unit tests (do Nguyễn Hoàng Trung phụ trách):**
+- Đã viết 5 test chuyên biệt cho `source_credibility` và hoàn thiện toàn bộ 14 stubs hệ thống trong `starter_v0/tests/test_tools_todo.py` (tổng 19 tests trong file này, toàn bộ suite đạt 86 passed, 0 skipped, 0 failed).
+- **Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được**: Khi model truyền đối số rỗng `url=""` hoặc `url=None` hoặc URL không có scheme `https://`, eval case thông thường chỉ so khớp xem model có gọi đúng tên tool không chứ không chạy sâu kiểm tra độ ổn định của hàm. Unit test bắt được việc hàm chuẩn hóa dữ liệu, bọc an toàn và trả về error dict dạng `{"tool": "source_credibility", "error": "ValueError", "message": "URL string must be provided and cannot be empty."}` thay vì để hàm văng unhandled Exception làm crash quy trình thực thi của Agent.
 | Tool mới (`tools/<tên>/`) | `starter_v0/tools/text_stats/tool.py`, `Tool.md`, `starter_v0/tools/__init__.py`, `starter_v0/artifacts/tools.yaml` | Tính chính xác `word_count`, `char_count`, `estimated_reading_seconds` (hỗ trợ ép kiểu `wpm` dạng chuỗi như `"200"`), khớp contract test | Kiểm tra `text` rỗng/không phải `str`, `wpm` không phải số nguyên hoặc `<= 0` → trả error dict (`status: "error"`, `items: []`), không raise exception |
 | Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`, `pytest tests/ -v` (`84 passed in 0.96s`, 0 failed, 0 skipped) | 3 tests cho `text_stats` (happy path, input chuỗi khoảng trắng rỗng, `wpm=0` và `wpm="invalid_int"`) + 14 tests cho các tool có sẵn đều pass | Toàn bộ suite chạy offline qua `fake_http` và `monkeypatch` (`block_network` chặn mọi request thật) |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
@@ -121,6 +135,9 @@ Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool c�
 | Small Local Model | xem B7 |  |  |
 | Hơn 3 tool mới (≥ 4) |  |  |  |
 | `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
+| Test challenge (0 skipped / regression test) | `pytest tests/ -v` output | Giải quyết toàn bộ 14 stubs kiểm thử của tool có sẵn + 5 test tool mới, đưa test suite về 86 passed, 0 failed, 0 skipped | 100% test chạy offline qua fake_http và monkeypatch |
+
+Test challenge: Đã hoàn thiện toàn bộ stubs trong `starter_v0/tests/test_tools_todo.py`, xử lý chính xác cơ chế lọc và trust boundary của `search_company_policy` (bóc tách `untrusted_text` cho các câu lệnh can thiệp prompt), mock trích xuất PDF/firecrawl/twitter/tavily/telegram, đưa tỷ lệ skipped của toàn suite về đúng 0.
 | Test challenge (0 skipped / regression test) | `starter_v0/tests/test_tools_todo.py`, `pytest tests/ -v` (`84 passed, 0 failed, 0 skipped`) | Hoàn thiện toàn bộ 14 stubs cho tool có sẵn (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`) + 3 tests cho `text_stats` | 100% offline với `fake_http` và `monkeypatch`, kiểm tra cả request gửi đi, mapping kết quả, guardrail `send` và trust boundary `policy` |
 
 Test challenge: Đã hoàn thiện toàn bộ 14 stubs trong `starter_v0/tests/test_tools_todo.py` để toàn bộ test suite đạt **84 passed, 0 failed, 0 skipped** (không phát hiện bug cần sửa trong code của các tool có sẵn; tất cả assert hành vi hiện tại đều pass).
