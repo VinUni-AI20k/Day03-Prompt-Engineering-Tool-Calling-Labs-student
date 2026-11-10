@@ -1,0 +1,1348 @@
+{
+  "run_id": "v7_B_group_anthropic_20261110T190257351685",
+  "version": "v7",
+  "artifact_version": "v7+p9766d293b0cd+t2621e16b22e0",
+  "prompt_hash": "9766d293b0cda210ae1d0c8924700ceb62a9a7aeaaeab55ed0c82e56a026cb34",
+  "tools_hash": "2621e16b22e00d11e68a443aee3d40c97cfda3c32c892830e0e90b5f21db2a80",
+  "phase": "B",
+  "suite": "group",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "system_prompt": "/home/trihung/WORKSPACE/K5-L3B-DAY03-3npc-Prompt-Function-Calling-Tool-Design-MCP-/starter_v0/artifacts/system_prompt.md",
+  "tools": "/home/trihung/WORKSPACE/K5-L3B-DAY03-3npc-Prompt-Function-Calling-Tool-Design-MCP-/starter_v0/artifacts/tools.yaml",
+  "eval_cases": "data/eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T19:02:57",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 10,
+    "provider_error_cases": 0,
+    "passed_cases": 10,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": 1.0,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_pypi_latest_version",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_new_tool_pypi",
+        "difficulty": "easy",
+        "what_it_tests": "Hỏi version của một gói Python → route tới tool mới pypi_package với đúng package_name, không dùng lookup hay github_repos."
+      },
+      "input": "Phiên bản mới nhất của fastapi trên PyPI là bao nhiêu?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "pypi_package",
+            "args": {
+              "package_name": "fastapi"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "pypi_package",
+            "args": {
+              "package_name": "fastapi"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "pypi_package",
+          "args": {
+            "package_name": "fastapi"
+          },
+          "result": {
+            "tool": "pypi_package",
+            "package_name": "fastapi",
+            "version": "0.162.2",
+            "items": [
+              {
+                "title": "fastapi (0.162.2)",
+                "url": "https://pypi.org/project/fastapi/",
+                "source": "pypi.org",
+                "summary": "FastAPI framework, high performance, easy to learn, fast to code, ready for production",
+                "name": "fastapi",
+                "version": "0.162.2",
+                "license": "MIT",
+                "requires_python": ">=3.10",
+                "author": "Sebastián Ramírez <tiangolo@gmail.com>",
+                "latest_release_date": "2026-11-07T15:41:38.509078Z",
+                "project_urls": {
+                  "Changelog": "https://fastapi.tiangolo.com/release-notes/",
+                  "Documentation": "https://fastapi.tiangolo.com/",
+                  "Homepage": "https://github.com/fastapi/fastapi",
+                  "Issues": "https://github.com/fastapi/fastapi/issues",
+                  "Repository": "https://github.com/fastapi/fastapi"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_github_python_top_stars",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_new_tool_github_args",
+        "difficulty": "medium",
+        "what_it_tests": "Route tới github_repos và tách đúng args: ngôn ngữ vào language='python' (không nhét vào query), 'nhiều sao nhất' → sort_by='stars'."
+      },
+      "input": "Tìm giúp mình các repo Python về AI agent nhiều sao nhất trên GitHub",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_repos",
+            "args": {
+              "language": "python",
+              "sort_by": "stars"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "github_repos",
+            "args": {
+              "query": "AI agent",
+              "language": "python",
+              "sort_by": "stars",
+              "limit": 10
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "github_repos",
+          "args": {
+            "query": "AI agent",
+            "language": "python",
+            "sort_by": "stars",
+            "limit": 10
+          },
+          "result": {
+            "tool": "github_repos",
+            "error": "HTTPError",
+            "message": "403 Client Error: rate limit exceeded for url: https://api.github.com/search/repositories?q=AI+agent+language%3Apython&sort=stars&order=desc&per_page=10"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_hf_embedding_downloads",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_new_tool_hf",
+        "difficulty": "easy",
+        "what_it_tests": "Hỏi model trên Hugging Face theo lượt tải → hf_models với sort_by='downloads', không dùng lookup hay papers."
+      },
+      "input": "Model embedding nào đang được tải nhiều nhất trên Hugging Face?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hf_models",
+            "args": {
+              "sort_by": "downloads"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hf_models",
+            "args": {
+              "query": "embedding",
+              "task": "feature-extraction",
+              "sort_by": "downloads",
+              "limit": 10
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hf_models",
+          "args": {
+            "query": "embedding",
+            "task": "feature-extraction",
+            "sort_by": "downloads",
+            "limit": 10
+          },
+          "result": {
+            "tool": "search_hf_models",
+            "query": "embedding",
+            "task": "feature-extraction",
+            "sort_by": "downloads",
+            "items": [
+              {
+                "model_id": "Qwen/Qwen3-Embedding-0.6B",
+                "title": "Qwen/Qwen3-Embedding-0.6B",
+                "url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 9042916 | Likes: 1339",
+                "author": "Qwen",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 9042916,
+                "likes": 1339,
+                "last_modified": null,
+                "tags": [
+                  "sentence-transformers",
+                  "safetensors",
+                  "qwen3",
+                  "text-generation",
+                  "transformers",
+                  "sentence-similarity",
+                  "feature-extraction",
+                  "text-embeddings-inference",
+                  "arxiv:2506.05176",
+                  "base_model:Qwen/Qwen3-0.6B-Base",
+                  "base_model:finetune:Qwen/Qwen3-0.6B-Base",
+                  "license:apache-2.0",
+                  "endpoints_compatible",
+                  "region:us",
+                  "deploy:sagemaker",
+                  "deploy:azure"
+                ]
+              },
+              {
+                "model_id": "ibm-granite/granite-embedding-small-english-r2",
+                "title": "ibm-granite/granite-embedding-small-english-r2",
+                "url": "https://huggingface.co/ibm-granite/granite-embedding-small-english-r2",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 6842671 | Likes: 113",
+                "author": "ibm-granite",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 6842671,
+                "likes": 113,
+                "last_modified": null,
+                "tags": [
+                  "sentence-transformers",
+                  "pytorch",
+                  "safetensors",
+                  "modernbert",
+                  "feature-extraction",
+                  "granite",
+                  "embeddings",
+                  "transformers",
+                  "mteb",
+                  "en",
+                  "arxiv:2508.21085",
+                  "license:apache-2.0",
+                  "text-embeddings-inference",
+                  "endpoints_compatible",
+                  "region:us",
+                  "deploy:azure"
+                ]
+              },
+              {
+                "model_id": "Qwen/Qwen3-Embedding-4B",
+                "title": "Qwen/Qwen3-Embedding-4B",
+                "url": "https://huggingface.co/Qwen/Qwen3-Embedding-4B",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 2485768 | Likes: 347",
+                "author": "Qwen",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 2485768,
+                "likes": 347,
+                "last_modified": null,
+                "tags": [
+                  "sentence-transformers",
+                  "safetensors",
+                  "qwen3",
+                  "text-generation",
+                  "transformers",
+                  "sentence-similarity",
+                  "feature-extraction",
+                  "text-embeddings-inference",
+                  "arxiv:2506.05176",
+                  "base_model:Qwen/Qwen3-4B-Base",
+                  "base_model:finetune:Qwen/Qwen3-4B-Base",
+                  "license:apache-2.0",
+                  "endpoints_compatible",
+                  "region:us"
+                ]
+              },
+              {
+                "model_id": "Qwen/Qwen3-Embedding-8B",
+                "title": "Qwen/Qwen3-Embedding-8B",
+                "url": "https://huggingface.co/Qwen/Qwen3-Embedding-8B",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 2356123 | Likes: 853",
+                "author": "Qwen",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 2356123,
+                "likes": 853,
+                "last_modified": null,
+                "tags": [
+                  "sentence-transformers",
+                  "safetensors",
+                  "qwen3",
+                  "text-generation",
+                  "transformers",
+                  "sentence-similarity",
+                  "feature-extraction",
+                  "text-embeddings-inference",
+                  "arxiv:2506.05176",
+                  "base_model:Qwen/Qwen3-8B-Base",
+                  "base_model:finetune:Qwen/Qwen3-8B-Base",
+                  "license:apache-2.0",
+                  "endpoints_compatible",
+                  "deploy:azure",
+                  "region:us"
+                ]
+              },
+              {
+                "model_id": "jinaai/jina-embeddings-v3",
+                "title": "jinaai/jina-embeddings-v3",
+                "url": "https://huggingface.co/jinaai/jina-embeddings-v3",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 1455027 | Likes: 1174",
+                "author": "jinaai",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 1455027,
+                "likes": 1174,
+                "last_modified": null,
+                "tags": [
+                  "transformers",
+                  "pytorch",
+                  "onnx",
+                  "safetensors",
+                  "feature-extraction",
+                  "sentence-similarity",
+                  "mteb",
+                  "sentence-transformers",
+                  "custom_code",
+                  "multilingual",
+                  "af",
+                  "am",
+                  "ar",
+                  "as",
+                  "az",
+                  "be",
+                  "bg",
+                  "bn",
+                  "br",
+                  "bs",
+                  "ca",
+                  "cs",
+                  "cy",
+                  "da",
+                  "de",
+                  "el",
+                  "en",
+                  "eo",
+                  "es",
+                  "et",
+                  "eu",
+                  "fa",
+                  "fi",
+                  "fr",
+                  "fy",
+                  "ga",
+                  "gd",
+                  "gl",
+                  "gu",
+                  "ha",
+                  "he",
+                  "hi",
+                  "hr",
+                  "hu",
+                  "hy",
+                  "id",
+                  "is",
+                  "it",
+                  "ja",
+                  "jv",
+                  "ka",
+                  "kk",
+                  "km",
+                  "kn",
+                  "ko",
+                  "ku",
+                  "ky",
+                  "la",
+                  "lo",
+                  "lt",
+                  "lv",
+                  "mg",
+                  "mk",
+                  "ml",
+                  "mn",
+                  "mr",
+                  "ms",
+                  "my",
+                  "ne",
+                  "nl",
+                  "no",
+                  "om",
+                  "or",
+                  "pa",
+                  "pl",
+                  "ps",
+                  "pt",
+                  "ro",
+                  "ru",
+                  "sa",
+                  "sd",
+                  "si",
+                  "sk",
+                  "sl",
+                  "so",
+                  "sq",
+                  "sr",
+                  "su",
+                  "sv",
+                  "sw",
+                  "ta",
+                  "te",
+                  "th",
+                  "tl",
+                  "tr",
+                  "ug",
+                  "uk",
+                  "ur",
+                  "uz",
+                  "vi",
+                  "xh",
+                  "yi",
+                  "zh",
+                  "arxiv:2409.10173",
+                  "license:cc-by-nc-4.0",
+                  "model-index",
+                  "eval-results",
+                  "region:eu"
+                ]
+              },
+              {
+                "model_id": "jinaai/jina-embeddings-v2-small-en",
+                "title": "jinaai/jina-embeddings-v2-small-en",
+                "url": "https://huggingface.co/jinaai/jina-embeddings-v2-small-en",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 1184345 | Likes: 159",
+                "author": "jinaai",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 1184345,
+                "likes": 159,
+                "last_modified": null,
+                "tags": [
+                  "sentence-transformers",
+                  "pytorch",
+                  "coreml",
+                  "onnx",
+                  "safetensors",
+                  "bert",
+                  "feature-extraction",
+                  "sentence-similarity",
+                  "mteb",
+                  "custom_code",
+                  "en",
+                  "dataset:jinaai/negation-dataset",
+                  "arxiv:2108.12409",
+                  "arxiv:2310.19923",
+                  "license:apache-2.0",
+                  "model-index",
+                  "text-embeddings-inference",
+                  "region:us",
+                  "deploy:azure"
+                ]
+              },
+              {
+                "model_id": "jinaai/jina-embeddings-v5-omni-small",
+                "title": "jinaai/jina-embeddings-v5-omni-small",
+                "url": "https://huggingface.co/jinaai/jina-embeddings-v5-omni-small",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 1011556 | Likes: 177",
+                "author": "jinaai",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 1011556,
+                "likes": 177,
+                "last_modified": null,
+                "tags": [
+                  "transformers",
+                  "safetensors",
+                  "jina_embeddings_v5_omni",
+                  "feature-extraction",
+                  "embedding",
+                  "qwen3",
+                  "jina-embeddings-v5",
+                  "sentence-transformers",
+                  "multimodal",
+                  "vision",
+                  "audio",
+                  "vllm",
+                  "video",
+                  "image-feature-extraction",
+                  "audio-feature-extraction",
+                  "video-feature-extraction",
+                  "sentence-similarity",
+                  "custom_code",
+                  "multilingual",
+                  "arxiv:2605.08384",
+                  "license:cc-by-nc-4.0",
+                  "region:eu"
+                ]
+              },
+              {
+                "model_id": "onnx-community/embeddinggemma-2-ONNX",
+                "title": "onnx-community/embeddinggemma-2-ONNX",
+                "url": "https://huggingface.co/onnx-community/embeddinggemma-2-ONNX",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 530232 | Likes: 36",
+                "author": "onnx-community",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 530232,
+                "likes": 36,
+                "last_modified": null,
+                "tags": [
+                  "transformers.js",
+                  "onnx",
+                  "embedding_gemma2",
+                  "feature-extraction",
+                  "embedding",
+                  "multimodal-embedding",
+                  "multimodal",
+                  "vision",
+                  "audio",
+                  "video",
+                  "image-feature-extraction",
+                  "audio-feature-extraction",
+                  "video-feature-extraction",
+                  "sentence-similarity",
+                  "multilingual",
+                  "base_model:google/embeddinggemma-2",
+                  "base_model:quantized:google/embeddinggemma-2",
+                  "license:apache-2.0",
+                  "region:us"
+                ]
+              },
+              {
+                "model_id": "google/embeddinggemma-2",
+                "title": "google/embeddinggemma-2",
+                "url": "https://huggingface.co/google/embeddinggemma-2",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 479216 | Likes: 3226",
+                "author": "google",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 479216,
+                "likes": 3226,
+                "last_modified": null,
+                "tags": [
+                  "transformers",
+                  "safetensors",
+                  "embedding_gemma2",
+                  "feature-extraction",
+                  "embedding",
+                  "sentence-transformers",
+                  "multimodal-embedding",
+                  "multimodal",
+                  "vision",
+                  "audio",
+                  "video",
+                  "image-feature-extraction",
+                  "audio-feature-extraction",
+                  "video-feature-extraction",
+                  "sentence-similarity",
+                  "multilingual",
+                  "arxiv:2610.37364",
+                  "license:apache-2.0",
+                  "endpoints_compatible",
+                  "region:us"
+                ]
+              },
+              {
+                "model_id": "mesolitica/llama2-embedding-1b-8k",
+                "title": "mesolitica/llama2-embedding-1b-8k",
+                "url": "https://huggingface.co/mesolitica/llama2-embedding-1b-8k",
+                "source": "huggingface.co",
+                "summary": "Task: feature-extraction | Downloads: 443817 | Likes: 3",
+                "author": "mesolitica",
+                "pipeline_tag": "feature-extraction",
+                "downloads": 443817,
+                "likes": 3,
+                "last_modified": null,
+                "tags": [
+                  "transformers",
+                  "safetensors",
+                  "llama",
+                  "feature-extraction",
+                  "custom_code",
+                  "ms",
+                  "text-embeddings-inference",
+                  "endpoints_compatible",
+                  "region:us"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_news_not_hf",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_negative_new_tool",
+        "difficulty": "hard",
+        "what_it_tests": "Câu hỏi TIN TỨC về một model (Llama 4) phải dùng lookup với topic='news', timeframe='week', không bị kéo sang hf_models chỉ vì nhắc tên model."
+      },
+      "input": "Có tin tức gì mới về Llama 4 trong tuần này không?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "Llama 4",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "Llama 4",
+            "topic": "news",
+            "timeframe": "week"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "Llama 4",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Wish Upon a Llama - Official Release Date Trailer",
+                "url": "https://in.ign.com/wish-upon-a-llama/276516/wish-upon-a-llama-official-release-date-trailer",
+                "source": "in.ign.com",
+                "summary": "IGN Logo\n\nWish Upon a Llama - Official Release Date Trailer\n\nWish Upon A Llama•Nov. 9, 2026\n\n# Wish Upon a Llama - Official Release Date Trailer [...] ### Related\n\nWish Upon a Llama - Official Release Window Trailer | Dames 4 Games Slumber Party Showcase 2025\n\n00:44\n\n### Wish Upon a Llama - Official Release Window Trailer | Dames 4 Games Slumber Party Showcase 2025\n\nWish Upon a Llama - Official Demo Trailer | Women-Led Games x TGA 2024\n\n01:21\n\n### Wish Upon a Llama - Official Demo Trailer | Women-Led Games x TGA 2024\n\nHoliday Gift Guide: Best Consoles & Hardware!\n\n08:52\n\n### Holiday Gift Guide: Best Consoles & Hardware! [...] Get a fresh look at the colorful world, characters, and gameplay from Wish Upon a Llama in this trailer for the upcoming cozy life sim RPG for animal lovers. As Llama Town's rancher, breed and raise adorable furry friends while rekindling a forgotten bond between the community and animals. Get to know the townsfolk, build lasting friendships, and perhaps discover romance. Adventure awaits! Wish Upon a Llama will be available on PC (Steam and Epic Games Store), Nintendo Switch, Xbox One, Xbox",
+                "score": 0.8664727663720488
+              },
+              {
+                "title": "AI Framework Assesses Transit Service Changes in Johor Bahru",
+                "url": "https://bioengineer.org/ai-framework-assesses-transit-service-changes-in-johor-bahru",
+                "source": "bioengineer.org",
+                "summary": "To assess the suitability of openly available language models for these tasks, the researchers benchmarked four LLMs: Llama 3.3 70B, Llama 3.1 8B, Llama 4 Scout 17B, and Qwen3 32B. The three Llama models achieved diagnostic quality scores of 85 out of 100 under the study-defined rubric, while Qwen3 32B scored lower. The Llama 4 Scout 17B model demonstrated the lowest response latency at approximately 0.4 seconds. In a repeated-run assessment, the Llama 3.3 70B model consistently identified the [...] BIOENGINEER.ORG\nBioengineer.org\n\n# AI Framework Assesses Transit Service Changes in Johor Bahru\n\nAI Framework Assesses Transit Service Changes in Johor Bahru\n\nAI Framework Assesses Transit Service Changes in Johor Bahru [...] Researchers from Chulalongkorn University and Ahsanullah University of Science and Technology have developed an integrated computational framework designed to assist resource-constrained transit agencies in evaluating public bus services. The system, named TransitSim-LLM, combines structured data diagnostics from the General Transit Feed Specification (GTFS) with the reasoning capabilities of large language models (LLMs) and the operational simulation of the Simulation of Urban Mobility (SUMO)",
+                "score": 0.8622661084562381
+              },
+              {
+                "title": "Anthropic Releases FlashProve: Cryptographic Proofs That a Reply Came From Committed Weights - MarkTechPost",
+                "url": "https://www.marktechpost.com/2026/11/03/anthropic-flashprove-provable-inference-zksnark",
+                "source": "marktechpost.com",
+                "summary": "| Metrics | FlashProve | Attestable | VerInf | DeepProve | zkLLM |\n ---  ---  --- |\n| Model proven | Llama 4 Maverick (400B MoE) | Gemma 4 31B (dense) | Llama 4 Maverick (400B MoE) | GPT-2, Gemma 3 | LLaMA-2-13B |\n| Throughput | ~110 tok/s | 53 to 77 tok/s | ~0.02 tok/s (1,000 tokens in 14.3 h) | ~2.9 tok/s (GPT-2), ~1.4 tok/s (Gemma 3) | Full inference in under 15 min |\n| Hardware | 1 H100 + 24 CPU cores | 1 H100 | 1 DGX Spark | 1 machine; 31 tok/s distributed | GPU (CUDA) | [...] Anthropic’s Frontier Red Team has released FlashProve, an open-source research prototype for provable inference. FlashProve is a zkSNARK system from Anthropic that proves a reply came from a committed model. The proof reveals nothing about the model weights. On Llama 4 Maverick, a 400B mixture-of-experts model, it proves about 110 tokens/second on 1 H100. For developers, this targets a real gap: today you cannot check which model actually answered your API call.\n\n## TL;DR",
+                "score": 0.8329626262009778
+              },
+              {
+                "title": "Anthropic FlashProve: Provable Inference at 72x [2026]",
+                "url": "https://shattered.io/anthropic-flashprove-provable-inference-72x-overhead-2026",
+                "source": "shattered.io",
+                "summary": "## The Llama 4 Maverick Benchmark Against vLLM\n\nAnthropic picked a hard target. Llama 4 Maverick is a 400-billion-parameter MoE model. That makes it a fair stress test for a system built for large MoE models. Readers tracking which open models are worth running can compare Maverick’s class against others in our open-weight AI models spec sheet. [...] Is FlashProve open source? Yes. The prover, two verifiers (one in C++, one in Lean), the formal proofs, and the protocol specification were released under the Apache 2.0 license. The Llama 4 Maverick weights are not included, and users obtain them separately. [...] How much slower is proving than normal inference? Against vLLM running Llama 4 Maverick in FP8 on eight H100 GPUs, the overhead was about 72 times per GPU across runs and about 94 times at the heaviest tested load. Secondary reports round this to 70 to 95 times, which Anthropic’s source does not state as a range.",
+                "score": 0.8257339625949088
+              },
+              {
+                "title": "Anthropic releases FlashProve for verifiable AI model inference | LavX News",
+                "url": "https://news.lavx.hu/article/anthropic-releases-flashprove-for-verifiable-ai-model-inference",
+                "source": "news.lavx.hu",
+                "summary": "The researchers described the work as intermediate progress and invited others to build on it. Readers can download the 4-bit Llama 4 Maverick weights from Hugging Face and run the prover on a large GPU machine.\n\nSource:anthropic.com\n\n#Anthropic#zkSNARK#AI inference verification#FlashProve#Llama 4 Maverick\n\n## Comments\n\nPlease log in or register to join the discussion\n\nLoading comments...\n\nBack to Home [...] Prior work in zkML proved much smaller models at slower speeds. VerInf proved Llama 4 Maverick at about 0.02 tokens per second. FlashProve reaches 110 tokens per second on one H100, with proofs verifiable in seconds. The team released the code, technical report, protocol specification, and Lean proofs under the Apache 2.0 license. [...] The researchers tested the system on Llama 4 Maverick, a 400-billion-parameter mixture-of-experts model with 4-bit quantized weights. A single H100 GPU produced proofs at 110 tokens per second. Each proof measured 18.78 megabytes per 1,024-token request.\n\nProof generation requires 70 to 95 times the GPU time that vLLM needs on eight H100s for the same requests. The offline commitment phase takes 39 minutes and remains valid for about 16 million requests. After that, the provider commits again.",
+                "score": 0.820921741156131
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G05_out_of_scope_debug",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope_coding",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu debug code nằm ngoài phạm vi research → trả lời text, không gọi tool nào (kể cả github_repos / pypi_package vì có chữ Python)."
+      },
+      "input": "Sửa lỗi cú pháp giúp mình đoạn Python này: for i in range(10) print(i)",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Yêu cầu này nằm ngoài phạm vi của mình — mình chỉ hỗ trợ **tra cứu, tìm kiếm và tóm tắt thông tin** từ web, Twitter/X, arXiv, v.v.\n\nĐể sửa lỗi cú pháp, bạn có thể dùng ChatGPT, GitHub Copilot, hoặc các công cụ lập trình khác nhé! 😊",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G06_hn_switch_from_twitter",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_source_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: đổi nguồn từ Twitter sang Hacker News → hn_search (không còn social_search), giữ query='Rust', 'mới nhất' → sort_by='date'."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mọi người đang bàn gì về Rust trên Twitter?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi, chuyển sang xem trên Hacker News đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn chủ đề Rust, lấy các bài mới nhất"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust",
+              "sort_by": "date"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hn_search",
+            "args": {
+              "query": "Rust",
+              "sort_by": "date",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hn_search",
+          "args": {
+            "query": "Rust",
+            "sort_by": "date",
+            "limit": 5
+          },
+          "result": {
+            "tool": "search_hacker_news",
+            "query": "Rust",
+            "tag": "story",
+            "sort_by": "date",
+            "items": [
+              {
+                "object_id": "50438931",
+                "title": "Show HN: Tokspur a 3x faster open source inference engine for Macs",
+                "url": "https://github.com/san-digital/tokspur",
+                "hn_url": "https://news.ycombinator.com/item?id=50438931",
+                "source": "news.ycombinator.com",
+                "summary": "While we were trying to solve a separate problem, we ended up on a bit of a side quest and built an inference engine. We got ourselves some nice, shiny new Mac M5 Max 128GB machines while doing a lot of local LLM work for another project and ended up wanting to run some bigger models. When we were running models for coding, we noticed a few improvements that we might be able to make around repetit",
+                "author": "51monfarrow",
+                "points": 1,
+                "num_comments": 0,
+                "created_at": "2026-11-10T11:42:45Z"
+              },
+              {
+                "object_id": "50438889",
+                "title": "Show HN: You can now train your own LLMs with less memory, on your consumer GPUs",
+                "url": "https://news.ycombinator.com/item?id=50438889",
+                "hn_url": "https://news.ycombinator.com/item?id=50438889",
+                "source": "news.ycombinator.com",
+                "summary": "*TL;DR: You can train your own 27B model on a 3090 with 24GB VRAM, though you would have to go through hundreds of billions of tokens for it to be good. I am working on conversion of existing models. Check repos for code and the paper if you are interested in more. I have a 40.4GB Qwen Flash* N*ext GGUF* Hi, I do AI research. I have been working on an optimizer that doesn't need the \\~16 bytes of ",
+                "author": "gladia-solaria",
+                "points": 2,
+                "num_comments": 0,
+                "created_at": "2026-11-10T11:38:51Z"
+              },
+              {
+                "object_id": "50438845",
+                "title": "Minecraft: Java Edition 26.3 rewritten from scratch in Rust",
+                "url": "https://github.com/horizon-rust/horizon",
+                "hn_url": "https://news.ycombinator.com/item?id=50438845",
+                "source": "news.ycombinator.com",
+                "summary": "Points: 2 | Comments: 0 | By: 71bw | HN: https://news.ycombinator.com/item?id=50438845",
+                "author": "71bw",
+                "points": 2,
+                "num_comments": 0,
+                "created_at": "2026-11-10T11:32:22Z"
+              },
+              {
+                "object_id": "50438751",
+                "title": "Charlie Cheever is building Exact: a cross-platform React alternative in Rust",
+                "url": "https://twitter.com/ccheever/status/2119764253242695754",
+                "hn_url": "https://news.ycombinator.com/item?id=50438751",
+                "source": "news.ycombinator.com",
+                "summary": "Points: 1 | Comments: 0 | By: stevekrouse | HN: https://news.ycombinator.com/item?id=50438751",
+                "author": "stevekrouse",
+                "points": 1,
+                "num_comments": 0,
+                "created_at": "2026-11-10T11:19:54Z"
+              },
+              {
+                "object_id": "50438655",
+                "title": "Debugging Rust in 2026",
+                "url": "https://blog.jetbrains.com/rust/2026/11/10/debugging-rust/",
+                "hn_url": "https://news.ycombinator.com/item?id=50438655",
+                "source": "news.ycombinator.com",
+                "summary": "Points: 3 | Comments: 0 | By: orhunp_ | HN: https://news.ycombinator.com/item?id=50438655",
+                "author": "orhunp_",
+                "points": 3,
+                "num_comments": 0,
+                "created_at": "2026-11-10T11:09:37Z"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G07_pypi_clarify_then_fill",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_fill_missing_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: turn 1 thiếu tên package, user bổ sung 'pydantic' ở turn 2 → không hỏi lại nữa, gọi pypi_package với include_releases=true theo turn 3."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Cho mình xem thông tin của package Python này với"
+        },
+        {
+          "role": "user",
+          "content": "pydantic"
+        },
+        {
+          "role": "user",
+          "content": "Kèm luôn mấy bản phát hành gần nhất nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "pypi_package",
+            "args": {
+              "package_name": "pydantic",
+              "include_releases": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "pypi_package",
+            "args": {
+              "package_name": "pydantic",
+              "include_releases": true
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "pypi_package",
+          "args": {
+            "package_name": "pydantic",
+            "include_releases": true
+          },
+          "result": {
+            "tool": "pypi_package",
+            "package_name": "pydantic",
+            "version": "2.14.3",
+            "items": [
+              {
+                "title": "pydantic (2.14.3)",
+                "url": "https://pypi.org/project/pydantic/",
+                "source": "pypi.org",
+                "summary": "Data validation using Python type hints",
+                "name": "pydantic",
+                "version": "2.14.3",
+                "license": "MIT",
+                "requires_python": ">=3.10",
+                "author": "Samuel Colvin <s@muelcolvin.com>, Eric Jolibois <em.jolibois@gmail.com>, Hasan Ramezani <hasan.r67@gmail.com>, Adrian Garcia Badaracco <1755071+adriangb@users.noreply.github.com>, Terrence Dorsey <terry@pydantic.dev>, David Montague <david@pydantic.dev>, Serge Matveenko <lig@countzero.co>, Marcelo Trylesinski <marcelotryle@gmail.com>, Sydney Runkle <sydneymarierunkle@gmail.com>, David Hewitt <mail@davidhewitt.dev>, Alex Hall <alex.mojaki@gmail.com>, Victorien Plot <contact@vctrn.dev>",
+                "latest_release_date": "2026-11-05T09:17:02.426672Z",
+                "project_urls": {
+                  "Changelog": "https://pydantic.dev/docs/validation/latest/get-started/changelog/",
+                  "Documentation": "https://pydantic.dev/docs/validation/latest/get-started/",
+                  "Funding": "https://github.com/sponsors/samuelcolvin",
+                  "Homepage": "https://github.com/pydantic/pydantic",
+                  "Source": "https://github.com/pydantic/pydantic"
+                }
+              }
+            ],
+            "recent_versions": [
+              "2.9.0",
+              "2.9.0b1",
+              "2.9.0b2",
+              "2.9.1",
+              "2.9.2"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G08_github_hot_correction_language",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_carryover_new_tool",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: carry sort_by='hot' và timeframe='week' từ turn 1, thêm language='typescript' từ turn 2."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Repo nào đang hot trên GitHub tuần này?"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ lấy repo TypeScript thôi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn là repo hot trong tuần nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_repos",
+            "args": {
+              "language": "typescript",
+              "sort_by": "hot",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "github_repos",
+            "args": {
+              "query": "",
+              "language": "typescript",
+              "sort_by": "hot",
+              "timeframe": "week"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "github_repos",
+          "args": {
+            "query": "",
+            "language": "typescript",
+            "sort_by": "hot",
+            "timeframe": "week"
+          },
+          "result": {
+            "tool": "github_repos",
+            "query": "",
+            "sort_by": "hot",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Minireel/HGhub",
+                "url": "https://github.com/Minireel/HGhub",
+                "source": "github.com",
+                "summary": "YellowFruit third-party client",
+                "stars": 7634,
+                "forks": 2916,
+                "language": "TypeScript",
+                "created_at": "2026-11-03T14:04:27Z",
+                "pushed_at": "2026-11-10T04:03:15Z",
+                "stars_per_day": 1103.89
+              },
+              {
+                "title": "KKKKhazix/agent-autoloop",
+                "url": "https://github.com/KKKKhazix/agent-autoloop",
+                "source": "github.com",
+                "summary": "让你的命令行 Agent 在后台自己接活、自己跟进到底；平时不烦你，遇到拿不准的事才发卡片找你拍板。",
+                "stars": 4385,
+                "forks": 799,
+                "language": "TypeScript",
+                "created_at": "2026-11-03T08:02:11Z",
+                "pushed_at": "2026-11-10T09:21:57Z",
+                "stars_per_day": 611.82
+              },
+              {
+                "title": "livliv-dev/player",
+                "url": "https://github.com/livliv-dev/player",
+                "source": "github.com",
+                "summary": "A lightweight 2.5D character player for the web, with lip sync and webcam face tracking.",
+                "stars": 1433,
+                "forks": 149,
+                "language": "TypeScript",
+                "created_at": "2026-11-04T03:28:33Z",
+                "pushed_at": "2026-11-09T06:08:52Z",
+                "stars_per_day": 225.42
+              },
+              {
+                "title": "AtomIllusionistDwell/watson-username-footprint-finder",
+                "url": "https://github.com/AtomIllusionistDwell/watson-username-footprint-finder",
+                "source": "github.com",
+                "summary": "Free people-search desktop app: look up a nickname, email, phone or site across 3,100+ public pages and get one readable report.",
+                "stars": 724,
+                "forks": 102,
+                "language": "TypeScript",
+                "created_at": "2026-11-05T05:20:24Z",
+                "pushed_at": "2026-11-08T14:09:43Z",
+                "stars_per_day": 137.14
+              },
+              {
+                "title": "andrew-babo/muse4ai",
+                "url": "https://github.com/andrew-babo/muse4ai",
+                "source": "github.com",
+                "summary": "Muse4AI — let your AI agent make the pictures and the videos. Local Windows bridge for Muse via REST, MCP, and OAuth.",
+                "stars": 503,
+                "forks": 56,
+                "language": "TypeScript",
+                "created_at": "2026-11-03T17:45:18Z",
+                "pushed_at": "2026-11-10T04:32:46Z",
+                "stars_per_day": 74.38
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G09_hf_then_send_confirm",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_send_boundary",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns kết thúc bằng yêu cầu đăng Telegram → phải clarify(response_type='yes_no') xin xác nhận, không gọi send ngay, không gọi lại hf_models."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm 5 model text-generation được thích nhiều nhất trên Hugging Face"
+        },
+        {
+          "role": "user",
+          "content": "Tóm tắt lại thành một danh sách ngắn"
+        },
+        {
+          "role": "user",
+          "content": "Đăng danh sách đó lên Telegram luôn nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn xác nhận muốn đăng danh sách 5 model text-generation được thích nhiều nhất trên Hugging Face lên Telegram chứ?",
+              "response_type": "yes_no"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn xác nhận muốn đăng danh sách 5 model text-generation được thích nhiều nhất trên Hugging Face lên Telegram chứ?",
+            "response_type": "yes_no"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn xác nhận muốn đăng danh sách 5 model text-generation được thích nhiều nhất trên Hugging Face lên Telegram chứ?",
+            "response_type": "yes_no",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G10_hf_correction_sort_limit",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_correction_new_tool",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: user sửa sort từ downloads sang likes và đổi số lượng → hf_models dùng giá trị mới nhất: sort_by='likes', limit=3, query='qwen'."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm các model Qwen trên Hugging Face theo lượt tải"
+        },
+        {
+          "role": "user",
+          "content": "À không, xếp theo lượt thích đi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn là model Qwen, lấy 3 cái thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hf_models",
+            "args": {
+              "query": "qwen",
+              "sort_by": "likes",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "hf_models",
+            "args": {
+              "query": "Qwen",
+              "sort_by": "likes",
+              "limit": 3
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "hf_models",
+          "args": {
+            "query": "Qwen",
+            "sort_by": "likes",
+            "limit": 3
+          },
+          "result": {
+            "tool": "search_hf_models",
+            "query": "Qwen",
+            "task": null,
+            "sort_by": "likes",
+            "items": [
+              {
+                "model_id": "Qwen/Qwen3.8-27B",
+                "title": "Qwen/Qwen3.8-27B",
+                "url": "https://huggingface.co/Qwen/Qwen3.8-27B",
+                "source": "huggingface.co",
+                "summary": "Task: image-text-to-text | Downloads: 7443748 | Likes: 19527",
+                "author": "Qwen",
+                "pipeline_tag": "image-text-to-text",
+                "downloads": 7443748,
+                "likes": 19527,
+                "last_modified": null,
+                "tags": [
+                  "transformers",
+                  "safetensors",
+                  "qwen3_5",
+                  "image-text-to-text",
+                  "conversational",
+                  "license:apache-2.0",
+                  "eval-results",
+                  "endpoints_compatible",
+                  "deploy:azure",
+                  "deploy:sagemaker",
+                  "region:us"
+                ]
+              },
+              {
+                "model_id": "Qwen/Qwen3.8-Flash-Next",
+                "title": "Qwen/Qwen3.8-Flash-Next",
+                "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next",
+                "source": "huggingface.co",
+                "summary": "Task: image-text-to-text | Downloads: 3408896 | Likes: 6893",
+                "author": "Qwen",
+                "pipeline_tag": "image-text-to-text",
+                "downloads": 3408896,
+                "likes": 6893,
+                "last_modified": null,
+                "tags": [
+                  "transformers",
+                  "safetensors",
+                  "qwen4_exp",
+                  "image-text-to-text",
+                  "conversational",
+                  "license:other",
+                  "eval-results",
+                  "endpoints_compatible",
+                  "region:us"
+                ]
+              },
+              {
+                "model_id": "abenzerps/Qwen-Image-2.1-Turbo-Quantized",
+                "title": "abenzerps/Qwen-Image-2.1-Turbo-Quantized",
+                "url": "https://huggingface.co/abenzerps/Qwen-Image-2.1-Turbo-Quantized",
+                "source": "huggingface.co",
+                "summary": "Task: text-to-image | Downloads: 99836 | Likes: 5752",
+                "author": "abenzerps",
+                "pipeline_tag": "text-to-image",
+                "downloads": 99836,
+                "likes": 5752,
+                "last_modified": null,
+                "tags": [
+                  "gguf",
+                  "qwen",
+                  "image-generation",
+                  "comfyui",
+                  "comfyui-gguf",
+                  "mlx",
+                  "fp8",
+                  "nvfp4",
+                  "text-to-image",
+                  "base_model:Qwen/Qwen-Image-2.1-Turbo",
+                  "base_model:quantized:Qwen/Qwen-Image-2.1-Turbo",
+                  "license:other",
+                  "region:us"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
