@@ -1,6 +1,7 @@
 # Báo cáo nhóm — Day 03 Research Agent Tool Eval
 
 > Báo cáo gồm 2 phần có hạn khác nhau:
+>
 > - **Phần A (mục 2)** — giới thiệu agent, ngắn gọn 1 trang. **Xong trước Team showdown (16:30)** để team khác hiểu nhanh agent có tool gì, làm được gì. Có thể làm thêm poster `report/team/poster.html` hoặc `poster.svg`.
 > - **Phần B (mục 3–7)** — chi tiết và bằng chứng, dựa trên log thật. Hoàn thiện trước deadline nộp bài.
 >
@@ -8,9 +9,9 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: G2026
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: openrouter v3
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -34,11 +35,11 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
 
-| Tên tool | Làm được gì | Tool mới nhóm thêm? |
-|---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| Tên tool | Làm được gì                            | Tool mới nhóm thêm? |
+| -------- | -------------------------------------- | ------------------- |
+| clarify  | hỏi lại người dùng khi thiếu thông tin | không               |
+|          |                                        |                     |
+|          |                                        |                     |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -61,43 +62,45 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. Chỉ dùng run có `provider_error_cases == 0` và `measured_cases == total_cases`.
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
-|---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| ------- | ---------------- | ---------- | ------------: | -----------: | -------- |
+| v0      | baseline         |            |               |              |          |
+| v1      |                  |            |               |              |          |
+| v2      |                  |            |               |              |          |
+| v3      |                  |            |               |              |          |
 
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
-|---|---|---|---|---|
-|  |  |  |  |  |
+| ------- | ------------ | ----------------- | ----------- | --- |
+|         |              |                   |             |     |
 
 ### B3. Team Eval Cases
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
-|---|---|---|---|
-|  |  |  |  |
+| ------- | ------------- | ---------------------- | ------ |
+|         |               |                        |        |
 
 ### B4. Live Chat Evidence
 
 Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
-| Turn | User Request | Tool Calls | Version Evidence | Outcome |
-|---|---|---|---|---|
-|  |  |  |  |  |
+| Turn | User Request         | Tool Calls     | Version Evidence | Outcome                              |
+| ---- | -------------------- | -------------- | ---------------- | ------------------------------------ |
+| 1    | Tóm tắt nội dung MCP | lookup, format | v3, OpenRouter   | Agent tìm kiếm và định dạng nội dung |
+|      |                      |                |                  |                                      |
+|      |                      |                |                  |                                      |
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
 
-| Item | Evidence File | What Worked | Risk / Guardrail |
-|---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| Item                               | Evidence File              | What Worked | Risk / Guardrail |
+| ---------------------------------- | -------------------------- | ----------- | ---------------- |
+| Tool mới (`tools/<tên>/`)          |                            |             |                  |
+| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |             |                  |
+| UI (lệnh chạy + link dùng thử)     |                            |             |                  |
 
 Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
 
@@ -105,12 +108,12 @@ Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test b
 
 Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool có sẵn (`send`, `policy`, `papers`, `paper_text`) không tự được bonus.
 
-| Bonus | Evidence File | What Worked | Risk / Guardrail |
-|---|---|---|---|
-| Small Local Model | xem B7 |  |  |
-| Hơn 3 tool mới (≥ 4) |  |  |  |
-| `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
-| Test challenge (0 skipped / regression test) | `pytest` output |  |  |
+| Bonus                                        | Evidence File   | What Worked | Risk / Guardrail |
+| -------------------------------------------- | --------------- | ----------- | ---------------- |
+| Small Local Model                            | xem B7          |             |                  |
+| Hơn 3 tool mới (≥ 4)                         |                 |             |                  |
+| `send` gửi thật lên Telegram sau xác nhận    | transcript      |             |                  |
+| Test challenge (0 skipped / regression test) | `pytest` output |             |                  |
 
 Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách sửa, và test regression tương ứng.
 
@@ -118,23 +121,23 @@ Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách s
 
 Chỉ điền nếu nhóm làm bonus này.
 
-| Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
-|---|---|---|---|---|---|---|---|
-| v3 | (cloud) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v4-local |  |  |  |  |  |  |  |
-| v5-local |  |  |  |  |  |  |  |
+| Version    | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
+| ---------- | ---------------- | ------------ | ------------- | ------------ | -------- | --------- | -------- |
+| v3         | (cloud)          | v3           |               |              |          |           |          |
+| v3-<model> | (ollama)         | v3           |               |              |          |           |          |
+| v3-<model> | (ollama)         | v3           |               |              |          |           |          |
+| v4-local   |                  |              |               |              |          |           |          |
+| v5-local   |                  |              |               |              |          |           |          |
 
 Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
-| Failure Pattern | Count | Example Case | Fix Tried | Helped? |
-|---|---|---|---|---|
-| wrong / hallucinated tool |  |  |  |  |
-| invalid JSON args (`_invalid_json_arguments`) |  |  |  |  |
-| no tool call / answered directly |  |  |  |  |
-| missed `clarify` |  |  |  |  |
-| repeated / unnecessary calls |  |  |  |  |
+| Failure Pattern                               | Count | Example Case | Fix Tried | Helped? |
+| --------------------------------------------- | ----- | ------------ | --------- | ------- |
+| wrong / hallucinated tool                     |       |              |           |         |
+| invalid JSON args (`_invalid_json_arguments`) |       |              |           |         |
+| no tool call / answered directly              |       |              |           |         |
+| missed `clarify`                              |       |              |           |         |
+| repeated / unnecessary calls                  |       |              |           |         |
 
 - Cái gì giúp model nhỏ gọi tool đúng hơn nhất? Bằng chứng?
 - Bản prompt tối ưu cho local chạy trên model cloud thì sao?
