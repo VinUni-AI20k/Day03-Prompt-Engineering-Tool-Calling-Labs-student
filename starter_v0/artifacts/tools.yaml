@@ -123,3 +123,28 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tools (CP3) ----------------
+  - name: weather
+    description: "Tra cứu thông tin dự báo thời tiết, nhiệt độ, khả năng mưa tại một địa điểm (thành phố, quốc gia). DÙNG KHI: người dùng hỏi về thời tiết, nhiệt độ, dự báo khí hậu của một vùng. KHÔNG DÙNG KHI: tìm kiếm tin tức tổng hợp hoặc bài đăng mạng xã hội."
+    parameters:
+      type: object
+      properties:
+        location: {type: string, default: "", description: "Tên địa điểm, thành phố hoặc quốc gia cần tra cứu thời tiết"}
+        timeframe: {type: string, enum: [today, tomorrow, week], default: "today", description: "Khoảng thời gian dự báo: today, tomorrow, hoặc week"}
+      required: [location]
+
+  - name: hn_search
+    description: >-
+      Tìm bài/thảo luận trên Hacker News (news.ycombinator.com). DÙNG KHI người dùng hỏi
+      cộng đồng dev/tech, Hacker News, "HN" bàn gì về một chủ đề, hoặc muốn biết bài nào
+      đang được upvote/bình luận nhiều. KHÔNG DÙNG cho X/Twitter (dùng social_search),
+      tin tức web chung (dùng lookup), hay paper học thuật (dùng papers).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Từ khóa tiếng Anh ngắn gọn, vd 'AI agent evaluation'"}
+        sort_by: {type: string, enum: [relevance, date], default: "relevance", description: "relevance = nổi bật nhất; date = mới nhất (khi user hỏi 'mới nhất', 'gần đây')"}
+        timeframe: {type: string, enum: [day, week, month, year], description: "Chỉ điền khi user nêu khoảng thời gian (hôm nay=day, tuần này=week, tháng này=month, năm nay=year)"}
+        limit: {type: integer, default: 5, description: "Số kết quả, 1-20"}
+      required: [query]
