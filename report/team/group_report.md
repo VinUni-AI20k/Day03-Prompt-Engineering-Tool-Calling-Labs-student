@@ -4,7 +4,7 @@
 
 - Tên nhóm: Hihihuhu
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v4: Gemini (`gemini-3.8-flash`, qua `GEMINI_API_KEY` + `GEMINI_BASE_URL`). Run ghi `provider: gemini`.
+- Provider/model dùng cho v0–v7: Gemini (`gemini-3.8-flash`, qua `GEMINI_API_KEY` + `GEMINI_BASE_URL`). Run ghi `provider: gemini`.
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -54,6 +54,7 @@ UI: [starter_v0/app.py](../../starter_v0/app.py) (Streamlit, dependency `streaml
 - **v1 (`system_prompt.md`)**: bỏ chỉ dẫn xấu của starter (đoán thay vì hỏi, gửi ngay, ép một bước). Thêm rule: thiếu thông tin → `clarify`; gửi/đăng → `clarify yes_no` trước; nhiều nguồn → gọi nhiều tool; ngoài phạm vi → từ chối; multi-turn → giữ ràng buộc cũ.
 - **v2 (`tools.yaml`)**: viết lại description (khi dùng/không dùng), convention args (`query` là keyword gốc, `timeframe`, handle không có `@`, ví dụ map tên → handle), boundary `send` (`confirmed=true` chỉ sau khi người dùng xác nhận).
 - **v3 (`system_prompt.md`)**: query giữ nguyên keyword, send luôn bắt đầu bằng `clarify yes_no`, phát ra mọi tool call cùng lúc.
+- **v5 (`system_prompt.md`)**: thêm rule routing tường minh cho từng tool. **v6 (`tools.yaml`)**: viết lại description còn lại (khi dùng/không dùng, convention args). **v7 (`system_prompt.md`)**: bắt buộc `clarify` đặt `response_type`.
 - **v4 (`tools.yaml`)**: thêm 4 tool mới `hackernews`, `wikipedia`, `github_repo`, `dedupe` (code trong `starter_v0/tools/<tên>/`, mỗi tool có `TOOL.md`, đăng ký trong `tools/__init__.py` và `tools.yaml`).
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
@@ -69,6 +70,14 @@ Nguồn: [version_log.csv](../../starter_v0/artifacts/version_log.csv). Mọi ru
 | v2 | tools.yaml | description mơ hồ làm model mở rộng query / chọn sai tool | 0.85 | 0.85 | `starter_v0/runs/v2_B_base_gemini_20261110T185025591414.json` |
 | v3 | system_prompt.md | rule rõ hơn cho query nguyên văn, send yes_no đầu tiên, nhiều tool cùng lúc | 0.85 | 0.85 | `starter_v0/runs/v3_B_base_gemini_20261110T185228915396.json` |
 | v4 | tools.yaml | thêm 4 tool mới không làm hỏng routing base | 0.85 | 1.00 | `starter_v0/runs/v4_B_base_gemini_20261110T190743824427.json` |
+| v4-group | eval_group.json | chạy 10 case nhóm với v4 | — | 1.00 | `starter_v0/runs/v4_B_group_gemini_20261110T191020600726.json` |
+| v4-qwen | model local | v4 trên `qwen2.5:7b-instruct-q4_K_M` (ollama) | 1.00 | 0.80 | `starter_v0/runs/v4-qwen_B_base_ollama_20261110T193344154584.json` |
+| v5 | system_prompt.md | thêm một dòng routing tường minh theo từng tool | 1.00 | 0.95 | `starter_v0/runs/v5_B_base_gemini_20261110T212532391145.json` |
+| v6 | tools.yaml | viết lại description còn mơ hồ (fetch, format, policy, papers, paper_text, tham số) | 0.95 | 0.90 | `starter_v0/runs/v6_B_base_gemini_20261110T212904933375.json` |
+| v7 | system_prompt.md | bắt buộc đặt `response_type` khi gọi `clarify` (R11/R12 fail vì bỏ trống) | 0.90 | 0.85 | `starter_v0/runs/v7_B_base_gemini_20261110T213204182019.json` |
+| v7-group | eval_group.json | eval nhóm với artifact cuối | — | 1.00 | `starter_v0/runs/v7_B_group_gemini_20261110T213314649731.json` |
+
+Kết quả v5–v7: không version nào vượt v4 (1.00) và v7 còn thấp hơn v6. v7 không sửa được R12 (agent vẫn hỏi nội dung thay vì xác nhận) và làm R10 lùi (xem `failures` trong run v7). Chênh lệch 0.05–0.15 giữa các lần chạy có cùng prompt/tool (v3 → v4) cho thấy model Gemini biến thiên giữa các run nên một lần chạy mỗi version chưa đủ để kết luận; v5 → v6 → v7 chỉ giảm 1–2 case/lần. Lưu ý v5 dùng lại `tools.yaml` của v4 (nội dung giống, khác ký tự xuống dòng nên `tools_hash` khác). Artifact nộp là v7; mọi run có `provider_error_cases == 0`, `measured_cases == total_cases`.
 
 Phân tích trung thực: v2 và v3 không tăng `case_accuracy` (v2 vẫn fail đúng 3 case như v1; v3 sửa R03 nhưng làm R10 lùi vì agent bỏ `response_type`). v4 lên 1.00 nhưng `prompt_hash` giống v3 và chỉ thêm tool, nên phần tăng không thể quy hoàn toàn cho tool mới; model có độ ngẫu nhiên (temperature 0 vẫn có biến thiên giữa các lần chạy). Cần chạy lặp để kết luận chắc chắn.
 
@@ -143,7 +152,14 @@ Test challenge: không tìm thấy bug trong tool có sẵn nên không có regr
 
 ### B7. Small Local Model Challenge (bonus)
 
-Xem cuối file (cập nhật sau khi chạy model local).
+Chưa đạt bonus: chỉ có 1 model local (`qwen2.5:7b-instruct-q4_K_M`) và 1 vòng chạy, chưa đủ 2 model và 2 vòng tối ưu.
+
+| Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
+|---|---|---|---|---|---|---|---|
+| v4 | gemini-3.8-flash (cloud) | v4 | 1.00 | 1.00 | 1.00 | 1.00 | `starter_v0/runs/v4_B_base_gemini_20261110T190743824427.json` |
+| v4-qwen | qwen2.5:7b-instruct-q4_K_M (ollama) | v4 | 0.80 | 0.85 | 0.80 | 0.83 | `starter_v0/runs/v4-qwen_B_base_ollama_20261110T193344154584.json` |
+
+Model local fail R10, R11 (không hỏi lại khi thiếu thông tin), R12 (không xác nhận trước khi gửi), M02 (query thừa từ). Model local đúng routing ở các case tool rõ ràng nhưng yếu ở hành vi hỏi lại/xác nhận.
 
 ## 5. Khó khăn và cách xử lý
 

@@ -8,7 +8,7 @@
 
 ## 2. Phần việc phụ trách
 
-Toàn bộ pipeline: baseline v0, tối ưu v1–v4, tool mới, unit test, eval nhóm, UI, transcript, báo cáo.
+Toàn bộ pipeline: baseline v0, tối ưu v1–v7, tool mới, unit test, eval nhóm, UI, transcript, báo cáo.
 
 ## 3. Đóng góp cụ thể
 
@@ -25,4 +25,4 @@ Toàn bộ pipeline: baseline v0, tối ưu v1–v4, tool mới, unit test, eval
 
 ## 5. Tự đánh giá
 
-Đạt: base 1.00, group 10/10, 4 tool mới, test 0 skipped. Hạn chế: v2/v3 không tăng metric; v4 tăng nhưng không chắc do tool mới (model có biến thiên); live chat còn một lỗi suy chủ đề từ lượt trước thay vì hỏi lại; chưa làm gửi Telegram thật.
+Đạt: base 1.00, group 10/10, 4 tool mới, test 0 skipped. Hạn chế: v2/v3 không tăng metric; v4 tăng, v5–v7 không vượt v4 và model biến thiên giữa các lần chạy nên không chắc do tool mới (model có biến thiên); live chat còn một lỗi suy chủ đề từ lượt trước thay vì hỏi lại; chưa làm gửi Telegram thật.

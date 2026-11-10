@@ -25,7 +25,7 @@ Báo cáo cá nhân: [report/team/2A202603858_DoanXuanDuyBao.md](report/team/2A2
 
 ### Đóng góp cụ thể
 
-- Sửa `system_prompt.md`, `tools.yaml` qua v1–v4 (0.65 → 1.00 case_accuracy base).
+- Sửa `system_prompt.md`, `tools.yaml` qua v1–v7 (0.65 → 0.85–1.00 case_accuracy base, xem bảng B1).
 - Viết 4 tool mới (`hackernews`, `wikipedia`, `github_repo`, `dedupe`) và 26 unit test.
 - Viết 10 case `eval_group.json`, UI Streamlit `app.py`.
 
