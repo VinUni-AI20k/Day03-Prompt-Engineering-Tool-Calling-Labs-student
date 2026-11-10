@@ -21,9 +21,10 @@ TODO = "TODO(student): implement this test"
 # ---------------- clarify ----------------
 
 def test_clarify_choice_returns_options_and_awaits_user() -> None:
-    # Call clarify with response_type="choice" and 2 options.
-    # Assert: options are returned unchanged, awaiting_user is True.
-    pytest.skip(TODO)
+    result = TOOL_FUNCTIONS["clarify"](question="Chọn một?", response_type="choice", options=["A", "B"])
+    assert result["options"] == ["A", "B"]
+    assert result["response_type"] == "choice"
+    assert result["awaiting_user"] is True
 
 
 # ---------------- format ----------------
@@ -58,8 +59,11 @@ def test_send_confirmed_without_env_returns_error_and_no_request(fake_http) -> N
 # ---------------- lookup ----------------
 
 def test_lookup_without_timeframe_omits_time_range(monkeypatch, fake_http) -> None:
-    # timeframe=None -> request body has no "time_range" key.
-    pytest.skip(TODO)
+    monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+    calls = fake_http(FakeResponse({"results": []}))
+    result = TOOL_FUNCTIONS["lookup"](query="AI", timeframe=None)
+    assert "time_range" not in calls[0]["json"]
+    assert result["items"] == []
 
 
 # ---------------- fetch ----------------
@@ -120,3 +124,24 @@ def test_my_new_tool_bad_input_from_model() -> None:
 
 def test_my_new_tool_failure_returns_error_dict() -> None:
     pytest.skip(TODO)
+
+
+# ---------------- calculator (DucTrung) ----------------
+
+def test_calculator_compound_interest_happy_path() -> None:
+    out = TOOL_FUNCTIONS["calculator"]("1200*1.08**5", precision=2)
+    assert out["result"] == 1763.19
+    assert "error" not in out
+
+
+@pytest.mark.parametrize("expr", ["", "   ", None, 123, "import os", "__import__('os')", "abs"])
+def test_calculator_bad_input_returns_error_dict(expr) -> None:
+    out = TOOL_FUNCTIONS["calculator"](expr)
+    assert "error" in out and "result" not in out
+
+
+def test_calculator_failure_paths_do_not_raise() -> None:
+    calc = TOOL_FUNCTIONS["calculator"]
+    assert calc("1/0")["error"] == "division by zero"
+    assert "error" in calc("2**99999")
+    assert "error" in calc("1+1", precision=99)
