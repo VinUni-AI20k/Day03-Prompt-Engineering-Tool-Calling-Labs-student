@@ -105,6 +105,18 @@ def test_confirmation_adds_confirmed_when_model_omits_it():
     assert result["status"] == "answered"
 
 
+def test_confirmation_does_not_add_text_to_tool_without_text_parameter():
+    received = []
+    def send(destination, confirmed=False):
+        received.append({"destination": destination, "confirmed": confirmed})
+        return {"status": "sent"}
+    provider = FakeProvider(ModelResponse(tool_calls=[ToolCall("send", {"destination": "private"})]), ModelResponse(text="Sent."))
+    turn = run_turn(provider=provider, model=None, artifact_info=artifact_info(), history=[], user_text="Send it", confirmation_names={"send"}, tool_functions={"send": send})
+    result = resolve_confirmation(turn, decision="confirmed", edited_text="not a tool argument")
+    assert received == [{"destination": "private", "confirmed": True}]
+    assert result["status"] == "answered"
+
+
 def test_confirmation_can_only_be_resolved_once():
     provider = FakeProvider(ModelResponse(tool_calls=[ToolCall("send", {"text": "draft"})]), ModelResponse(text="Sent."))
     turn = run_turn(provider=provider, model=None, artifact_info=artifact_info(), history=[], user_text="Post it", confirmation_names={"send"}, tool_functions={"send": lambda text, confirmed=False: {"status": "sent"}})
@@ -172,11 +184,13 @@ def test_missing_or_malformed_manifest_fails_closed_for_declared_tools(tmp_path)
     assert confirmation_tools(tmp_path, {"broken", "missing"}) == {"broken", "missing"}
 
 
-def test_redact_preserves_internal_flags_and_redacts_telegram_url_token():
-    value = {"_invalid_json_arguments": True, "url": "https://api.telegram.org/bot123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890/sendMessage"}
+def test_redact_preserves_internal_flags_and_redacts_telegram_url_token(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "custom_token_value_not_regex_match")
+    value = {"_invalid_json_arguments": True, "url": "https://api.telegram.org/bot123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890/sendMessage", "env_echo": "custom_token_value_not_regex_match"}
     cleaned = redact(value)
     assert cleaned["_invalid_json_arguments"] is True
     assert "ABCDEFGHIJKLMNOPQRSTUVWXYZ" not in cleaned["url"]
+    assert "custom_token_value_not_regex_match" not in cleaned["env_echo"]
 
 
 def test_transcript_matches_chat_schema_and_adds_ui_source(monkeypatch, tmp_path):
