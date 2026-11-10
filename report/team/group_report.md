@@ -11,7 +11,7 @@
 - Tên nhóm: Hehehe (theo tên repo; cần nhóm xác nhận).
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
 - Provider/model: v0 dùng `openai` / `gpt-4o-mini`; v1–v3 chưa chạy.
-- Trạng thái: hoàn thiện bằng chứng CP1; các mục tool mới, eval nhóm, UI, live chat và bonus chưa hoàn thành.
+- Trạng thái: đã hoàn thiện bằng chứng CP1 và CP3 (`github_search`, 3 unit test, 1 eval routing); eval nhóm còn 9 case, CP2, UI, live chat và bonus chưa hoàn thành.
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -38,7 +38,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
+| github_search | tìm repository GitHub công khai theo từ khóa, ngôn ngữ và cách sắp xếp | có |
 |  |  |  |
 
 ### A3. Câu hỏi mẫu để thử
@@ -53,7 +53,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- Thêm `github_search` để tìm implementation, thư viện và dự án mã nguồn trên GitHub; agent chỉ nên gọi tool này cho yêu cầu về repository/code, không dùng thay web search, arXiv hoặc social search.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -118,11 +118,11 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/github_search/tool.py`, `TOOL.md`, registry và `artifacts/tools.yaml` | Tìm repository theo từ khóa; hỗ trợ lọc ngôn ngữ, sort và limit | Chỉ đọc public API; validate input; HTTP/input lỗi trả error dict, không raise |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`; `starter_v0/analysis/cp3_pytest.txt` | 3 hành vi: map request/response, chặn query lỗi trước network, xử lý HTTP 503 | HTTP được mock offline; test assert cả request lẫn output |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: đã viết 3 test function (bad input được parameterize với 4 giá trị). Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: GitHub trả HTTP 503; tool phải trả `{"error": "HTTPError", ...}` thay vì làm agent crash.
 
 ### B5. Bonus Evidence
 

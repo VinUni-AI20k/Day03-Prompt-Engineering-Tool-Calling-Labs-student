@@ -123,3 +123,15 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tools ----------------
+  - name: github_search
+    description: "Search public GitHub repositories when the user asks for source-code projects, libraries, implementations, or repository comparisons. Do not use for general web news, academic papers, reading a known URL, or searching social posts. Add language only when the user specifies one; use best_match unless the user asks for most-starred, most-forked, most-help-wanted, or recently updated results."
+    parameters:
+      type: object
+      properties:
+        query: {type: string, description: "Non-empty repository topic or keywords; do not include a language: qualifier here."}
+        language: {type: string, default: "", description: "Optional programming language such as Python or Rust; empty when unspecified."}
+        sort: {type: string, enum: [best_match, stars, forks, help_wanted_issues, updated], default: best_match, description: "Repository ordering requested by the user."}
+        limit: {type: integer, minimum: 1, maximum: 10, default: 5, description: "Number of repositories to return, from 1 to 10."}
+      required: [query]

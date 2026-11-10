@@ -110,13 +110,58 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_github_search_happy_path_maps_results_and_request(fake_http) -> None:
+    calls = fake_http(FakeResponse({
+        "total_count": 1,
+        "items": [{
+            "full_name": "example/research-agent",
+            "html_url": "https://github.com/example/research-agent",
+            "description": "A research agent",
+            "language": "Python",
+            "stargazers_count": 42,
+            "forks_count": 7,
+            "updated_at": "2026-11-01T00:00:00Z",
+        }],
+    }))
+
+    result = TOOL_FUNCTIONS["github_search"](
+        query="research agent", language="Python", sort="stars", limit=3
+    )
+
+    assert calls[0]["url"] == "https://api.github.com/search/repositories"
+    assert calls[0]["params"] == {
+        "q": "research agent language:Python", "per_page": 3, "sort": "stars", "order": "desc"
+    }
+    assert result["total_count"] == 1
+    assert result["items"][0] == {
+        "name": "example/research-agent",
+        "title": "example/research-agent",
+        "url": "https://github.com/example/research-agent",
+        "source": "github.com",
+        "summary": "A research agent",
+        "language": "Python",
+        "stars": 42,
+        "forks": 7,
+        "updated_at": "2026-11-01T00:00:00Z",
+    }
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+@pytest.mark.parametrize("bad_query", ["", "   ", None, 123])
+def test_github_search_bad_query_returns_error_without_network(bad_query, fake_http) -> None:
+    calls = fake_http(FakeResponse({"items": []}))
+
+    result = TOOL_FUNCTIONS["github_search"](query=bad_query)
+
+    assert result["error"] == "ValueError"
+    assert "non-empty string" in result["message"]
+    assert calls == []
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_github_search_http_failure_returns_error_dict(fake_http) -> None:
+    fake_http(FakeResponse(status_code=503))
+
+    result = TOOL_FUNCTIONS["github_search"](query="research agent")
+
+    assert result["tool"] == "github_search"
+    assert result["error"] == "HTTPError"
+    assert "HTTP 503" in result["message"]
