@@ -122,6 +122,9 @@ export function Sidebar({
                       c.id === activeId ? "bg-sidebar-accent font-medium" : "hover:bg-sidebar-accent/70",
                     )}
                   >
+                    {c.version && (
+                      <span className="mr-2 font-mono text-[11px] text-muted-foreground">{c.version}</span>
+                    )}
                     {c.title}
                   </button>
                   <button

@@ -11,6 +11,7 @@ Binds to 127.0.0.1 only; the web app proxies /api/* to it.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import re
@@ -93,15 +94,67 @@ def get_provider() -> Any:
         return _provider
 
 
-def new_session(source: str = "web_ui") -> dict[str, Any]:
-    system_prompt = settings.system_prompt_path.read_text(encoding="utf-8")
-    declarations = load_tool_declarations(settings.tools_path)
-    artifact = build_artifact_version(settings.version, settings.system_prompt_path, settings.tools_path)
+VERSIONS_DIR = ARTIFACTS_DIR / "versions"
+VERSION_LABELS = {
+    "v0": "Bản gốc của bài mẫu",
+    "v1": "Hỏi lại và xin xác nhận",
+    "v2": "Rule chọn công cụ",
+    "v3": "Mô tả công cụ rõ hơn",
+}
+
+
+def available_versions() -> list[str]:
+    """Frozen versions: artifacts/versions/<vN>/{system_prompt.md,tools.yaml}."""
+    if not VERSIONS_DIR.is_dir():
+        return []
+    found = [
+        d.name for d in VERSIONS_DIR.iterdir()
+        if re.fullmatch(r"v\d+", d.name) and (d / "system_prompt.md").is_file() and (d / "tools.yaml").is_file()
+    ]
+    return sorted(found, key=lambda name: int(name[1:]))
+
+
+def version_paths(version: str | None) -> tuple[str, Path, Path]:
+    """(label, prompt path, tools path) of a frozen version; the live files when version is None."""
+    if version is None:
+        return settings.version, settings.system_prompt_path, settings.tools_path
+    if version not in available_versions():
+        raise ValueError(f"Không có version {version!r}. Có: {', '.join(available_versions()) or 'không'}")
+    base = VERSIONS_DIR / version
+    return version, base / "system_prompt.md", base / "tools.yaml"
+
+
+def default_version() -> str | None:
+    """Version the UI preselects: the one the server was started with, if it is frozen."""
+    versions = available_versions()
+    if settings.version in versions:
+        return settings.version
+    return versions[-1] if versions else None
+
+
+def version_accuracy() -> dict[str, float]:
+    """case_accuracy per version, read from artifacts/version_log.csv (the evidence log)."""
+    log = ARTIFACTS_DIR / "version_log.csv"
+    scores: dict[str, float] = {}
+    if not log.is_file():
+        return scores
+    for row in csv.DictReader(log.open(encoding="utf-8")):
+        match = re.search(r"case_accuracy=([0-9.]+)", row.get("metric_after", ""))
+        if match and row.get("version"):
+            scores[row["version"]] = float(match.group(1))
+    return scores
+
+
+def new_session(source: str = "web_ui", version: str | None = None) -> dict[str, Any]:
+    label, prompt_path, tools_path = version_paths(version)
+    system_prompt = prompt_path.read_text(encoding="utf-8")
+    declarations = load_tool_declarations(tools_path)
+    artifact = build_artifact_version(label, prompt_path, tools_path)
     provider = get_provider()
     model = settings.model or getattr(provider, "default_model", None)
     session_id = uuid.uuid4().hex[:12]
     transcript_id = "_".join([
-        safe_slug(settings.version),
+        safe_slug(label),
         safe_slug(settings.provider_name),
         safe_slug(source.replace("_ui", "")),
         datetime.now().strftime("%Y%m%dT%H%M%S%f"),
@@ -112,8 +165,8 @@ def new_session(source: str = "web_ui") -> dict[str, Any]:
         "provider": settings.provider_name,
         "model": model,
         "source": source,
-        "system_prompt": str(settings.system_prompt_path),
-        "tools": str(settings.tools_path),
+        "system_prompt": str(prompt_path),
+        "tools": str(tools_path),
         "history_window": settings.history_window,
         "max_tool_rounds": settings.max_tool_rounds,
         "created_at": now_iso(),
@@ -245,11 +298,13 @@ def turn_events(session: dict[str, Any], user_text: str) -> Iterator[dict[str, A
 class ChatRequest(BaseModel):
     session_id: str | None = None
     message: str = Field(min_length=1, max_length=4000)
+    version: str | None = None  # only used when a new session starts
 
 
 @app.get("/api/health")
 def health() -> dict[str, Any]:
-    artifact = build_artifact_version(settings.version, settings.system_prompt_path, settings.tools_path)
+    label, prompt_path, tools_path = version_paths(default_version())
+    artifact = build_artifact_version(label, prompt_path, tools_path)
     provider_ok = True
     try:
         provider = get_provider()
@@ -261,14 +316,33 @@ def health() -> dict[str, Any]:
         "ok": provider_ok,
         "provider": settings.provider_name,
         "model": model,
-        "version": settings.version,
+        "version": label,
         "artifact_version": artifact.artifact_version,
     }
 
 
+@app.get("/api/versions")
+def versions() -> dict[str, Any]:
+    scores = version_accuracy()
+    items = []
+    for name in available_versions():
+        _, prompt_path, tools_path = version_paths(name)
+        items.append({
+            "id": name,
+            "label": VERSION_LABELS.get(name, name),
+            "accuracy": scores.get(name),
+            "artifact_version": build_artifact_version(name, prompt_path, tools_path).artifact_version,
+        })
+    return {"default": default_version(), "versions": items}
+
+
 @app.get("/api/tools")
-def tools() -> list[dict[str, str]]:
-    declarations = load_tool_declarations(settings.tools_path)
+def tools(version: str | None = None) -> list[dict[str, str]]:
+    try:
+        _, _, tools_path = version_paths(version or default_version())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    declarations = load_tool_declarations(tools_path)
     return [{"name": d["name"], "description": d.get("description", "")} for d in declarations]
 
 
@@ -277,7 +351,9 @@ def chat(req: ChatRequest) -> StreamingResponse:
     session = sessions.get(req.session_id or "") if req.session_id else None
     if session is None:
         try:
-            session = new_session()
+            session = new_session(version=req.version or default_version())
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
         except Exception as exc:
             raise HTTPException(status_code=500, detail=redact(f"{type(exc).__name__}: {exc}"))
     if not session["lock"].acquire(blocking=False):

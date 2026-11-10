@@ -3,19 +3,24 @@
 import { Download, Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { fetchHealth, fetchTools } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { fetchHealth, fetchTools, fetchVersions } from "@/lib/api";
 import { useAgentChat } from "@/hooks/use-agent-chat";
-import type { Health, ToolInfo } from "@/lib/types";
+import type { Health, ToolInfo, VersionInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Composer } from "./chat/composer";
 import { EmptyState } from "./chat/empty-state";
 import { MessageList } from "./chat/message-list";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sidebar } from "./sidebar";
+import { VersionSelect } from "./version-select";
 
 export function AppShell() {
-  const chat = useAgentChat();
+  const [versions, setVersions] = useState<VersionInfo[]>([]);
+  const [defaultVersion, setDefaultVersion] = useState<string>();
+  const chat = useAgentChat(defaultVersion);
   const { newChat } = chat;
   const { resolvedTheme, setTheme } = useTheme();
   const [health, setHealth] = useState<Health | null>(null);
@@ -24,8 +29,23 @@ export function AppShell() {
 
   useEffect(() => {
     void fetchHealth().then(setHealth);
-    void fetchTools().then(setTools);
+    void fetchVersions().then((res) => {
+      setVersions(res.versions);
+      setDefaultVersion(res.default ?? undefined);
+    });
   }, []);
+
+  // The tool list shown in the UI follows the selected version (v0 has no `stats`).
+  const activeVersion = chat.activeVersion;
+  useEffect(() => {
+    let cancelled = false;
+    void fetchTools(activeVersion).then((list) => {
+      if (!cancelled) setTools(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeVersion]);
 
   // Cmd/Ctrl + K starts a new chat.
   useEffect(() => {
@@ -87,11 +107,28 @@ export function AppShell() {
               <Menu />
             </Button>
             <h2 className="truncate text-base font-medium">{isEmpty ? "Chat mới" : chat.active?.title}</h2>
-            {health?.ok && (
-              <Badge variant="secondary" className="hidden sm:inline-flex">
-                {health.version}
-              </Badge>
+            {versions.length === 0 && health?.ok && (
+              <Tooltip>
+                <TooltipTrigger render={<span />} className="inline-flex">
+                  <Badge variant="secondary">{health.version}</Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Server chưa hỗ trợ chọn version. Khởi động lại <span className="font-mono">python server.py</span> để có dropdown.
+                </TooltipContent>
+              </Tooltip>
             )}
+            <VersionSelect
+              versions={versions}
+              value={activeVersion}
+              disabled={chat.streaming}
+              onChange={(version) => {
+                if (chat.selectVersion(version) && !isEmpty) {
+                  toast.info(`Đã mở chat mới với ${version}`, {
+                    description: "Mỗi cuộc chat giữ nguyên một version để transcript không bị lẫn.",
+                  });
+                }
+              }}
+            />
           </div>
           <div className="flex items-center gap-2">
             <Button

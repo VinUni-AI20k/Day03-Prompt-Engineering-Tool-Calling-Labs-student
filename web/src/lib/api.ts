@@ -1,4 +1,4 @@
-import type { AgentEvent, Health, ToolInfo } from "./types";
+import type { AgentEvent, Health, ToolInfo, VersionsResponse } from "./types";
 
 async function errorMessage(res: Response): Promise<string> {
   try {
@@ -23,9 +23,19 @@ export async function fetchHealth(): Promise<Health> {
   }
 }
 
-export async function fetchTools(): Promise<ToolInfo[]> {
+export async function fetchVersions(): Promise<VersionsResponse> {
   try {
-    const res = await fetch("/api/tools", { cache: "no-store" });
+    const res = await fetch("/api/versions", { cache: "no-store" });
+    return res.ok ? ((await res.json()) as VersionsResponse) : { default: null, versions: [] };
+  } catch {
+    return { default: null, versions: [] };
+  }
+}
+
+export async function fetchTools(version?: string): Promise<ToolInfo[]> {
+  try {
+    const query = version ? `?version=${encodeURIComponent(version)}` : "";
+    const res = await fetch(`/api/tools${query}`, { cache: "no-store" });
     return res.ok ? ((await res.json()) as ToolInfo[]) : [];
   } catch {
     return [];
@@ -34,7 +44,7 @@ export async function fetchTools(): Promise<ToolInfo[]> {
 
 /** POST /api/chat and call onEvent for every Server-Sent Event as it arrives. */
 export async function streamChat(
-  body: { session_id?: string; message: string },
+  body: { session_id?: string; message: string; version?: string },
   onEvent: (event: AgentEvent) => void,
   signal: AbortSignal,
 ): Promise<void> {

@@ -156,6 +156,15 @@ Tên run JSON trong lệnh parse là file của lần đo cuối đã thực hi�
 - **Điều kiện để dùng được:** máy nhóm phải đang chạy `python server.py` và `cloudflared tunnel --url http://localhost:8000`. Địa chỉ tunnel đổi mỗi lần chạy lại nên cần cập nhật `API_ORIGIN` và deploy lại.
 - **Kiểm tra đã làm:** trang chủ, `/api/health`, `/api/tools` và một lượt chat có gọi tool đều chạy qua link Vercel.
 
+### Chọn version của agent ngay trên giao diện
+
+- **Thêm:** ô chọn version (v0, v1, v2, v3) ở đầu trang chat; mỗi cuộc chat chạy đúng prompt và mô tả công cụ của version đã chọn.
+- **Không cần quay lại code cũ:** bản prompt và `tools.yaml` của từng version được chép nguyên văn từ lịch sử git vào `starter_v0/artifacts/versions/vN/`. Mã băm của từng file khớp với `version_log.csv` (có test kiểm tra). File `artifacts/system_prompt.md` và `tools.yaml` ở ngoài vẫn là bản đang sửa tiếp cho v4.
+- **Cách hoạt động:** server có thêm `/api/versions`; giao diện gửi version khi mở chat mới. Đổi version giữa chừng sẽ mở một chat mới, để mỗi transcript chỉ thuộc về một version. Danh sách công cụ bên trái cũng đổi theo version (v0 chưa có `stats`).
+- **Ví dụ thật cùng một câu hỏi ("Tóm tắt 5 tweet mới nhất giúp mình"):** v0 tự đoán tài khoản `sama` rồi gọi `timeline`; v3 hỏi lại bạn muốn tài khoản nào. Rất hợp để minh hoạ vòng lặp cải tiến khi demo.
+- **Kiểm tra đã làm:** 130 test đạt (thêm 12 test cho phần version), lint và build giao diện sạch.
+- **Khi làm v4:** chép `system_prompt.md` và `tools.yaml` hiện tại vào `artifacts/versions/v4/` sau khi chạy eval và ghi `version_log.csv`; ô chọn sẽ tự hiện thêm v4.
+
 ## Việc khác đã làm
 
 - **Phân việc nhóm:** thư mục `tasks/` có bảng vai trò và checklist cho từng người.

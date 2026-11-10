@@ -14,8 +14,8 @@ import type {
 
 const uid = () => crypto.randomUUID();
 
-function makeConversation(): Conversation {
-  return { id: uid(), title: "Chat mới", messages: [], updatedAt: Date.now() };
+function makeConversation(version?: string): Conversation {
+  return { id: uid(), title: "Chat mới", version, messages: [], updatedAt: Date.now() };
 }
 
 function applyEvent(message: AssistantMessage, event: AgentEvent): AssistantMessage {
@@ -65,7 +65,7 @@ function applyEvent(message: AssistantMessage, event: AgentEvent): AssistantMess
   }
 }
 
-export function useAgentChat() {
+export function useAgentChat(defaultVersion?: string) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [hydrated, setHydrated] = useState(false);
@@ -92,6 +92,7 @@ export function useAgentChat() {
     () => conversations.find((c) => c.id === activeId),
     [conversations, activeId],
   );
+  const activeVersion = active?.version ?? defaultVersion;
 
   const patchConversation = useCallback(
     (id: string, fn: (conversation: Conversation) => Conversation) => {
@@ -136,6 +137,7 @@ export function useAgentChat() {
         return {
           ...c,
           title: c.messages.length === 0 ? content.slice(0, 48) : c.title,
+          version: c.version ?? activeVersion,
           messages: [...messages, userMessage, assistantMessage],
           updatedAt: Date.now(),
         };
@@ -148,7 +150,7 @@ export function useAgentChat() {
 
       try {
         await streamChat(
-          { session_id: active.sessionId, message: content },
+          { session_id: active.sessionId, message: content, version: active.version ?? activeVersion },
           (event) => {
             if (event.type === "session") {
               patchConversation(conversationId, (c) => ({ ...c, sessionId: event.session_id }));
@@ -188,7 +190,7 @@ export function useAgentChat() {
         setStreaming(false);
       }
     },
-    [active, patchConversation, patchLastAssistant],
+    [active, activeVersion, patchConversation, patchLastAssistant],
   );
 
   const stop = useCallback(() => abortRef.current?.abort(), []);
@@ -206,10 +208,26 @@ export function useAgentChat() {
   const newChat = useCallback(() => {
     if (streamingRef.current) return;
     if (active && active.messages.length === 0) return;
-    const fresh = makeConversation();
+    const fresh = makeConversation(activeVersion);
     setConversations((list) => [fresh, ...list]);
     setActiveId(fresh.id);
-  }, [active]);
+  }, [active, activeVersion]);
+
+  /** Pick the version for the next messages. A chat that already started keeps its version, so open a new one. */
+  const selectVersion = useCallback(
+    (version: string) => {
+      if (streamingRef.current || version === activeVersion) return false;
+      if (active && active.messages.length === 0) {
+        patchConversation(active.id, (c) => ({ ...c, version }));
+        return false;
+      }
+      const fresh = makeConversation(version);
+      setConversations((list) => [fresh, ...list]);
+      setActiveId(fresh.id);
+      return true;
+    },
+    [active, activeVersion, patchConversation],
+  );
 
   const selectChat = useCallback((id: string) => {
     if (streamingRef.current) return;
@@ -232,5 +250,18 @@ export function useAgentChat() {
     [conversations, activeId],
   );
 
-  return { conversations, active, hydrated, streaming, send, stop, retry, newChat, selectChat, deleteChat };
+  return {
+    conversations,
+    active,
+    activeVersion,
+    hydrated,
+    streaming,
+    send,
+    stop,
+    retry,
+    newChat,
+    selectVersion,
+    selectChat,
+    deleteChat,
+  };
 }

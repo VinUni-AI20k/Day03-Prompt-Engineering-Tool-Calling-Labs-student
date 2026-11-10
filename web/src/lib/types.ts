@@ -59,6 +59,8 @@ export type Conversation = {
   id: string;
   title: string;
   sessionId?: string;
+  /** Frozen prompt/tools version this chat runs on (fixed once the first message is sent). */
+  version?: string;
   messages: Message[];
   updatedAt: number;
 };
@@ -73,3 +75,12 @@ export type Health = {
 };
 
 export type ToolInfo = { name: string; description: string };
+
+export type VersionInfo = {
+  id: string;
+  label: string;
+  accuracy: number | null;
+  artifact_version: string;
+};
+
+export type VersionsResponse = { default: string | null; versions: VersionInfo[] };
