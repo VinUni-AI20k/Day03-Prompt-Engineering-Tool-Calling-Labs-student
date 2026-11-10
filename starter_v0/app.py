@@ -11,6 +11,7 @@ Tool calls, tool results and tool errors are always shown (never hidden).
 """
 from __future__ import annotations
 
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -39,7 +40,16 @@ for _stream in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError):
         pass
 
-PROVIDERS = ["openrouter", "openai", "anthropic", "gemini", "ollama"]
+# provider -> env vars that must be set (any one) for it to be usable.
+# Ollama needs no key; it is shown only when OLLAMA_BASE_URL/OLLAMA_MODEL is configured.
+PROVIDER_ENV = {
+    "openrouter": ["OPENROUTER_API_KEY"],
+    "openai": ["OPENAI_API_KEY"],
+    "anthropic": ["ANTHROPIC_API_KEY"],
+    "gemini": ["GEMINI_API_KEY"],
+    "ollama": ["OLLAMA_BASE_URL", "OLLAMA_MODEL"],
+}
+PROVIDERS = [name for name, keys in PROVIDER_ENV.items() if any(os.getenv(k, "").strip() for k in keys)]
 SAMPLE_QUESTIONS = [
     "Tin tức AI hôm nay có gì nổi bật?",
     "Lấy 5 tweet mới nhất của Andrej Karpathy",
@@ -102,7 +112,11 @@ def render_tool_events(rounds: list[dict[str, Any]]) -> None:
 # ---------------- Sidebar: config ----------------
 with st.sidebar:
     st.header("⚙️ Cấu hình")
-    provider_name = st.selectbox("Provider", PROVIDERS, index=0)
+    if not PROVIDERS:
+        st.error("Chưa có API key provider nào trong starter_v0/.env (vd OPENROUTER_API_KEY).")
+        st.stop()
+    provider_name = st.selectbox("Provider", PROVIDERS, index=0,
+                                 help="Chỉ hiện provider đã có API key trong starter_v0/.env")
     model_input = st.text_input("Model (để trống = mặc định của provider)", value="")
     version = st.text_input("Version label", value="v3")
     history_window = st.number_input("History window (cặp lượt)", min_value=0, max_value=20, value=5)
