@@ -11,7 +11,7 @@
 | 1 | Phạm Đức Hồng Đức | 2A202603558 | Agent Core, Prompt & Tool Spec |
 | 2 | Đỗ Minh Hoàng | 2A202603554 | UI & Live Application |
 | 3 | Vũ Đức Tâm | 2A202603522 | Tool Coder A — weather, github_search |
-| 4 | Lê Xuân Hà | 2A202603571 | Testing & Eval Suite |
+| 4 | Lê Xuân Hạ | 2A202603571 | Testing & Eval Suite |
 | 5 | Nguyễn Trung Duy | 2A202603387 | Tool Coder B — deduplicate, citation_audit |
 
 
@@ -22,7 +22,7 @@
 | Agent Core, Prompt & Tool Spec | Phạm Đức Hồng Đức | Viết rules routing; quy định khi nào clarify/search; tối ưu mô tả tool và tham số; quản lý các vòng eval v0 → v1 → v2 → v3 | `artifacts/system_prompt.md`, `artifacts/tools.yaml`, `runs/*.json`, `artifacts/version_log.csv` | B1 — Version Evidence |
 | Tool Coder A | Vũ Đức Tâm | Viết hai tool `weather`, `github_search`; xử lý đầu vào/lỗi; viết tài liệu và đăng ký tool | `tools/weather/`, `tools/github_search/`, `tools/__init__.py`, khai báo trong `artifacts/tools.yaml` | A2 — Danh sách tool |
 | Tool Coder B | Nguyễn Trung Duy | Viết `deduplicate`, `citation_audit`; xử lý đầu vào/lỗi; viết tài liệu, đăng ký tool và kiểm thử | `tools/deduplicate/`, `tools/citation_audit/`, `tests/test_person3.py`, đăng ký trong `tools/__init__.py` và schema trong `artifacts/tools.yaml` | A2 — Hai tool mới; B5 — Bonus Evidence |
-| Testing & Eval Suite | Lê Xuân Hà | Hoàn thiện unit test cho tool toàn nhóm, tối thiểu 3 test/tool; mock network; viết 10 case eval gồm 5 single-turn và 5 multi-turn; phân tích lỗi thực tế | `tests/test_tools_todo.py`, các file test liên quan, `data/eval_group.json`, kết quả pytest/eval | B2 — Failure Analysis; B3 — Team Eval Cases |
+| Testing & Eval Suite | Lê Xuân Hạ | Hoàn thiện unit test cho tool toàn nhóm, tối thiểu 3 test/tool; mock network; viết 10 case eval gồm 5 single-turn và 5 multi-turn; phân tích lỗi thực tế | `tests/test_tools_todo.py`, các file test liên quan, `data/eval_group.json`, kết quả pytest/eval | B2 — Failure Analysis; B3 — Team Eval Cases |
 | UI & Live Application | Đỗ Minh Hoàng | Phụ trách giao diện chat; hiển thị tool call và kết quả Markdown; tạo transcript từ chạy thực tế | UI của nhóm, `transcripts/*.transcript.json` | A1 — Giới thiệu; A3 — Câu hỏi mẫu; B4 — Live Chat Evidence |
 
 ## Phạm vi phần Phạm Đức Hồng Đức - 2A202603558
@@ -90,8 +90,17 @@ Tài liệu gồm frontmatter đúng contract, chức năng, trường hợp s�
 - Viết `TOOL.md`, đăng ký hàm trong `tools/__init__.py` và khai báo schema trong `artifacts/tools.yaml` cho hai tool mới.
 - Phụ trách mô tả hai tool tại A2 và bằng chứng tại B5 trong `artifacts/REPORT.md`.
 
-## Phạm vi phần Lê Xuân Hà - 2A202603571
-
+## Phạm vi phần Lê Xuân Hạ - 2A202603571
+1. Hoàn thiện bộ unit test offline (`starter_v0/tests/test_tools_todo.py`)
+- Hoàn thành toàn bộ 14 bài TODO starter cho các tool core và bonus (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`), sử dụng mock HTTP/network hoàn toàn offline.
+- Bổ sung 43 test case kiểm thử cho 4 tool mới của nhóm (vượt mức tối thiểu 3 test/tool):
+  - Tool của Vũ Đức Tâm: `weather` và `github_search` (tham số, lỗi đầu vào, chuẩn hóa kết quả, mock HTTP/timeout/lỗi dữ liệu).
+  - Tool của Nguyễn Trung Duy: `deduplicate` và `citation_audit` (chuẩn hóa URL/tracking params, không làm biến đổi dữ liệu đầu vào, kiểm tra thiếu `title`/`source`, `invalid_url`, trùng URL và lỗi đầu vào).
+- Tổng cộng 57 test case trong `starter_v0/tests/test_tools_todo.py`; kết quả chạy toàn bộ bộ test (`pytest tests/ -v`): **166 passed, 0 skipped, 0 failed** (lưu log tại `starter_v0/analysis/pytest_results.txt`).
+2. Xây dựng bộ eval case của nhóm (`starter_v0/data/eval_group.json`)
+- Viết mới 10 eval case (`G01`–`G10`), gồm 5 single-turn và 5 multi-turn, bao phủ 4 tool mới (`weather`, `github_search`, `deduplicate`, `citation_audit`) và các bẫy routing/argument/boundary thường gặp (`missing_info`, `wrong_tool`, `unnecessary_tool`, sửa constraint và hủy/chuyển tool nhiều lượt).
+- Chạy đánh giá bằng `run_eval.py` với OpenAI / `gpt-4o-mini` (bản `v1`), đạt **9/10 PASS** (`case_accuracy: 0.90`, `tool_routing_accuracy: 0.90`, `argument_accuracy: 0.90`, `multiturn_accuracy: 1.00`), lưu kết quả tại `starter_v0/runs/
+3. Phần đóng góp Báo cáo(`starter_v0/artifacts/REPORT.md`) Mục B2 (Failure Analysis) và Mục B3 (Team Eval Cases).
 
 
 ## Phạm vi phần Đỗ Minh Hoàng - 2A202603554
