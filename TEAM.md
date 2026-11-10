@@ -13,6 +13,7 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 | 1 | Vũ Văn Bình | Chưa cung cấp | Chưa cung cấp | Chưa cung cấp | Setup, chạy baseline v0, tổng hợp bằng chứng CP1 |
+| 2 | Trần Thị Hà Anh | 2A202603887 | anhtth.it.work@gmail.com | hnha02 | CP3: phát triển 4 tool mới, unit test, eval routing |
 
 Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin thực tế. Không suy ra tài khoản GitHub cá nhân từ chủ sở hữu repo.
 
@@ -38,3 +39,27 @@ Danh sách chưa đầy đủ; bổ sung các thành viên khác theo thông tin
 - [Báo cáo nhóm](report/team/group_report.md), mục B1 và B2.
 - [Báo cáo cá nhân tạm](report/team/CHUA_CO_MSSV_VuVanBinh.md); cần đổi tiền tố sang MSSV thật trước khi nộp.
 - Commit kỹ thuật của cá nhân: chưa ghi nhận trong phần việc này; cần bổ sung sau khi commit thực tế.
+
+## Trần Thị Hà Anh — 2A202603887
+
+### Phần việc phụ trách
+
+- Phụ trách CP3: xây dựng tool mới và unit test cho research agent.
+- Hoàn thiện tool bắt buộc `github_search` và eval case kiểm tra routing/arguments.
+- Thực hiện bonus ≥4 tool tự viết với `deduplicate_sources`, `compare_sources` và `filter_by_date`.
+- Đăng ký tool trong `TOOL_FUNCTIONS`, khai báo schema trong `artifacts/tools.yaml` và cập nhật bằng chứng CP3/bonus trong báo cáo nhóm.
+
+### Đóng góp cụ thể
+
+- Viết code và `TOOL.md` cho bốn tool: `github_search`, `deduplicate_sources`, `compare_sources`, `filter_by_date`.
+- Viết 12 unit test cho happy path, input xấu và failure path; mock HTTP GitHub để toàn bộ kiểm thử chạy offline.
+- Chạy toàn bộ suite: 97 passed, 14 skipped, 0 failed; các test skip là challenge tùy chọn của tool starter.
+- Thêm case `G01_github_repository_routing` vào `starter_v0/data/eval_group.json`.
+- Hỗ trợ đưa run baseline `v0_B_base_openai_20261110T180640602946.json` vào repo.
+
+### Bằng chứng
+
+- Các commit `ff72034`, `21e9423`, `64abe65`, `fa038dc`; PR #2, merge commit `96196bd`.
+- `starter_v0/tools/{github_search,deduplicate_sources,compare_sources,filter_by_date}/`.
+- `starter_v0/tests/test_tools_todo.py`, `starter_v0/analysis/cp3_pytest.txt`.
+- Báo cáo cá nhân: `report/team/2A202603887_TranThiHaAnh.md`.
