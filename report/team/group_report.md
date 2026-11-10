@@ -62,8 +62,8 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  | Pass 15/20 | v0_B_base_openrouter_20261110T173925903234 |
-| v1 |  |  |  |  |  |
+| v0 | baseline | _ | _ | case_accuracy = 75% | v0_B_base_openrouter_20261110T173925903234 |
+| v1 |  | Prompt v0 khuyến khích tự đoán khi thiếu thông tin, khiến agent tự chọn tài khoản và tạo URL. Thay chỉ dẫn này bằng quy tắc kiểm tra lịch sử hội thoại và gọi clarify khi vẫn thiếu account hoặc URL sẽ giảm lỗi missing_info. |  |  |  |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
 
