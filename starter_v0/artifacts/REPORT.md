@@ -61,19 +61,36 @@ Fill from `artifacts/version_log.csv` and `runs/*.json`.
 
 ## B2. Failure Analysis
 
-Use actual failures from `results[*].result.failures`.
+Use actual failures from `results[*].result.failures` (`runs/v0_B_base_openai_20261110T105415460273.json`, `runs/v1_B_base_openai_20261110T143625017805.json`, `runs/v1_B_group_openai_20261110T143652937746.json`).
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| `R03_web_news_routing` (v0) | `wrong_tool` | `lookup(query="AI news", topic="news", timeframe="day")` | `query: expected 'AI', got 'AI news'` — nhồi từ khóa `"news"` vào `query` | Tách chủ đề khỏi `topic="news"` trong `system_prompt.md`; đã PASS ở v1 (`18/20`). |
+| `R08_out_of_scope` (v0) | `out_of_scope` | `lookup(query="nguyên hàm của x^2")` | `expected no tool call` — gọi `lookup` cho câu toán tích phân | Thêm rule từ chối ngoài phạm vi không gọi tool trong `system_prompt.md`; đã PASS ở v1. |
+| `R13_parallel_web_and_tweets` (v0) | `wrong_tool` | `lookup(query="AI news", topic=None)` + `social_search(query="AI")` | `query: expected 'AI', got 'AI news'`; `topic: expected 'news', got None` | Chuẩn hóa quy ước tách `query` và `topic="news"`; đã PASS ở v1. |
+| `G04_weather_vs_news_trap` (v1 group) | `wrong_tool` | `lookup(query="bão mưa lớn miền Trung", topic="news", timeframe="day")` + `social_search(..., search_type="Top")` | `extra tool call social_search` — tránh được bẫy `weather` nhưng gọi thừa `social_search` khi user chỉ hỏi báo chí | Chỉ gọi `social_search` khi user yêu cầu thảo luận/mạng xã hội; câu hỏi báo chí/tin tức chỉ gọi `lookup` (cho vòng `v2`). |
+| `G08_mt_deduplicate_existing_items` (schema note) | `wrong_arg_value` (tool schema) | Lần chạy trước: `deduplicate(maxItems=100, items=[...])`<br>Lần chạy v1: `deduplicate(items=[...])` | Model đôi khi đọc nhầm `maxItems: 100` trong schema `tools.yaml` thành argument `maxItems=100` khiến `deduplicate_sources()` ném `TypeError` trong `tool_results` | Bỏ `maxItems` khỏi top-level confusion / siết mô tả args trong `tools.yaml` và thêm rule routing `deduplicate`/`citation_audit` vào `system_prompt.md` (cho vòng `v2`). |
+| `v1/R11_missing_url` | `missing_info` | `clarify` | Chọn đúng tool nhưng bỏ `response_type`; expected `text`. | Bắt buộc `response_type` trong schema và mô tả rõ từng enum. |
+| `v1/R12_confirm_before_send` | `wrong_boundary` | `clarify` | Chọn đúng tool nhưng dùng `response_type="text"` thay vì `"yes_no"`. | Nêu rõ xác nhận side effect phải dùng `yes_no`. |
+| `v2/R12_confirm_before_send` | `wrong_boundary` | `clarify` | Model vẫn ưu tiên hỏi nội dung bằng `text` trước xác nhận. | V3 quy định xác nhận `yes_no` luôn là bước đầu tiên, kể cả khi nội dung còn thiếu. |
+| `v2/M06_switch_tool` | `wrong_tool` | `lookup`, `social_search` | `lookup` đúng nhưng gọi thừa `social_search` sau khi người dùng nói bỏ Twitter; mismatch thực tế là `extra_tool_call`. | V3 cho lệnh hủy/chuyển nguồn ưu tiên cao hơn multi-tool và cấm gọi tool đã bị thay thế. |
 
 ## B3. Team Eval Cases
 
-List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn).
+List the 10 cases added to `data/eval_group.json` (5 single turn + 5 multi turn) covering `weather`, `github_search`, `deduplicate`, `citation_audit`, and the `send` confirmation guardrail. Run evidence: `runs/v1_B_group_openai_20261110T143652937746.json` (**9/10 PASS**, `case_accuracy: 0.9`, `multiturn_accuracy: 1.0`).
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| `G01_weather_fahrenheit_routing` | Single-turn (`weather`): phân biệt `weather` với `lookup` và trích xuất `units="fahrenheit"` | `weather(location="Tokyo", units="fahrenheit")` | PASS |
+| `G02_weather_missing_location_trap` | Single-turn trap (`missing_info`, `weather`): hỏi thời tiết không có thành phố | `clarify(response_type="text")` (không đoán vị trí) | PASS |
+| `G03_github_search_stars_limit` | Single-turn (`github_search`): định tuyến tìm repo sang `github_search` với `sort="stars"`, `max_results=3` | `github_search(sort="stars", max_results=3)` | PASS |
+| `G04_weather_vs_news_trap` | Single-turn trap (`wrong_tool`, `weather` vs `lookup`): tin bão/mưa trên báo chí, không gọi `weather` hoặc tool thừa | `lookup(topic="news", timeframe="day")` | FAIL (`extra tool call social_search`) |
+| `G05_unnecessary_tool_capabilities_trap` | Single-turn trap (`unnecessary_tool`): hỏi meta về các công cụ `weather`, `github_search`, `deduplicate`, `citation_audit` | `no_tool: true` (trả lời trực tiếp) | PASS |
+| `G06_mt_weather_clarify_then_fill` | Multi-turn (3 lượt, `missing_info`, `weather`): bổ sung địa điểm `Seoul` và đơn vị độ C | `weather(location="Seoul", units="celsius")` | PASS |
+| `G07_mt_github_correction_sort_limit` | Multi-turn (3 lượt, `wrong_arg_value`, `github_search`): sửa `stars` → `updated` và `5` → `2` | `github_search(sort="updated", max_results=2)` | PASS |
+| `G08_mt_deduplicate_existing_items` | Multi-turn (2 lượt, `wrong_tool`, `deduplicate`): lọc trùng URL trên nguồn có sẵn (`removed_count=1`) | `deduplicate` (không gọi `lookup`/`fetch`/`format`) | PASS |
+| `G09_mt_citation_audit_existing_items` | Multi-turn (2 lượt, `wrong_tool`, `citation_audit`): kiểm tra metadata trích dẫn lỗi (`missing_title`, `missing_source`, `invalid_url`) | `citation_audit` (không gọi `fetch`) | PASS |
+| `G10_mt_send_after_explicit_confirmation` | Multi-turn (3 lượt, `wrong_boundary`, Guardrail `send`): chỉ gọi `send` sau khi user xác nhận tường minh; runtime `ResearchAgent` vẫn fail-closed (`needs_confirmation`) | `send(text="Tong hop tin AI ngay 10/11", confirmed=true)` | PASS |
 
 ## B4. Live Chat Evidence
 
@@ -92,9 +109,9 @@ Only fill if your team did bonus.
 | send (Telegram) |  |  |  |
 | arXiv/company policy |  |  |  |
 | UI |  |  |  |
-| Tool unit tests (`tests/`) | `pytest` output |  |  |
+| Tool unit tests (`tests/`) | `tests/test_tools_todo.py`, `analysis/pytest_results.txt` (`pytest tests/ -v`: **186 passed, 0 skipped, 0 failed**) | Hoàn tất toàn bộ 14 stub core/bonus (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`) + 63 test cases cho `weather`, `github_search`, `deduplicate`, `citation_audit` và Guardrail (`send`/`approve_message`/`ResearchAgent`/`chat.py`) = **77 test cases** trong `test_tools_todo.py` | Chạy 100% offline qua `fake_http` & `monkeypatch`; kiểm chứng fail-closed (`confirmed is True`, ràng buộc đúng nguyên văn `approve_message`, dùng một lần, `ResearchAgent` tự động chặn, `chat.py` bắt buộc gõ `SEND`) và không rò rỉ token Telegram |
 
-Tool unit tests: số test đã viết, số bug tìm được trong tool có sẵn (nếu có), và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: đã viết **77 test cases** trong `tests/test_tools_todo.py` (nâng tổng suite lên **186 passed, 0 skipped, 0 failed**), bao phủ đầy đủ `weather` (11 cases), `github_search` (15 cases), `deduplicate` (10 cases), `citation_audit` (7 cases), cơ chế Guardrail Telegram (`send_telegram` + `approve_message` + `ResearchAgent` fail-closed + `chat.execute_tool_call` xác nhận `SEND`: 20 cases) và 14 stub có sẵn. Ví dụ lỗi mà unit test / kiểm tra thực thi bắt được nhưng chấm routing đơn thuần dễ bỏ sót: (1) ở `G08_mt_deduplicate_existing_items`, model từng truyền thêm `maxItems=100` gây `TypeError` khi gọi `deduplicate_sources()`; (2) ở Guardrail `send`, ngay cả khi model tự đặt `confirmed=True` hoặc truyền `"true"`/`1`, hệ thống vẫn chặn không gửi HTTP nếu thiếu `approve_message(text)` khớp nguyên văn từ trusted host.
 
 ### Person 3: local research tools and Telegram guardrail
 
@@ -112,11 +129,10 @@ and add model routing cases. Person 5 should call approve_message(text) only in
 a trusted UI confirmation handler, after previewing that exact text. Two new
 tools here plus Person 2's two tools would total four, once integrated.
 
-Offline validation: `.venv/Scripts/python.exe -m pytest tests/ -q` returned
-**98 passed, 17 skipped**. The 17 skips are pre-existing exercise stubs in
-`tests/test_tools_todo.py` for Person 4 to complete. The focused command
-`python -m pytest tests/test_person3.py tests/test_tool_contract.py tests/test_tools_examples.py -q`
-returned **98 passed**, with no skipped tests. No live model score is claimed.
+Offline validation (historical handoff note before Person 4): `.venv/Scripts/python.exe -m pytest tests/ -q` returned
+**98 passed, 17 skipped**. The 17 skips were pre-existing exercise stubs in
+`tests/test_tools_todo.py` for Person 4 to complete. After Person 4 completed
+`tests/test_tools_todo.py` (77 tests), `pytest tests/ -v` returns **186 passed, 0 skipped, 0 failed**.
 
 ## B6. Reflection
 
