@@ -10,7 +10,7 @@
 
 - Tên nhóm:
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3: OpenRouter / `openai/gpt-4o-mini`
+- Provider/model dùng cho v0–v3: model `gpt-4o-mini` cho mọi version. v0 gọi qua OpenRouter (`openai/gpt-4o-mini`); từ v1 gọi trực tiếp qua provider `openai` (`gpt-4o-mini`), cùng model nên metric so sánh được.
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -63,7 +63,7 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
 | v0 | baseline (starter chưa sửa) | Đo hành vi chưa tối ưu trước khi sửa | – | case 0.65 · routing 0.75 · args 0.65 · multiturn 1.00 | [v0_B_base_openrouter_20261110T174226406183.json](../../starter_v0/runs/v0_B_base_openrouter_20261110T174226406183.json) |
-| v1 |  |  |  |  |  |
+| v1 | `system_prompt.md` | Prompt starter dặn đoán account/URL, gửi không cần xác nhận và ép gọi đúng 1 tool → gây 5/7 FAIL (R08, R10, R11, R12, R14). Bỏ các chỉ dẫn này, thêm rule `clarify` khi thiếu info, xác nhận `yes_no` trước `send`, từ chối ngoài phạm vi, cho phép nhiều tool/lượt thì các case đó PASS. | case 0.65 · routing 0.75 · args 0.65 · multiturn 1.00 | case 0.95 · routing 1.00 · args 0.95 · multiturn 1.00 | [v1_B_base_openai_20261110T182945282365.json](../../starter_v0/runs/v1_B_base_openai_20261110T182945282365.json) |
 | v2 |  |  |  |  |  |
 | v3 |  |  |  |  |  |
 
