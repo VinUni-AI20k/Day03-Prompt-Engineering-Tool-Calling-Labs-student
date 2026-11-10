@@ -110,13 +110,69 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_keeps_first_metadata_and_order() -> None:
+    items = [
+        {"url": "https://example.com/a#intro", "title": "First"},
+        {"url": "https://example.com/b", "title": "Second"},
+        {"url": "https://example.com/a#end", "title": "Duplicate"},
+        {"url": "https://example.com/b", "title": "Duplicate B"},
+    ]
+    assert TOOL_FUNCTIONS["deduplicate"](items) == {
+        "tool": "deduplicate", "items": items[:2], "removed_count": 2,
+    }
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+@pytest.mark.parametrize("items", [None, "text", {}, [None], ["url"], [{}],
+    [{"url": None}], [{"url": 42}], [{"url": ""}],
+    [{"url": "ftp://example.com/a"}], [{"url": "/relative"}],
+    [{"url": "https://"}], [{"url": "https://example.com/a b"}],
+    [{"url": "https://[invalid"}], [{"url": "https://example.com:bad/a"}],
+    [{"url": "https://example.com:99999/a"}],
+])
+def test_deduplicate_invalid_input_returns_error_dict(items) -> None:
+    result = TOOL_FUNCTIONS["deduplicate"](items)
+    assert result["tool"] == "deduplicate"
+    assert result["error"] == "invalid_input"
+    assert result["message"]
+    assert "items" not in result
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_missing_input_returns_error_dict() -> None:
+    assert TOOL_FUNCTIONS["deduplicate"]()["error"] == "invalid_input"
+
+
+def test_deduplicate_empty_list_succeeds() -> None:
+    assert TOOL_FUNCTIONS["deduplicate"]([]) == {
+        "tool": "deduplicate", "items": [], "removed_count": 0,
+    }
+
+
+def test_deduplicate_preserves_query_parameters_and_paths() -> None:
+    items = [{"url": url} for url in [
+        "https://example.com/a?id=1", "https://example.com/a?id=2",
+        "https://example.com/a", "https://example.com/a/",
+        "http://example.com/a",
+    ]]
+    result = TOOL_FUNCTIONS["deduplicate"](items)
+    assert result["items"] == items
+    assert result["removed_count"] == 0
+
+
+def test_deduplicate_does_not_mutate_or_alias_input() -> None:
+    from copy import deepcopy
+
+    items = [{"url": "https://example.com/a#one", "metadata": {"tags": ["AI"]}},
+             {"url": "https://example.com/a#two"}]
+    original = deepcopy(items)
+    result = TOOL_FUNCTIONS["deduplicate"](items)
+    assert items == original
+    result["items"][0]["metadata"]["tags"].append("changed")
+    assert items == original
+
+
+def test_deduplicate_invalid_later_item_returns_no_partial_results() -> None:
+    items = [{"url": "https://example.com/a"}, {"title": "Missing URL"}]
+    result = TOOL_FUNCTIONS["deduplicate"](items)
+    assert result["error"] == "invalid_input"
+    assert "items[1]" in result["message"]
+    assert "items" not in result

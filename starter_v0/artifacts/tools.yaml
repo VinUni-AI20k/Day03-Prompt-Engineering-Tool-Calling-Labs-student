@@ -14,6 +14,27 @@
 #   - Make the `send` confirmation boundary explicit.
 #   - Declare your new tool(s) at the end of this file.
 tools:
+  - name: deduplicate
+    description: >-
+      Remove duplicate URLs from already-collected research items when the user
+      asks to filter duplicates, including before formatting a digest.
+      Do not use to search, fetch pages, or compare article content.
+      Ignore URL fragments only; preserve query parameters and keep the first
+      item and its metadata in input order. No network access is needed.
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          description: Collected articles to deduplicate; each needs an absolute HTTP(S) URL.
+          items:
+            type: object
+            properties:
+              url: {type: string, description: Absolute HTTP or HTTPS URL.}
+              title: {type: string}
+              summary: {type: string}
+            required: [url]
+      required: [items]
   # ---------------- Core tools ----------------
   - name: clarify
     description: "Gửi một câu hỏi cho người dùng."

@@ -3,5 +3,29 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_deduplicate_collected_articles",
+      "phase": "B",
+      "query": "Lọc trùng URL trong danh sách bài viết đã có sau, giữ bài đầu tiên và bỏ fragment khi so sánh. Chỉ lọc trùng, chưa cần định dạng hay tìm thêm: [{\"url\":\"https://example.com/ai#intro\",\"title\":\"AI first\"},{\"url\":\"https://example.com/robotics\",\"title\":\"Robotics\"},{\"url\":\"https://example.com/ai#end\",\"title\":\"AI duplicate\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {"url": "https://example.com/ai#intro", "title": "AI first"},
+                {"url": "https://example.com/robotics", "title": "Robotics"},
+                {"url": "https://example.com/ai#end", "title": "AI duplicate"}
+              ]
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate với toàn bộ input, không tự loại trước và không gọi lookup/fetch/format."
+      }
+    }
+  ]
 }
