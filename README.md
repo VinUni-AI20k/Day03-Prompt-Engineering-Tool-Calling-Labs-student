@@ -44,18 +44,18 @@ Bonus:
 
 **Setup**
 - [ ] `.env` có provider key + `TAVILY_API_KEY`, `FIRECRAWL_API_KEY`, `RAPIDAPI_KEY`
-- [ ] `python scripts/preflight_provider.py --provider openrouter` pass
-- [ ] `pytest` chạy được: contract test + example test xanh, TODO test đang `skipped`
+- [ ] `python scripts/preflight_provider.py --provider openai` pass — chưa có output pass được lưu; lần kiểm tra gần nhất không chạy được do `.venv` trỏ tới Python không còn tồn tại (`starter_v0/.venv/pyvenv.cfg`).
+- [ ] `pytest` chạy được: contract test + example test xanh, TODO test đang `skipped` — chưa có output pytest pass được lưu; lần kiểm tra gần nhất không chạy được do `.venv` trỏ tới Python không còn tồn tại (`starter_v0/.venv/pyvenv.cfg`).
 
 **Prompt & tool declaration**
-- [ ] Chạy baseline `v0`, ghi vào `artifacts/version_log.csv`
-- [ ] Liệt kê các case FAIL của `v0` và gán mỗi case một loại lỗi (`wrong_tool`, `wrong_arg_value`, `missing_info`...)
-- [ ] `artifacts/system_prompt.md`: bỏ các chỉ dẫn xấu cố ý của starter (đoán thay vì hỏi, gửi không cần xác nhận, ép một bước)
-- [ ] `artifacts/system_prompt.md`: thêm rule routing (khi nào `timeline` / `social_search` / `lookup` / `fetch` / `clarify`)
-- [ ] `artifacts/tools.yaml`: viết lại `description` mỗi tool: làm gì, **khi nào dùng / khi nào không dùng**
-- [ ] `artifacts/tools.yaml`: mô tả rõ convention args (handle không có `@`, `topic=news` cho tin tức, `timeframe`, `search_type=Top|Latest`)
-- [ ] `artifacts/tools.yaml`: `send` mô tả rõ chỉ gửi khi user đã xác nhận (`confirmed=true`)
-- [ ] `v1`, `v2`, `v3`: mỗi version **một** giả thuyết, metric trước/sau trong `version_log.csv`
+- [x] Chạy baseline `v0`, ghi vào `artifacts/version_log.csv` — file: [`version_log.csv`](starter_v0/artifacts/version_log.csv); bằng chứng: [`v0_B_base_openai_20261110T124508385370.json`](starter_v0/runs/v0_B_base_openai_20261110T124508385370.json).
+- [x] Liệt kê các case FAIL của `v0` và gán mỗi case một loại lỗi (`wrong_tool`, `wrong_arg_value`, `missing_info`...) — bằng chứng gồm ID, `failure_type` và mismatch trong [`v0_B_base_openai_20261110T124508385370.json`](starter_v0/runs/v0_B_base_openai_20261110T124508385370.json).
+- [x] `artifacts/system_prompt_v1.md`–`system_prompt_v3.md`: bỏ các chỉ dẫn xấu cố ý của starter (đoán thay vì hỏi, gửi không cần xác nhận, ép một bước) — file: [`system_prompt_v1.md`](starter_v0/artifacts/system_prompt_v1.md), [`system_prompt_v2.md`](starter_v0/artifacts/system_prompt_v2.md), [`system_prompt_v3.md`](starter_v0/artifacts/system_prompt_v3.md).
+- [x] `artifacts/system_prompt_v1.md`–`system_prompt_v3.md`: thêm rule routing (khi nào `timeline` / `social_search` / `lookup` / `fetch` / `clarify`) — bằng chứng: các mục Routing trong [`system_prompt_v1.md`](starter_v0/artifacts/system_prompt_v1.md), [`system_prompt_v2.md`](starter_v0/artifacts/system_prompt_v2.md), [`system_prompt_v3.md`](starter_v0/artifacts/system_prompt_v3.md).
+- [x] `artifacts/tools_v1.yaml`–`tools_v3.yaml`: viết lại `description` mỗi tool: làm gì, **khi nào dùng / khi nào không dùng** — file: [`tools_v1.yaml`](starter_v0/artifacts/tools_v1.yaml), [`tools_v2.yaml`](starter_v0/artifacts/tools_v2.yaml), [`tools_v3.yaml`](starter_v0/artifacts/tools_v3.yaml).
+- [x] `artifacts/tools_v1.yaml`–`tools_v3.yaml`: mô tả rõ convention args (handle không có `@`, `topic=news` cho tin tức, `timeframe`, `search_type=Top|Latest`) — bằng chứng: mô tả tool và parameters trong các file YAML v1–v3 phía trên.
+- [x] `artifacts/tools_v1.yaml`–`tools_v3.yaml`: `send` mô tả rõ chỉ gửi khi user đã xác nhận (`confirmed=true`) — bằng chứng: khai báo `send` và tham số `confirmed` trong các file YAML v1–v3 phía trên.
+- [x] `v1`, `v2`, `v3`: mỗi version **một** giả thuyết, metric trước/sau trong `version_log.csv` — file: [`version_log.csv`](starter_v0/artifacts/version_log.csv); bằng chứng run: [`v1`](starter_v0/runs/v1_B_base_openai_20261110T124619855103.json), [`v2`](starter_v0/runs/v2_B_base_openai_20261110T124718950146.json), [`v3`](starter_v0/runs/v3_B_base_openai_20261110T155517891173.json).
 
 **Tool mới**
 - [ ] `tools/<tên>/tool.py` + `TOOL.md` (frontmatter đúng contract trong `tools/README.md`)
