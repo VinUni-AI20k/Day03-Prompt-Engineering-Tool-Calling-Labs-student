@@ -110,13 +110,28 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_keeps_first_source() -> None:
+    first = {"title": "First", "url": "https://example.com/news?utm_source=chat"}
+    result = TOOL_FUNCTIONS["deduplicate_sources"](items=[
+        first, {"title": "Duplicate", "url": "https://example.com/news"},
+    ])
+    assert result["items"] == [first]
+    assert result["input_count"] == 2
+    assert result["item_count"] == 1
+    assert result["duplicates_removed"] == 1
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_rejects_non_array_input() -> None:
+    result = TOOL_FUNCTIONS["deduplicate_sources"](items="not a list")
+    assert result["error"] == "ValueError"
+    assert "list" in result["message"]
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_sources_bad_url_returns_error_without_partial_results() -> None:
+    result = TOOL_FUNCTIONS["deduplicate_sources"](items=[
+        {"url": "https://example.com/valid"}, {"url": "not-a-url"},
+    ])
+    assert result["tool"] == "deduplicate_sources"
+    assert result["error"] == "ValueError"
+    assert "items[1]" in result["message"]
+    assert "items" not in result
