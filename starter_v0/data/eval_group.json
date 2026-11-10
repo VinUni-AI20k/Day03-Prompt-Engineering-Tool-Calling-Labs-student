@@ -14,120 +14,279 @@
     {
       "id": "G01_deduplicate_collected_articles",
       "phase": "B",
+      "suite": "group",
       "query": "Lọc trùng URL trong danh sách bài viết đã có sau, giữ bài đầu tiên và bỏ fragment khi so sánh. Chỉ lọc trùng, chưa cần định dạng hay tìm thêm: [{\"url\":\"https://example.com/ai#intro\",\"title\":\"AI first\"},{\"url\":\"https://example.com/robotics\",\"title\":\"Robotics\"},{\"url\":\"https://example.com/ai#end\",\"title\":\"AI duplicate\"}]",
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
             "name": "deduplicate",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate (tool mới của nhóm), không gọi lookup/fetch/format. Chỉ chấm routing vì harness không so sánh được list-of-dict trong args."
+      }
+    },
+    {
+      "id": "G02_dedupe_missing_list",
+      "phase": "B",
+      "suite": "group",
+      "query": "Lọc trùng các bài viết mình đã thu thập giúp mình nhé.",
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
             "args": {
-              "items": [
-                {
-                  "url": "https://example.com/ai#intro",
-                  "title": "AI first"
-                },
-                {
-                  "url": "https://example.com/robotics",
-                  "title": "Robotics"
-                },
-                {
-                  "url": "https://example.com/ai#end",
-                  "title": "AI duplicate"
-                }
-              ]
+              "response_type": "text"
             }
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate với toàn bộ input, không tự loại trước và không gọi lookup/fetch/format."
+        "skill": "clarify_missing_input_new_tool",
+        "what_it_tests": "Yêu cầu lọc trùng nhưng KHÔNG có danh sách bài/URL → hỏi lại (clarify text), không gọi deduplicate với items bịa hoặc rỗng."
       }
     },
     {
-      "id": "G02_filter_sources",
+      "id": "G05_news_week_keyword_only",
       "phase": "B",
-      "query": "Only keep sources on arxiv.org, including its subdomains, from this collected list. Do not search or format. Items: [{\"url\": \"https://arxiv.org/abs/1234\"}, {\"url\": \"https://example.com/post\"}]",
+      "suite": "group",
+      "query": "Tìm tin về chip AI trong tuần này.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "chip AI",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_convention_news_timeframe",
+        "what_it_tests": "Tin tức → lookup với topic=news, timeframe=week theo 'tuần này', query chỉ giữ từ khóa 'chip AI' (không thêm 'news'/'tin tức') — lỗi tương tự R13 của v0."
+      }
+    },
+    {
+      "id": "G06_multiturn_clarify_topic_then_search",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm giúp mình các tweet bàn về chủ đề đó"
+        },
+        {
+          "role": "user",
+          "content": "Chủ đề là Gemini nhé"
+        },
+        {
+          "role": "user",
+          "content": "Lấy các tweet mới nhất thôi"
+        }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Latest"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_fill_topic",
+        "what_it_tests": "3 turns: lượt 1 thiếu chủ đề, lượt 2 bổ sung 'Gemini', lượt 3 chọn Latest → social_search với query=Gemini, search_type=Latest."
+      }
+    },
+    {
+      "id": "G08_multiturn_confirmed_send",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Gửi \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram"
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn muốn mình gửi đúng nội dung \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram phải không?"
+        },
+        {
+          "role": "user",
+          "content": "Đúng, gửi đi"
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "send_after_confirmation",
+        "what_it_tests": "Người dùng đã xác nhận rõ ở lượt cuối → gọi send với confirmed=true, không hỏi lại thừa (mặt đối xứng của G03)."
+      }
+    },
+    {
+      "id": "G11_semantic_scholar_most_cited",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm giúp mình các bài báo về retrieval-augmented generation được trích dẫn nhiều nhất.",
       "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "semantic_scholar",
+            "args": {
+              "sort_by": "citationCount"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Người dùng hỏi bài báo được trích dẫn nhiều nhất → gọi semantic_scholar (tool mới) với sort_by=citationCount theo rule citation trong system prompt, không gọi papers (arXiv) hay lookup."
+      }
+    },
+    {
+      "id": "G12_openalex_recent_doi_open_access",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm các công trình học thuật mới xuất bản gần đây về quantum error correction, cho mình DOI và link open access.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "openalex",
+            "args": {
+              "sort_by": "publication_date"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Người dùng cần công trình học thuật mới xuất bản kèm DOI và link open access → gọi openalex (tool mới) với sort_by=publication_date theo rule scholarly works trong system prompt, không gọi semantic_scholar (rule citation) hay lookup."
+      }
+    },
+    {
+      "id": "G13_multiturn_filter_sources_from_earlier_list",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Mình đã thu thập 4 bài: [{\"url\":\"https://arxiv.org/abs/2401.00001\",\"title\":\"Paper A\",\"source\":\"arxiv.org\"},{\"url\":\"https://www.nature.com/articles/x1\",\"title\":\"Paper B\",\"source\":\"nature.com\"},{\"url\":\"https://random-blog.example.com/post\",\"title\":\"Blog C\",\"source\":\"random-blog.example.com\"},{\"url\":\"https://news.example.net/ai\",\"title\":\"News D\",\"source\":\"news.example.net\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Mình chỉ tin các nguồn arxiv.org và nature.com."
+        },
+        {
+          "role": "user",
+          "content": "Giữ lại bài từ hai nguồn đó, bỏ phần còn lại khỏi danh sách trên giúp mình."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
       "expect": {
         "tool_calls": [
           {
             "name": "filter_sources",
             "args": {
-              "items": [
-                {
-                  "url": "https://arxiv.org/abs/1234"
-                },
-                {
-                  "url": "https://example.com/post"
-                }
-              ],
               "allowed_domains": [
-                "arxiv.org"
+                "arxiv.org",
+                "nature.com"
               ]
             }
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Route to filter_sources with original collected items and requested parameters, without unnecessary search."
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách ở lượt 1, người dùng nêu hai nguồn tin cậy ở lượt 2, yêu cầu lọc ở lượt 3 → gọi filter_sources (tool mới) với allowed_domains gồm đúng arxiv.org và nature.com (không @, không scheme), dùng lại danh sách từ ngữ cảnh, không hỏi lại. Chỉ chấm allowed_domains vì harness không so sánh được list-of-dict trong args."
       }
     },
     {
-      "id": "G03_filter_by_date",
+      "id": "G14_multiturn_filter_by_date_range",
       "phase": "B",
-      "query": "Filter these collected items to dates from 2026-11-01 through 2026-11-10 inclusive. Do not search or format. Items: [{\"title\": \"New\", \"date\": \"2026-11-10\"}, {\"title\": \"Old\", \"date\": \"2026-10-01\"}]",
-      "failure_type": "wrong_tool",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Mình có danh sách này: [{\"url\":\"https://example.com/a\",\"title\":\"A\",\"date\":\"2026-09-28\"},{\"url\":\"https://example.com/b\",\"title\":\"B\",\"date\":\"2026-10-05\"},{\"url\":\"https://example.com/c\",\"title\":\"C\",\"date\":\"2026-10-30\"},{\"url\":\"https://example.com/d\",\"title\":\"D\",\"date\":\"2026-11-02\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Mình chỉ cần các bài trong tháng 10/2026."
+        },
+        {
+          "role": "user",
+          "content": "Lọc danh sách theo khoảng thời gian đó giúp mình."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
       "expect": {
         "tool_calls": [
           {
             "name": "filter_by_date",
             "args": {
-              "items": [
-                {
-                  "title": "New",
-                  "date": "2026-11-10"
-                },
-                {
-                  "title": "Old",
-                  "date": "2026-10-01"
-                }
-              ],
-              "start_date": "2026-11-01",
-              "end_date": "2026-11-10"
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-31"
             }
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Route to filter_by_date with original collected items and requested parameters, without unnecessary search."
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách có trường date ở lượt 1, người dùng nói khoảng thời gian 'tháng 10/2026' ở lượt 2, yêu cầu lọc ở lượt 3 → gọi filter_by_date (tool mới) với start_date=2026-10-01 và end_date=2026-10-31 theo định dạng YYYY-MM-DD, không hỏi lại. Chỉ chấm hai ngày vì harness không so sánh được list-of-dict trong args."
       }
     },
     {
-      "id": "G04_validate_citations",
+      "id": "G15_multiturn_validate_citations_before_report",
       "phase": "B",
-      "query": "Check whether these collected citations have title, source and valid HTTP(S) URL fields. Report structural errors only; do not browse or format. Items: [{\"title\": \"Article\", \"url\": \"https://example.com/a\", \"source\": \"Example\"}, {\"title\": \"Missing fields\"}]",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Đây là các trích dẫn của mình: [{\"title\":\"Attention Is All You Need\",\"source\":\"arXiv\",\"url\":\"https://arxiv.org/abs/1706.03762\"},{\"title\":\"\",\"source\":\"Blog\",\"url\":\"not-a-url\"},{\"title\":\"BERT\",\"source\":\"NAACL\",\"url\":\"https://aclanthology.org/N19-1423/\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Mình sắp đưa chúng vào báo cáo cuối kỳ."
+        },
+        {
+          "role": "user",
+          "content": "Kiểm tra giúp mình trích dẫn nào thiếu thông tin hoặc URL sai."
+        }
+      ],
       "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
             "name": "validate_citations",
-            "args": {
-              "items": [
-                {
-                  "title": "Article",
-                  "url": "https://example.com/a",
-                  "source": "Example"
-                },
-                {
-                  "title": "Missing fields"
-                }
-              ]
-            }
+            "args": {}
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Route to validate_citations with original collected items and requested parameters, without unnecessary search."
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách trích dẫn ở lượt 1, mục đích đưa vào báo cáo ở lượt 2, yêu cầu kiểm tra ở lượt 3 → gọi validate_citations (tool mới), không gọi fetch/lookup để mở từng link và không hỏi lại. Chỉ chấm routing vì harness không so sánh được list-of-dict trong args."
       }
     }
   ]
