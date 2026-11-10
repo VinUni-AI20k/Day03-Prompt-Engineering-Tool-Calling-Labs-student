@@ -8,12 +8,16 @@ import yaml
 # Folder names are intentionally vague to match the tool names students see.
 # The imported function names are the underlying implementations (unchanged).
 from .clarify.tool import ask_user
+from .hf_models.tool import search_hf_models
+from .hn_search.tool import search_hacker_news
 from .papers.tool import arxiv_search
 from .paper_text.tool import get_arxiv_paper_text
 from .timeline.tool import get_user_tweets
 from .fetch.tool import read_url
 from .format.tool import render_digest
+from .github_repos.tool import search_github_repos
 from .policy.tool import search_company_policy
+from .pypi_package.tool import get_pypi_package
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
@@ -37,6 +41,10 @@ TOOL_FUNCTIONS = {
     "paper_text": get_arxiv_paper_text,
     # TODO CP3 (student): register your new tool here, e.g. "my_tool": my_tool_function,
     # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
+    "hf_models": search_hf_models,
+    "hn_search": search_hacker_news,
+    "github_repos": search_github_repos,
+    "pypi_package": get_pypi_package,
 }
 
 
