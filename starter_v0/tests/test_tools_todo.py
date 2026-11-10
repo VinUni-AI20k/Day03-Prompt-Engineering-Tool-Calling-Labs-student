@@ -242,6 +242,20 @@ def test_text_stats_empty_or_whitespace_input() -> None:
     res_spaces = text_stats_tool(text="    \n\t  ")
     assert res_spaces["word_count"] == 0
 
+# ---------------- YOUR NEW TOOL(S): source_credibility ----------------
+
+def test_my_new_tool_happy_path() -> None:
+    """Happy path: check academic URL returns highest tier and verified credibility."""
+    credibility_tool = TOOL_FUNCTIONS["source_credibility"]
+    result = credibility_tool(url="https://arxiv.org/abs/2401.12345", min_tier="academic")
+
+    assert result["tool"] == "source_credibility"
+    assert result["domain"] == "arxiv.org"
+    assert result["tier"] == "academic"
+    assert result["score"] >= 0.90
+    assert result["meets_min_tier"] is True
+    assert result["is_reliable"] is True
+    assert "Highly credible source" in result["recommendation"]
 
 def test_text_stats_failure_invalid_wpm_returns_error_dict() -> None:
     res_zero = TOOL_FUNCTIONS["text_stats"](text="Hello world", wpm=0)

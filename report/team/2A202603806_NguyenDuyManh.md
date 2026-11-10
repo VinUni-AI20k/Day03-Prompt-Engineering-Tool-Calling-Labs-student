@@ -1,14 +1,10 @@
 # Báo cáo cá nhân — HoVaTen-MSSV
 
-Đổi tên file theo quy tắc `MSSV_HoTen.md`.
-
-Ví dụ: `20241234_NguyenVanAn.md`.
-
 ## 1. Thông tin thành viên
 
-- Họ tên:
-- MSSV:
-- Email:
+- Họ tên: Nguyễn Duy Mạnh
+- MSSV: 2A202603806
+- Email: prezzgts@gmail.com
 
 ## 2. Phần việc phụ trách
 
