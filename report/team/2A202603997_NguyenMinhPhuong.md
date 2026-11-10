@@ -6,9 +6,9 @@ Ví dụ: `20241234_NguyenVanAn.md`.
 
 ## 1. Thông tin thành viên
 
-- Họ tên:
-- MSSV:
-- Email:
+- Họ tên: Nguyễn Minh Phương        
+- MSSV: 2A202603997
+- Email: phuongnm150505@gmail.com
 
 ## 2. Phần việc phụ trách
 

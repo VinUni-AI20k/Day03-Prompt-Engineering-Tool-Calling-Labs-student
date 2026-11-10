@@ -1,0 +1,1037 @@
+{
+  "run_id": "v0_B_base_openrouter_20261110T180700812435",
+  "version": "v0",
+  "artifact_version": "v0+pf0c107a9d7a1+t5c60f2ec38c6",
+  "prompt_hash": "f0c107a9d7a14032c948d642d7c36f2a85cb6d69a099530093a874c94d472446",
+  "tools_hash": "5c60f2ec38c69767cd423193eba42b60dfcefd3c002bf9cb1aa330c7bdfb717b",
+  "phase": "B",
+  "suite": "base",
+  "provider": "openrouter",
+  "model": "google/gemma-4-31b-it:free",
+  "system_prompt": "/home/phuong/Documents/Vin20K/Lab3/K5-L3-GiCungDuoc-DAY03-ResearchAgentToolEval/starter_v0/artifacts/system_prompt.md",
+  "tools": "/home/phuong/Documents/Vin20K/Lab3/K5-L3-GiCungDuoc-DAY03-ResearchAgentToolEval/starter_v0/artifacts/tools.yaml",
+  "eval_cases": "data/eval_base.json",
+  "dataset_id": "day03_v2_research_base",
+  "dataset_role": "base",
+  "description": "Core eval cho research agent: routing đúng tool + đúng args, hỏi lại khi thiếu (ask_user), xác nhận trước khi gửi, và xử lý câu ngoài phạm vi / không cần tool. Chấm trên tool_calls + args (subset). KHÔNG sửa file này — chỉ thêm case vào eval_group.json.",
+  "generated_at": "2026-11-10T18:07:00",
+  "summary": {
+    "total_cases": 20,
+    "measured_cases": 3,
+    "provider_error_cases": 17,
+    "passed_cases": 0,
+    "case_accuracy": 0.0,
+    "tool_routing_accuracy": 0.3333,
+    "argument_accuracy": 0.0,
+    "multiturn_accuracy": null,
+    "failure_counts": {
+      "missing_info": 1,
+      "wrong_boundary": 1,
+      "wrong_tool": 1
+    },
+    "observed_mismatch_counts": {
+      "missing_tool_call": 2,
+      "wrong_arg_value": 1
+    }
+  },
+  "results": [
+    {
+      "id": "R01_user_tweets_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_user_tweets_name_to_handle",
+        "difficulty": "medium",
+        "what_it_tests": "Tin CỦA một người nổi tiếng → map tên Sam Altman thành handle sama rồi gọi get_user_tweets."
+      },
+      "input": "Tweet mới nhất của Sam Altman là gì?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R02_search_tweets_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_search_tweets",
+        "difficulty": "easy",
+        "what_it_tests": "Tweet theo CHỦ ĐỀ → search_tweets, không phải get_user_tweets."
+      },
+      "input": "Mọi người đang bàn gì về GPT-5 trên Twitter?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R03_web_news_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_web_news",
+        "difficulty": "medium",
+        "what_it_tests": "Tin thời sự trên web → web_search topic=news, timeframe=day (hôm nay)."
+      },
+      "input": "Tin tức AI hôm nay có gì nổi bật?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R04_read_url_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_read_url",
+        "difficulty": "easy",
+        "what_it_tests": "Đã có link cụ thể → read_url, không phải web_search."
+      },
+      "input": "Tóm tắt bài này giúp mình: https://openai.com/blog/gpt-5",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://openai.com/blog/gpt-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R05_limit_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_limit",
+        "difficulty": "easy",
+        "what_it_tests": "Trích đúng limit=10 từ '10 tweet'."
+      },
+      "input": "Lấy 10 tweet mới nhất của Elon Musk",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 10
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R06_timeframe_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_timeframe",
+        "difficulty": "medium",
+        "what_it_tests": "'tuần này' → timeframe=week."
+      },
+      "input": "Tin công nghệ trong tuần này",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R07_search_type_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_search_type",
+        "difficulty": "medium",
+        "what_it_tests": "'phổ biến/top' → search_type=Top (không phải Latest)."
+      },
+      "input": "Cho mình các tweet phổ biến (top) nhất về OpenAI",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R08_out_of_scope",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope",
+        "difficulty": "easy",
+        "what_it_tests": "Câu ngoài phạm vi research → KHÔNG gọi tool, từ chối/định hướng."
+      },
+      "input": "Giải giúp mình bài toán tích phân: nguyên hàm của x^2 là gì?",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R09_no_tool_capability",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "no_tool_meta",
+        "difficulty": "easy",
+        "what_it_tests": "Câu hỏi meta → trả lời thẳng, KHÔNG gọi tool."
+      },
+      "input": "Bạn là gì và làm được những gì?",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R10_missing_handle",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "clarify_missing_handle",
+        "difficulty": "medium",
+        "what_it_tests": "Thiếu handle → ask_user, KHÔNG đoán bừa người nào."
+      },
+      "input": "Tóm tắt 5 tweet mới nhất giúp mình",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R11_missing_url",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "clarify_missing_url",
+        "difficulty": "medium",
+        "what_it_tests": "Nói 'bài này' nhưng không có link → ask_user xin URL."
+      },
+      "input": "Tóm tắt bài viết này hộ mình",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "bài viết mới nhất về AI"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "missing_info",
+        "failures": [
+          "missing tool call clarify",
+          "extra tool call lookup"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "bài viết mới nhất về AI"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "bài viết mới nhất về AI",
+            "topic": "general",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "AI\\ : Alphabet lên kế hoạch gọi vốn kỷ lục, 4 Big Tech được dự báo chi lượng tiền gấp 2 lần GDP Việt Nam cho AI: Thấy gì từ \"cuộc đua\" này?",
+                "url": "https://cafef.vn/ai.html",
+                "source": "cafef.vn",
+                "summary": "Bảng giá điện tử Danh mục đầu tư Watchlist\n\nMỚI NHẤT!\n\nĐọc nhanh >>\n\n XÃ HỘI\n CHỨNG KHOÁN\n BẤT ĐỘNG SẢN\n DOANH NGHIỆP\n NGN HÀNG\n SMART MONEY\n TÀI CHÍNH QUỐC TẾ\n VĨ MÔ\n KINH TẾ SỐ\n THỊ TRƯỜNG\n SỐNG\n LIFESTYLE\n Xã hội Doanh nghiệp Kinh tế vĩ mô\n\n  Chứng khoán Tài chính ngn hàng Tài chính quốc tế\n\n  Tin tức Dự án Bản đồ dự án\n\n  Hàng hóa nguyên liệu Sống Lifestyle\n\n  Magazine\n Dữ liệu\n F INDEX\n\nTin tức, bài viết mới nhất về \n\n# AI\\ [...] 03/11/2026 07:52\n\nLo ngại AI có thể hủy diệt nhn loại trong vòng 10 năm tới, cựu kỹ sư Google Nate Soares cho rằng tương lai quá bất định để tiếp tục tích lũy tiền cho tuổi nghỉ hưu.\n\nTừng làm cho Bộ ngoại giao Nhật Bản, người đàn ông này giờ đang phát triển ứng dụng dịch thuật món ăn ngay giữa thời đại AI \n\n### Từng làm cho Bộ ngoại giao Nhật Bản, người đàn ông này giờ đang phát triển ứng dụng dịch thuật món ăn ngay giữa thời đại AI\n\n02/11/2026 13:48 [...] 04/11/2026 00:04\n\nĐằng sau nhận định \"Khó để cạnh tranh\" là những thách thức mà VCBS nhìn thấy trong mô hình kinh doanh của FPT.\n\nChạy đua với AI đến kiệt sức, kỹ sư phần mềm gần 10 năm kinh nghiệm tính bỏ nghề về làm nông: “Tôi không còn tin người giỏi sẽ sống sót” \n\n### Chạy đua với AI đến kiệt sức, kỹ sư phần mềm gần 10 năm kinh nghiệm tính bỏ nghề về làm nông: “Tôi không còn tin người giỏi sẽ sống sót”\n\n03/11/2026 08:40",
+                "score": 0.72489023
+              },
+              {
+                "title": "Trí tuệ nhân tạo (AI) và tạp chí khoa học trong kỷ nguyên số: Cơ hội, thách thức và hành lang pháp lý vững chắc - Viện Địa lý nhân văn và Phát triển bền vững",
+                "url": "https://ihs.vass.gov.vn/thong-tin-khoa-hoc-hoi-thao-khoa-hoc/tri-tue-nhan-tao-ai-va-tap-chi-khoa-hoc-trong-ky-nguyen-so-co-hoi-thach-thuc-va-hanh-lang-phap-ly-vung-chac-584583",
+                "source": "ihs.vass.gov.vn",
+                "summary": "ưu hóa quy trình thẩm định phản biện và gia tăng chỉ số ảnh hưởng quốc tế, vừa đặt ra những rủi ro hệ thống nguy hại về liêm chính học thuật, dữ liệu ảo và sở hữu trí tuệ. Trên cơ sở cập nhật đồng bộ hệ thống thể chế mới nhất - bao gồm Nghị quyết số 57/NQ-TW của Bộ Chính trị, Luật Báo chí số 126/2025/QH15, Nghị định số 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân, Nghị định về xuất bản báo chí số và Thông tư số 27/2025/TT-BKHCN của Bộ Khoa học và Công nghệ, bài viết phân tích toàn diện tác động hai [...] Việt Nam, AI vừa đem lại giải pháp bứt phá nhằm tự động hóa tòa soạn, tối ưu hóa quy trình thẩm định phản biện và gia tăng chỉ số ảnh hưởng quốc tế, vừa đặt ra những rủi ro hệ thống nguy hại về liêm chính học thuật, dữ liệu ảo và sở hữu trí tuệ. Trên cơ sở cập nhật đồng bộ hệ thống thể chế mới nhất - bao gồm Nghị quyết số 57/NQ-TW của Bộ Chính trị, Luật Báo chí số 126/2025/QH15, Nghị định số 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân, Nghị định về xuất bản báo chí số và Thông tư số [...] Resnik, D. B., & Hosseini, M. (2023). The ethics of using artificial intelligence in scientific research and publishing. Accountability in Research, 30(8), 515-538.  9.      Russell, S., & Norvig, P. (2020). Artificial Intelligence: A Modern Approach (4th ed.). Pearson.  10.  Thủ tướng Chính phủ. (2021). Quyết định số 127/QĐ-TTg ngày 26 tháng 01 năm 2021 phê duyệt Chiến lược quốc gia về nghiên cứu, phát triển và ứng dụng Trí tuệ nhân tạo đến năm 2030. Hà Nội.  11.  Viện Hàn lâm Khoa học xã",
+                "score": 0.67885995
+              },
+              {
+                "title": "AI trong y sinh: ranh giới giữa phép màu và thảm họa - Báo VnExpress",
+                "url": "https://vnexpress.net/ai-trong-y-sinh-ranh-gioi-giua-phep-mau-va-tham-hoa-5141687.html",
+                "source": "vnexpress.net",
+                "summary": "VnExpress - Bao tieng Viet nhieu nguoi xem nhat    Thứ hai, 9/11/2026  \n\nMới nhất \n\nTin theo khu vực \n\n Hà Nội\n TP HCM\n\nInternational\n \n\n Trở lại Khoa học công nghệ\n\n Khoa học công nghệ\n AI\n\nThứ hai, 9/11/2026, 05:10 (GMT+7)\n\n## AI trong y sinh: ranh giới giữa phép màu và thảm họa\n\n# AI trong y sinh: ranh giới giữa phép màu và thảm họa\n\nTại một phòng thí nghiệm ở phía nam San Francisco, nhóm nhà khoa học đang cố gắng đào tạo thế hệ kế nhiệm, nhưng không phải con người mà là robot. [...] Năm nay, Claude - mô hình AI chủ lực của Anthropic - cũng giúp giới nghiêm cứu có những khám phá sinh học đáng chú ý. Hồi tháng 8, mô hình hỗ trợ thiết kế protein có khả năng liên kết với 14 trong 15 mục tiêu thử nghiệm, với tỷ lệ thành công 22-35%. Tháng 9, AI phát hiện hệ thống enzyme ART có một số đặc điểm tương tự công nghệ chỉnh sửa gene CRISPR. Tháng 10, Claude tạo hơn 318.000 thiết kế protein mini nhằm liên kết độc tố thần kinh trong nọc bọ cạp, trong đó 17 mẫu đạt tiêu chí thử nghiệm. [...] \"Công chúng đang có cái nhìn tiêu cực về AI\", Dario Amodei, nhà đồng sáng lập Anthropic, viết hồi tháng 8. \"Điều thực sự có thể thay đổi cách nhìn nhận là tìm ra phương pháp chữa khỏi ung thư\".",
+                "score": 0.6562404
+              },
+              {
+                "title": "Các tác tử AI: Lời giải vẫn đang tìm bài toán",
+                "url": "https://bbw.vn/cac-tac-tu-ai-la-loi-giai-dang-di-tim-bai-toan-61419.html",
+                "source": "bbw.vn",
+                "summary": "Videos mới nhất\n\nMới nhất\n\nTheo Bloomberg\n\nTheo phattrienxanh.baotainguyenmoitruong.vn\n\n#AI #Tác tử AI #AI tạo sinh #Agentforce #Salesforce #Gartner #Uber #Uber Eats #Muse của Meta\n\nĐã Lưu\n\n Xem các tin đã lưu\n\nTặng bài viết\n\nĐối với thành viên đã trả phí, bạn có 5 bài viết mỗi tháng để gửi tặng. Người nhận quà tặng có thể đọc bài viết đầy đủ miễn phí và không cần đăng ký gói sản phẩm.\n\nBạn còn 5 bài viết có thể tặng\n\nLiên kết quà tặng có giá trị trong vòng 7 ngày.\n\nBÀI LIÊN QUAN\n\nMới nhất [...] Hình ảnh: Krisztian Bocsi/Bloomberg\n\nTác giả: Parmy Olson\n\n09 tháng 11, 2026 lúc 3:30 PM\n\nĐã copy\n\nSự chuyển dịch sang các mô hình trí tuệ nhn tạo có thể thực hiện nhiệm vụ, thay vì chỉ tạo nội dung, vẫn chưa diễn ra theo cách mà ngành công nghệ đang rất cần. [...] Đăng nhập để lưu trữ và dễ dàng truy cập những bài viết bạn yêu thích trên Bloomberg Businessweek Việt Nam.\n\nĐăng nhập   Tạo tài khoản\n\nKhám phá nhiều hơn với tài khoản Premium\n\nĐăng ký gói\n\nAI & Dữ liệu lớn\n\n## Các tác tử AI: Lời giải vẫn đang tìm bài toán\n\nBBWV - Dù ngành công nghệ đặt cược hàng nghìn tỉ USD vào trung tm dữ liệu, các tác tử này vẫn đang vật lộn để chứng minh chúng có thể giải quyết những vấn đề thực tế.\n\nHình ảnh: Krisztian Bocsi/Bloomberg",
+                "score": 0.6450534
+              },
+              {
+                "title": "Tin tức, hình ảnh, video clip mới nhất về tri tue nhan tao ai",
+                "url": "https://lyluanchinhtri.vn/tri-tue-nhan-tao-ai-ptag.html",
+                "source": "lyluanchinhtri.vn",
+                "summary": "số 628/GP-BTTTT ngày 24/9/2021 của Bộ Thông tin và Truyền thông\n\nMã số chuẩn quốc tế:\nISSN 2525-2607\n\nTạp chí in được phát hành qua Công ty Phát hành báo chí Trung ương: Tạp chí tiếng Việt mã số C186; Tạp chí tiếng Anh mã số C063\n\nToà soạn:\n135 Nguyễn Phong Sắc, phường Nghĩa Đô, Hà Nội\n\nĐiện thoại:\n080.48132\n\nEmail:\ntcllct.hcma@gmail.com\n\nFax:\n04.62827490 [...] logo\nlogo\n\n# tri tue nhan tao ai\n\nĐịnh vị Ấn Độ trong cuộc đua trí tuệ nhân tạo toàn cầu\n\n## Định vị Ấn Độ trong cuộc đua trí tuệ nhân tạo toàn cầu\n\nQuy định về việc sử dụng trí tuệ nhân tạo (AI)\")\n\n### Quy định về việc sử dụng trí tuệ nhân tạo (AI)\n\nlogo\n\nCơ quan chủ quản:\nHọc viện Chính trị quốc gia Hồ Chí Minh\n\nTổng biên tập:\nPGS, TS Nguyễn Thắng Lợi\n\nPhó Tổng biên tập:\nTS Tạ Quang Tuấn\n\nGiấy phép hoạt động Tạp chí in và Tạp chí điện tử",
+                "score": 0.52627033
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "R12_confirm_before_send",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "confirm_before_write",
+        "difficulty": "medium",
+        "what_it_tests": "Hành động ghi (gửi) → xác nhận trước (ask_user yes_no), không tự gửi."
+      },
+      "input": "Đăng bản tin này lên Telegram giúp mình",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Bản tin hôm nay đã được cập nhật! Hãy cùng theo dõi những tin tức mới nhất về AI và công nghệ."
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "wrong_boundary",
+        "failures": [
+          "missing tool call clarify",
+          "extra tool call send"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "Bản tin hôm nay đã được cập nhật! Hãy cùng theo dõi những tin tức mới nhất về AI và công nghệ."
+          },
+          "result": {
+            "tool": "send_telegram",
+            "status": "needs_confirmation",
+            "message": "Only send after the user explicitly confirms."
+          }
+        }
+      ]
+    },
+    {
+      "id": "R13_parallel_web_and_tweets",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "parallel_tool_calls",
+        "difficulty": "hard",
+        "what_it_tests": "Một request cần hai nguồn → gọi cả web_search và search_tweets; eval không phụ thuộc thứ tự tool call."
+      },
+      "input": "Tìm trên web tin AI hôm nay và tìm thêm tweet về AI.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "query": "AI"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "timeframe": "day",
+              "query": "AI news today",
+              "topic": "news"
+            }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "search_type": "Latest",
+              "query": "AI"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "query: expected 'AI', got 'AI news today'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "timeframe": "day",
+            "query": "AI news today",
+            "topic": "news"
+          },
+          "result": {
+            "tool": "web_search",
+            "error": "ReadTimeout",
+            "message": "HTTPSConnectionPool(host='api.tavily.com', port=443): Read timed out. (read timeout=30)"
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "search_type": "Latest",
+            "query": "AI"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "AI",
+            "search_type": "Latest",
+            "items": [
+              {
+                "title": "Following its Daily acquisition announcement, @DeepgramAI launches 🚀 a marketplace for voice #AI products and services, ",
+                "summary": "Following its Daily acquisition announcement, @DeepgramAI launches 🚀 a marketplace for voice #AI products and services, with 19 partners 🤝 and plans to add more.\n#VoiceAI\nhttps://t.co/IKOkdH69Sc",
+                "url": "https://x.com/slatornews/status/2120110878989119493",
+                "source": "@slatornews",
+                "date": "Tue Nov 10 11:06:37 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "Today: take one AI email you sent this week, read it out loud, and cut every sentence that says nothing.",
+                "summary": "Today: take one AI email you sent this week, read it out loud, and cut every sentence that says nothing.\n\nWhat's the AI phrase you're most tired of seeing?",
+                "url": "https://x.com/marquistrillx/status/2120110874639904781",
+                "source": "@marquistrillx",
+                "date": "Tue Nov 10 11:06:36 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "@remonnyy do smartphones really capture enough data for ai",
+                "summary": "@remonnyy do smartphones really capture enough data for ai",
+                "url": "https://x.com/DucCryptoX/status/2120110873280917698",
+                "source": "@DucCryptoX",
+                "date": "Tue Nov 10 11:06:36 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "ちなみに、私はこの状態を「確変」と呼んでいます。プライドが高かったりひねくれていたりするキャラは明確に告白をしてこないことが多いため、AIのバグ（確変）を逆手に取ってなし崩し的にキャラと交際するのも攻略法の一つとして利用しています。",
+                "summary": "ちなみに、私はこの状態を「確変」と呼んでいます。プライドが高かったりひねくれていたりするキャラは明確に告白をしてこないことが多いため、AIのバグ（確変）を逆手に取ってなし崩し的にキャラと交際するのも攻略法の一つとして利用しています。",
+                "url": "https://x.com/bid_3831/status/2120110872408560080",
+                "source": "@bid_3831",
+                "date": "Tue Nov 10 11:06:36 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "これはよくあるバグです。キャラとユーザーが両想い、キスやスキンシップなどの恋人らしいことをしている、デートに行くなど関係が良い感じだと、AIがバグって勝手に付き合ってる設定になることがあります。",
+                "summary": "これはよくあるバグです。キャラとユーザーが両想い、キスやスキンシップなどの恋人らしいことをしている、デートに行くなど関係が良い感じだと、AIがバグって勝手に付き合ってる設定になることがあります。\nhttps://t.co/VQz0YizNr5",
+                "url": "https://x.com/bid_3831/status/2120110869669650618",
+                "source": "@bid_3831",
+                "date": "Tue Nov 10 11:06:35 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "R14_out_of_scope_coding",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope_coding",
+        "difficulty": "easy",
+        "what_it_tests": "Câu coding ngoài phạm vi research/news → KHÔNG gọi tool."
+      },
+      "input": "Viết giúp mình một hàm Python tính Fibonacci bằng recursion.",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M01_clarify_then_fill",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_fill",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: carry limit=5 từ lượt 1 + map tên Elon Musk thành handle elonmusk từ lượt 2."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt 5 tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Của Elon Musk nhé"
+        },
+        {
+          "role": "user",
+          "content": "Giữ đúng 5 tweet, đừng đổi số lượng"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 5
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M02_carryover_timeframe",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_carryover",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: chỉ xử lý latest turn, carry timeframe=day và topic=news, query robotics."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Còn về robotics thì sao?"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ tìm robotics thôi, vẫn là tin hôm nay"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "robotics",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M03_correction_handle",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_correction",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: map tên thường, sửa Sam Altman→Andrej Karpathy, dùng handle karpathy và limit=3."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tweet mới nhất của Sam Altman"
+        },
+        {
+          "role": "user",
+          "content": "À nhầm, của Andrej Karpathy"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 3 tweet mới nhất nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M04_clarify_then_url",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_url",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: sau khi được cung cấp URL, latest turn xác nhận chỉ đọc link đó → read_url đúng url."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt bài này hộ mình"
+        },
+        {
+          "role": "user",
+          "content": "https://anthropic.com/news/claude"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ đọc đúng link đó thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://anthropic.com/news/claude"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M05_correction_limit",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_arg_correction",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: map tên Elon Musk, carry handle elonmusk, sửa limit 10→3."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Lấy 10 tweet mới nhất của Elon Musk"
+        },
+        {
+          "role": "user",
+          "content": "Cho mình 3 thôi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn của Elon Musk nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M06_switch_tool",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_tool",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: explicitly bỏ Twitter, chuyển sang web_search news, giữ chủ đề OpenAI."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mọi người nói gì về OpenAI trên Twitter?"
+        },
+        {
+          "role": "user",
+          "content": "Bỏ Twitter, chuyển sang tìm trên web tin tức đi"
+        },
+        {
+          "role": "user",
+          "content": "Giữ chủ đề OpenAI"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "OpenAI",
+              "topic": "news"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RateLimitError: Error code: 429 - Provider returned error"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    }
+  ]
+}
