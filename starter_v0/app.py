@@ -163,6 +163,50 @@ if "transcript_data" not in st.session_state:
 gemini_provider = make_provider("gemini")
 configured_model = os.getenv("GEMINI_MODEL") or getattr(gemini_provider, "default_model", "gemini-3.5-flash-lite")
 
+# Helper to load available versions from version_log.csv
+def get_available_versions() -> list[dict[str, str]]:
+    version_log_path = ARTIFACTS_DIR / "version_log.csv"
+    versions = []
+    if version_log_path.exists():
+        try:
+            with open(version_log_path, encoding="utf-8") as f:
+                reader = list(csv.DictReader(f))
+                for row in reader:
+                    v = row.get("version", "").strip()
+                    if v and v not in [item["version"] for item in versions]:
+                        versions.append({
+                            "version": v,
+                            "metric": row.get("metric_after", ""),
+                            "hypothesis": row.get("hypothesis", ""),
+                        })
+        except Exception:
+            pass
+    return versions
+
+
+def get_system_prompt_for_version(version: str) -> tuple[str, str]:
+    """Tự động tải system prompt tương ứng với version được chọn."""
+    version_specific_path = ARTIFACTS_DIR / f"system_prompt_{version}.md"
+    if version_specific_path.exists():
+        return version_specific_path.read_text(encoding="utf-8"), version_specific_path.name
+
+    default_path = ARTIFACTS_DIR / "system_prompt.md"
+    if default_path.exists():
+        return default_path.read_text(encoding="utf-8"), default_path.name
+    return "", "none"
+
+
+def get_tools_for_version(version: str) -> list[dict[str, Any]]:
+    """Tải cấu hình tools tương ứng với version được chọn (nếu có riêng)."""
+    v_tools_path = ARTIFACTS_DIR / f"tools_{version}.yaml"
+    if v_tools_path.exists():
+        return load_tool_declarations(v_tools_path)
+    default_tools_path = ARTIFACTS_DIR / "tools.yaml"
+    if default_tools_path.exists():
+        return load_tool_declarations(default_tools_path)
+    return []
+
+
 # ---------------------------------------------------------
 # Sidebar Controls (Only Your Model)
 # ---------------------------------------------------------
@@ -177,31 +221,56 @@ with st.sidebar:
         help="Nhập chính xác tên model của bạn (ví dụ: gemini-3.5-flash-lite, gemini-2.5-flash, gemini-1.5-flash...)",
     )
 
-    version_tag = st.text_input(
+    available_versions = get_available_versions()
+    version_keys = [item["version"] for item in available_versions]
+    for standard_v in ["v0", "v1", "v2", "v3"]:
+        if standard_v not in version_keys:
+            version_keys.append(standard_v)
+
+    # Set default to highest available in log or v2
+    default_idx = len(version_keys) - 1
+    if "v2" in version_keys:
+        default_idx = version_keys.index("v2")
+
+    version_tag = st.selectbox(
         "Evaluation Version Tag",
-        value="v1",
-        help="v0, v1, v2, v3 (logged into transcript & evaluation)",
+        options=version_keys,
+        index=default_idx,
+        help="Chọn version (v0, v1, v2, v3) để thực thi và ghi vào transcript.",
     )
+
+    # Toast feedback when version changes
+    if "active_version" not in st.session_state:
+        st.session_state.active_version = version_tag
+    elif st.session_state.active_version != version_tag:
+        st.session_state.active_version = version_tag
+        st.toast(f"Đã chuyển sang {version_tag} — System Prompt đã cập nhật tức thì!", icon="⚙️")
+
+    matching_info = next((item for item in available_versions if item["version"] == version_tag), None)
+    if matching_info and matching_info.get("metric"):
+        st.markdown(
+            f"""
+            <div style="background-color: #FFFFFF; border: 1px solid #E8E3D8; border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 12px;">
+                <span style="color: #726E67;">Đo lường {version_tag}:</span><br/>
+                <b>Kết quả:</b> <code>{matching_info['metric']}</code>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
     st.markdown("#### ⚙️ **Active Artifacts**")
 
-    # Load system prompt & tool declarations
-    system_prompt_path = ARTIFACTS_DIR / "system_prompt.md"
-    tools_path = ARTIFACTS_DIR / "tools.yaml"
+    # Load version-specific system prompt & tool declarations
+    sys_prompt_text, prompt_filename = get_system_prompt_for_version(version_tag)
+    with st.expander(f"📄 System Prompt ({version_tag})"):
+        st.caption(f"📁 Tệp nguồn: `{prompt_filename}`")
+        st.code(sys_prompt_text, language="markdown")
 
-    sys_prompt_text = ""
-    if system_prompt_path.exists():
-        sys_prompt_text = system_prompt_path.read_text(encoding="utf-8")
-        with st.expander("📄 System Prompt"):
-            st.code(sys_prompt_text, language="markdown")
-
-    tool_decls = []
-    if tools_path.exists():
-        tool_decls = load_tool_declarations(tools_path)
-        with st.expander(f"🛠️ Declared Tools ({len(tool_decls)})"):
-            for t in tool_decls:
-                st.markdown(f"**`{t['name']}`**: {t.get('description', '')}")
+    tool_decls = get_tools_for_version(version_tag)
+    with st.expander(f"🛠️ Declared Tools ({len(tool_decls)})"):
+        for t in tool_decls:
+            st.markdown(f"**`{t['name']}`**: {t.get('description', '')}")
 
     st.markdown("---")
     col1, col2 = st.columns(2)
