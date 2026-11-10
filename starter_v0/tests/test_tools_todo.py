@@ -148,6 +148,18 @@ def test_source_audit_reports_missing_title_and_invalid_url() -> None:
     ]
 
 
+def test_source_audit_rejects_non_numeric_url_port() -> None:
+    result = _source_audit_tool()(items=[
+        {"title": "Bad port", "url": "https://example.org:abc/report"},
+    ])
+
+    assert result["ok"] is False
+    assert result["valid_count"] == 0
+    assert result["issues"] == [
+        {"index": 0, "title": "Bad port", "problems": ["invalid_url"]},
+    ]
+
+
 def test_source_audit_wrong_items_type_returns_error_dict() -> None:
     result = _source_audit_tool()(items="not a list")
 

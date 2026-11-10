@@ -9,6 +9,7 @@ def _valid_http_url(value: Any) -> bool:
         return False
     try:
         parsed = urlsplit(value.strip())
+        _ = parsed.port  # Validate that any explicit port is numeric and in range.
         return parsed.scheme.lower() in {"http", "https"} and bool(parsed.hostname)
     except ValueError:
         return False
