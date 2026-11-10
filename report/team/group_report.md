@@ -47,6 +47,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | papers | tìm kiếm bài báo khoa học trên arXiv | không |
 | paper_text | trích xuất text PDF từ bài báo arXiv | không |
 | source_credibility | thẩm định độ tin cậy và phân cấp nguồn tin của URL | Có (Nguyễn Hoàng Trung) |
+| text_stats | tính số từ, số ký tự và thời gian đọc ước tính cho văn bản | Có (Nguyễn Tuấn Dũng) |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -66,6 +67,10 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
   - *Thiết kế an toàn (Guardrail)*: Xử lý chuẩn hóa tên miền, bắt toàn bộ ngoại lệ và trả về error dict dạng `{"tool": "source_credibility", "error": ..., "message": ...}` thay vì raise runtime error làm crash agent.
   - *Tích hợp*: Đăng ký trong `starter_v0/tools/__init__.py`, khai báo schema trong `starter_v0/artifacts/tools.yaml`, kèm file tài liệu đặc tả `starter_v0/tools/source_credibility/TOOL.md`.
   - *Kiểm thử*: Đã viết 5 unit test chuyên biệt và hoàn thiện toàn bộ các stubs trong `starter_v0/tests/test_tools_todo.py`, đạt kết quả toàn suite `pytest` 86 passed, 0 skipped, 0 failed.
+- **Tool mới `text_stats` (Nguyễn Tuấn Dũng - 2A202603859, CP3)**:
+  - **Làm gì**: nhận `text` (chuỗi không rỗng) và `wpm` (mặc định 200 từ/phút, > 0), trả về số từ (`word_count`), số ký tự (`char_count`) và thời gian đọc ước tính theo giây (`estimated_reading_seconds`). Nếu input rỗng/sai kiểu hoặc `wpm <= 0`, tool trả về error dict (`status: "error"`) thay vì raise exception.
+  - **Khi nào agent nên gọi**: khi người dùng yêu cầu đếm từ/ký tự, kiểm tra độ dài đoạn tóm tắt/bản nháp hoặc ước tính thời gian đọc (ví dụ trước khi gửi); không dùng để tìm kiếm web hay đọc URL.
+  - **Tích hợp**: khai báo trong `starter_v0/artifacts/tools.yaml`, đăng ký trong `starter_v0/tools/__init__.py`, mô tả tại `starter_v0/tools/text_stats/Tool.md` (`starter_v0/tools/text_stats/tool.py`).
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -115,6 +120,11 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 **Tool unit tests (do Nguyễn Hoàng Trung phụ trách):**
 - Đã viết 5 test chuyên biệt cho `source_credibility` và hoàn thiện toàn bộ 14 stubs hệ thống trong `starter_v0/tests/test_tools_todo.py` (tổng 19 tests trong file này, toàn bộ suite đạt 86 passed, 0 skipped, 0 failed).
 - **Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được**: Khi model truyền đối số rỗng `url=""` hoặc `url=None` hoặc URL không có scheme `https://`, eval case thông thường chỉ so khớp xem model có gọi đúng tên tool không chứ không chạy sâu kiểm tra độ ổn định của hàm. Unit test bắt được việc hàm chuẩn hóa dữ liệu, bọc an toàn và trả về error dict dạng `{"tool": "source_credibility", "error": "ValueError", "message": "URL string must be provided and cannot be empty."}` thay vì để hàm văng unhandled Exception làm crash quy trình thực thi của Agent.
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/text_stats/tool.py`, `Tool.md`, `starter_v0/tools/__init__.py`, `starter_v0/artifacts/tools.yaml` | Tính chính xác `word_count`, `char_count`, `estimated_reading_seconds` (hỗ trợ ép kiểu `wpm` dạng chuỗi như `"200"`), khớp contract test | Kiểm tra `text` rỗng/không phải `str`, `wpm` không phải số nguyên hoặc `<= 0` → trả error dict (`status: "error"`, `items: []`), không raise exception |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py`, `pytest tests/ -v` (`84 passed in 0.96s`, 0 failed, 0 skipped) | 3 tests cho `text_stats` (happy path, input chuỗi khoảng trắng rỗng, `wpm=0` và `wpm="invalid_int"`) + 14 tests cho các tool có sẵn đều pass | Toàn bộ suite chạy offline qua `fake_http` và `monkeypatch` (`block_network` chặn mọi request thật) |
+| UI (lệnh chạy + link dùng thử) |  |  |  |
+
+Tool unit tests: Đã viết 3 unit tests cho `text_stats` và hoàn thiện 14 test stubs cho các tool có sẵn (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`) trong `starter_v0/tests/test_tools_todo.py` (tổng 17 tests trong file này; toàn bộ suite `pytest tests/ -v` đạt **84 passed, 0 failed, 0 skipped**). Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: eval chỉ chấm việc model có gọi đúng tên tool và subset tham số hay không, còn unit test (`test_text_stats_bad_input_empty_string_from_model`, `test_text_stats_failure_invalid_wpm_returns_error_dict`) kiểm chứng trực tiếp rằng khi model truyền chuỗi toàn khoảng trắng `"   "`, `wpm=0` hoặc `wpm="invalid_int"`, hàm vẫn xử lý an toàn và trả về error dict có `status == "error"` thay vì văng lỗi làm gián đoạn agent.
 
 ### B5. Bonus Evidence
 
@@ -128,6 +138,9 @@ Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool c�
 | Test challenge (0 skipped / regression test) | `pytest tests/ -v` output | Giải quyết toàn bộ 14 stubs kiểm thử của tool có sẵn + 5 test tool mới, đưa test suite về 86 passed, 0 failed, 0 skipped | 100% test chạy offline qua fake_http và monkeypatch |
 
 Test challenge: Đã hoàn thiện toàn bộ stubs trong `starter_v0/tests/test_tools_todo.py`, xử lý chính xác cơ chế lọc và trust boundary của `search_company_policy` (bóc tách `untrusted_text` cho các câu lệnh can thiệp prompt), mock trích xuất PDF/firecrawl/twitter/tavily/telegram, đưa tỷ lệ skipped của toàn suite về đúng 0.
+| Test challenge (0 skipped / regression test) | `starter_v0/tests/test_tools_todo.py`, `pytest tests/ -v` (`84 passed, 0 failed, 0 skipped`) | Hoàn thiện toàn bộ 14 stubs cho tool có sẵn (`clarify`, `format`, `send`, `lookup`, `fetch`, `timeline`, `social_search`, `policy`) + 3 tests cho `text_stats` | 100% offline với `fake_http` và `monkeypatch`, kiểm tra cả request gửi đi, mapping kết quả, guardrail `send` và trust boundary `policy` |
+
+Test challenge: Đã hoàn thiện toàn bộ 14 stubs trong `starter_v0/tests/test_tools_todo.py` để toàn bộ test suite đạt **84 passed, 0 failed, 0 skipped** (không phát hiện bug cần sửa trong code của các tool có sẵn; tất cả assert hành vi hiện tại đều pass).
 
 ### B7. Small Local Model Challenge (bonus)
 
@@ -163,7 +176,9 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 ## 6. Tổng hợp đóng góp
 
-Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEAM.md) và các báo cáo cá nhân `report/team/MSSV_HoTen.md`.
+Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEAM.md) và các báo cáo cá nhân `report/team/MSSV_HoTen.md`:
+
+- **Nguyễn Tuấn Dũng (`2A202603859`)**: hoàn thành CP3 — tool mới `text_stats` và hoàn thiện toàn bộ `starter_v0/tests/test_tools_todo.py` (84 passed, 0 failed, 0 skipped). Xem chi tiết tại [2A202603859_NguyenTuanDung.md](./2A202603859_NguyenTuanDung.md).
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 

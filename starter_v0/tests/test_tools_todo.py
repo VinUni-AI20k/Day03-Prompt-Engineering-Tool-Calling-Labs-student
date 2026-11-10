@@ -5,10 +5,8 @@ All tests run strictly OFFLINE:
 - Environment variables are isolated via `monkeypatch`.
 - Zero skipped, zero failed test suite.
 """
+
 from __future__ import annotations
-
-import pytest
-
 from conftest import FakeResponse
 from tools import TOOL_FUNCTIONS
 
@@ -237,6 +235,10 @@ def test_my_new_tool_happy_path() -> None:
     assert result["is_reliable"] is True
     assert "Highly credible source" in result["recommendation"]
 
+def test_text_stats_failure_invalid_wpm_returns_error_dict() -> None:
+    res_zero = TOOL_FUNCTIONS["text_stats"](text="Hello world", wpm=0)
+    assert res_zero["status"] == "error"
+    assert "error" in res_zero
 
 def test_my_new_tool_bad_input_from_model() -> None:
     """Bad / missing input handling: model sends empty string, non-string, or invalid URL."""
