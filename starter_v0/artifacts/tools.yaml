@@ -123,3 +123,19 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+  - name: text_stats
+    description: >
+      Calculate word count, character count, and estimated reading time for a given text.
+      USE WHEN the user asks to count words/characters, check text length, or estimate reading time of a snippet or draft.
+      DO NOT USE WHEN searching the web or fetching a URL.
+    parameters:
+      type: object
+      properties:
+        text:
+          type: string
+          description: The exact text content to analyze (must be non-empty).
+        wpm:
+          type: integer
+          description: Reading speed in words per minute (default is 200, must be > 0).
+      required:
+        - text    
