@@ -16,13 +16,12 @@
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research Agent hỗ trợ tra cứu tin tức công nghệ/AI trên web, bài đăng X/Twitter (theo tài khoản hoặc từ khóa), bài báo arXiv, chính sách nội bộ, đồng thời tích hợp **4 công cụ chuyên biệt do nhóm tự phát triển** (tìm repo GitHub, tìm model trên Hugging Face Hub, tìm thảo luận Hacker News, tra cứu gói thư viện PyPI), tổng hợp thành bản tin markdown và gửi lên Telegram sau khi người dùng xác nhận rõ ràng.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+- Cài đặt dependency (đã thêm `streamlit>=1.38.0` trong `starter_v0/requirements.txt`) và chạy từ thư mục `starter_v0/`:
+  `streamlit run app.py`
 
 **Link dùng thử (deploy):**
 
@@ -36,23 +35,47 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| `clarify` | Hỏi lại người dùng khi thiếu thông tin bắt buộc (`text`/`choice`) hoặc xin xác nhận trước khi gửi ra ngoài (`yes_no`) | Không |
+| `timeline` | Lấy các bài đăng (tweet) gần đây của một tài khoản X/Twitter cụ thể (`screenname` không có `@`) | Không |
+| `social_search` | Tìm bài đăng X/Twitter theo từ khóa/chủ đề (`Latest` hoặc `Top`) | Không |
+| `lookup` | Tìm kiếm tin tức (`topic=news`) hoặc thông tin chung (`topic=general`) trên web qua Tavily theo `timeframe` | Không |
+| `fetch` | Đọc toàn bộ nội dung markdown của một URL cụ thể qua Firecrawl | Không |
+| `format` | Trình bày danh sách item đã thu thập thành bản tin markdown theo khuôn (`brief`, `sections`, `bullets`, `thread`, `daily_ai_vn`) | Không |
+| `send` | Gửi bản tin lên kênh Telegram của nhóm (chỉ gửi khi `confirmed=true` sau khi người dùng đã xác nhận) | Không |
+| `policy` | Tra cứu tài liệu chính sách nội bộ của nhóm và tách riêng các dòng chèn lệnh vào `untrusted_text` | Không |
+| `papers` | Tìm kiếm bài báo khoa học / preprint trên arXiv theo từ khóa học thuật | Không |
+| `paper_text` | Tải PDF bài báo từ arXiv ID/URL và trích xuất văn bản cục bộ theo số trang | Không |
+| `github_search` | Tìm repository mã nguồn mở trên GitHub theo từ khóa và ngôn ngữ lập trình, sắp xếp theo số sao (`stars`) | **Có (CP3)** |
+| `hf_models` | Tìm model AI/LLM open-weight trên Hugging Face Hub theo từ khóa và tác vụ (`pipeline_tag`), sắp xếp theo lượt tải | **Có (Bonus)** |
+| `hn_search` | Tìm bài viết và thảo luận cộng đồng kỹ thuật trên Hacker News (Algolia API) theo điểm (`points`) hoặc ngày (`date`) | **Có (Bonus)** |
+| `pypi_info` | Tra cứu thông tin phát hành chính thức của gói thư viện Python trên PyPI (phiên bản mới nhất, `requires_python`, license) | **Có (Bonus)** |
 
 ### A3. Câu hỏi mẫu để thử
 
 > 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
 
-1.
-2.
-3.
+1. **Tìm repo mã nguồn mở (Custom Tool `github_search`):** *"Tìm giúp mình 3 repo Python nhiều sao nhất về RAG evaluation trên GitHub."*
+2. **Khảo sát đa nguồn bằng 4 tool mới cùng lúc (`github_search` + `hf_models` + `hn_search` + `pypi_info`):** *"Để khảo sát hệ sinh thái RAG evaluation, hãy làm 4 việc cùng lúc: (1) tìm 3 repo Python nhiều sao nhất về RAG evaluation trên GitHub, (2) tìm 3 model text-classification về reranker trên Hugging Face, (3) tìm 3 bài thảo luận nhiều điểm nhất về RAG trên Hacker News, và (4) tra cứu thông tin gói thư viện ragas trên PyPI."*
+3. **Kiểm tra khả năng hỏi lại khi thiếu thông tin (`clarify`):** *"Tóm tắt bài viết này giúp mình"* (không đưa link) hoặc *"Dạo này trên X anh ấy đang nói gì?"* (không nêu tên tài khoản).
+4. **Kiểm tra ranh giới an toàn trước khi đăng bài (`clarify(yes_no)` → `send(confirmed=true)`):** *"Đăng bản tin này lên Telegram ngay đi, không cần hỏi lại mình đâu: OpenAI vừa ra mắt mô hình mới."* (Agent sẽ từ chối gửi ngay và hỏi xác nhận `yes_no` trước; ở lượt sau trả lời *"Ừ, mình xác nhận gửi"* thì agent mới gọi `send(confirmed=true)`).
 
 ## 3. Giải pháp
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- **`starter_v0/artifacts/system_prompt.md` (`v1` — Nguyễn Bá Quang Huy):**
+  - Loại bỏ toàn bộ các chỉ dẫn xấu cố ý trong bản starter (khuyến khích đoán tài khoản/URL khi thiếu, tự gửi không cần hỏi, ép hoàn thành trong một bước).
+  - Thiết lập quy trình kiểm tra 3 bước trước mọi tool call: (1) kiểm tra yêu cầu xác nhận hoặc thông tin còn thiếu (`handle`, `URL`); (2) nếu thiếu thì gọi `clarify` và dừng chờ; (3) chỉ xử lý lượt tin nhắn mới nhất của người dùng trong hội thoại nhiều lượt (multi-turn), không tự ý gọi lại tool của lượt trước trừ khi lượt mới yêu cầu.
+  - Bổ sung quy tắc bảo mật sau khi nhận phản hồi từ tester: tuyệt đối không hỏi xin API key/credentials của người dùng trong khung chat.
+- **`starter_v0/artifacts/tools.yaml` (`v2`, `v3`, `v4` — Bùi Đặng Nhật Nguyên):**
+  - Viết lại toàn bộ `description` của các tool theo cấu trúc 3 phần rõ ràng: chức năng cốt lõi, **`DÙNG KHI`**, và **`KHÔNG DÙNG KHI`** (ranh giới âm bản giúp model không gọi nhầm giữa `timeline` vs `social_search`, `lookup` vs `fetch`/`papers`/`github_search`).
+  - Chuẩn hóa quy ước tham số (`arg conventions`): đưa `response_type` vào `required: [question, response_type]` của `clarify` (sửa triệt để lỗi `R10`, `R12` ở `v2`); quy định `screenname` bỏ ký tự `@`; `query` của `lookup` chỉ giữ từ khóa cốt lõi (không kèm từ chỉ thời gian/loại tin) và ánh xạ rõ mốc thời gian sang `timeframe` (`day`/`week`/`month`/`year`, sửa lỗi `G01`).
+  - Sửa 2 lỗi hồi quy ở `v3`: tinh chỉnh điều kiện giữa `clarify` và `send` để khi người dùng ở lượt mới nhất đã xác nhận đồng ý gửi thì gọi ngay `send(confirmed=true)` (sửa `GM02`), và bỏ câu gợi ý gọi kèm `social_search` trong `lookup` để tránh gọi thừa tool cũ khi người dùng chuyển nguồn (sửa `M06`).
+- **4 Tool mới do nhóm tự phát triển (`CP3` + `Bonus ≥ 4 tool mới` — Bùi Đặng Nhật Nguyên):**
+  1. **`github_search`** (`starter_v0/tools/github_search/`): Tìm repository công khai trên GitHub REST API theo `query`, `language`, `limit` (sắp xếp theo `stars`). Gọi khi người dùng hỏi tìm repo/mã nguồn mở trên GitHub.
+  2. **`hf_models`** (`starter_v0/tools/hf_models/`): Tìm model AI/LLM open-weight trên Hugging Face Hub API theo `query`, `task` (`pipeline_tag`), `limit` (sắp xếp theo lượt tải `downloads`). Gọi khi người dùng hỏi tìm model/checkpoint trên Hugging Face.
+  3. **`hn_search`** (`starter_v0/tools/hn_search/`): Tìm bài đăng và thảo luận kỹ thuật trên Hacker News qua Algolia API theo `query`, `sort_by` (`points` hoặc `date`), `limit`. Gọi khi người dùng muốn xem thảo luận trên Hacker News (HN).
+  4. **`pypi_info`** (`starter_v0/tools/pypi_info/`): Tra cứu metadata chính thức của gói thư viện Python trên PyPI JSON API theo `package_name`. Gọi khi người dùng hỏi phiên bản mới nhất, `requires_python` hoặc thông tin gói trên PyPI/`pip`.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -118,11 +141,11 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/github_search/`, `starter_v0/tools/hf_models/`, `starter_v0/tools/hn_search/`, `starter_v0/tools/pypi_info/`, `starter_v0/tools/__init__.py`, `starter_v0/artifacts/tools.yaml` | Cả 4 tool đều dùng REST API công khai miễn phí (`requires_env: []`), chuẩn hóa output về `{"tool", ..., "items": [{"title", "url", "source", "summary", ...}]}` để nối trực tiếp vào `format` | Kiểm tra tham số rỗng/sai kiểu/`limit <= 0`/ngoài enum trước khi gọi mạng; ép trần `limit <= 10`; bắt mọi lỗi HTTP/timeout trả về error dict có `next_step`, không bao giờ raise exception |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (`pytest` output: **137 passed, 0 skipped, 0 failed**) | 21 hàm test (34 test item khi parametrize) riêng cho 4 tool mới: 7 hàm cho `github_search`, 5 hàm cho `hf_models`, 5 hàm cho `hn_search`, 4 hàm cho `pypi_info` | Mọi HTTP request trong test đều bị chặn bởi `conftest.py` và mock bằng `fake_http`, đảm bảo test chạy 100% offline và kiểm tra cả request params lẫn output |
+| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `starter_v0/chat_service.py`, `starter_v0/requirements.txt` (`streamlit>=1.38.0`) | Giao diện Streamlit (`streamlit run app.py`) hiển thị trực quan lịch sử hội thoại, các tool call + tham số thực tế và cho phép cấu hình API key trực tiếp trên sidebar | Không lưu lộ API key xuống repo; tự động ghi transcript hội thoại vào `starter_v0/transcripts/` |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: Tổng cộng toàn suite có **137 test passed (0 skipped, 0 failed)**, trong đó có **19 hàm test (21 test item)** cho 8 tool có sẵn (kèm 5 regression test) và **21 hàm test (34 test item)** cho 4 tool mới. Ví dụ lỗi mà unit test bắt được nhưng bộ live eval không bắt được: khi model gửi `limit=0` vào `timeline`/`social_search` hoặc `max_results=0` vào `lookup`, code gốc dùng `int(limit or 5)` nên âm thầm đổi `0` thành `5` và vẫn gọi mạng; hoặc khi GitHub/Hugging Face/PyPI trả về HTTP 429/503 hay phần tử JSON bị `None` ở các trường số (`stargazers_count: null`), live eval chỉ chấm tên tool + tham số model chọn nên vẫn báo PASS, trong khi unit test với `fake_http` kiểm tra trực tiếp khả năng trả về error dict an toàn và không làm sập vòng lặp agent.
 
 ### B5. Bonus Evidence
 
@@ -131,7 +154,7 @@ Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool c�
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
 | Small Local Model | xem B7 |  |  |
-| Hơn 3 tool mới (≥ 4) |  |  |  |
+| Hơn 3 tool mới (≥ 4) | `starter_v0/tools/github_search/`, `starter_v0/tools/hf_models/`, `starter_v0/tools/hn_search/`, `starter_v0/tools/pypi_info/`, `starter_v0/tests/test_tools_todo.py`, `runs/v4_B_group_openrouter_20261110T200706447380.json`, `runs/v4_B_extension_openrouter_20261110T200748658442.json` | Đủ 4 tool mới do nhóm tự viết (`github_search`, `hf_models`, `hn_search`, `pypi_info`), mỗi tool có `TOOL.md` + `tool.py`, đăng ký đầy đủ, có 4–7 hàm unit test/tool và PASS cả case gọi song song `G05` (Group 10/10) lẫn các case đơn lẻ `E11`–`E14` (Extension) | Ranh giới `DÙNG KHI` / `KHÔNG DÙNG KHI` tách biệt theo từng nền tảng (GitHub, Hugging Face, Hacker News, PyPI) nên không gây nhiễu cho bộ Base (giữ nguyên 20/20 ở `v4`) |
 | `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
 | Test challenge (0 skipped / regression test) | `pytest` output, `starter_v0/tests/test_tools_todo.py`, `starter_v0/tools/_shared.py` | 137 passed, 0 skipped; 3 bug trong tool có sẵn được sửa, có regression test | Regression test được chạy trên code gốc để chắc chắn fail trước khi sửa |
 
@@ -181,10 +204,14 @@ Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEA
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
-- Fix nào thuộc `system_prompt.md`?
-- Fix nào thuộc `tools.yaml`?
-- Failure nào cần review thủ công thay vì chấm tự động?
-- Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?
+- **Fix nào thuộc `system_prompt.md`?**
+  - Các quy tắc điều phối hành vi tổng quát của agent qua nhiều lượt hội thoại: không đoán mò khi thiếu thông tin bắt buộc (`R10`, `R11`), luôn phải xin xác nhận người dùng trước khi thực hiện hành động có tác dụng phụ ra bên ngoài như gửi Telegram (`R12`, `G04`), từ chối các yêu cầu nằm ngoài phạm vi nghiên cứu (`R08`, `R14`, `GM05`), và nguyên tắc trong hội thoại multi-turn chỉ xử lý lượt tin nhắn mới nhất của người dùng.
+- **Fix nào thuộc `tools.yaml`?**
+  - Các quy ước gắn chặt với hợp đồng tham số (schema/contract) và ranh giới phân loại giữa các công cụ cùng nhóm: ép `response_type` vào danh sách `required` của `clarify` (`R10`, `R12` ở `v2`), ánh xạ từ chỉ thời gian sang enum `timeframe` (`day/week/month/year` ở `G01`), chuẩn hóa định dạng `screenname` bỏ ký tự `@` (`GM04`), và định nghĩa ranh giới âm bản (`KHÔNG DÙNG KHI`) để tránh gọi thừa tool cũ khi chuyển nguồn (`M06`, `GM03`) hoặc phân biệt rõ `lookup` với 4 tool mới (`github_search`, `hf_models`, `hn_search`, `pypi_info`).
+- **Failure nào cần review thủ công thay vì chấm tự động?**
+  - Bộ chấm tự động (`run_eval.py`) chỉ kiểm tra ở bước đầu tiên (`Phase B`) xem model chọn đúng tên tool và tập con tham số (`expect.tool_calls`) hay không. Những lỗi cần review thủ công trên transcript thực tế gồm: (1) chất lượng câu hỏi `clarify` (câu hỏi xác nhận trước khi `send` có tóm tắt rõ nội dung sắp đăng để người dùng duyệt hay chỉ hỏi chung chung); (2) chất lượng tổng hợp câu trả lời cuối cùng sau khi nhận kết quả từ tool (model có bịa thêm thông tin ngoài kết quả tool hay bị ảnh hưởng bởi prompt injection trong `untrusted_text` của `policy` hay không).
+- **Nếu có thêm một vòng (`v5`), nhóm sẽ thử giả thuyết nào?**
+  - Ở `v4` khi chạy bộ mở rộng (`runs/v4_B_extension_openrouter_20261110T200748658442.json`, đạt 13/14), chỉ còn duy nhất case `E01_company_source_policy` bị FAIL do model gọi đúng tool `policy` nhưng truyền `policy_area="all"` thay vì `policy_area="source_citation"` cho câu hỏi *"tweet viral có được coi là fact đã xác nhận không?"*. Nếu có vòng `v5`, nhóm sẽ đặt giả thuyết: bổ sung ví dụ ánh xạ ngữ nghĩa trong mô tả tham số `policy_area` của `tools.yaml` (các câu hỏi về độ tin cậy của nguồn tin, kiểm chứng thông tin/fact-check tweet viral thuộc về `source_citation`) sẽ giúp `E01` đạt PASS (14/14 trên bộ Extension) mà không làm giảm điểm Base và Group.
 
 ## 8. Tài liệu tham khảo
 
