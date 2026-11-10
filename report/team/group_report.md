@@ -137,11 +137,12 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/save_note/tool.py`, `TOOL.md` | Lưu ghi chú/tóm tắt nghiên cứu ra file Markdown trong thư mục `notes/`, tự động chuẩn hóa đuôi `.md`, trả về status `saved` và path | Chống path traversal (`..`, `/`, `\`), từ chối input rỗng; chỉ ghi khi `confirmed=True`, trả `needs_confirmation` kèm preview nếu `confirmed=False` |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` | 3/3 test PASS (`test_save_note_without_confirmation_does_not_write`, `test_save_note_happy_path`, `test_save_note_bad_input_from_model`) | Chặn lỗi ở tầng code Python khi model truyền input rỗng hoặc đường dẫn nguy hiểm |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: Đã viết 3 test hoàn chỉnh cho tool `save_note`.
+Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: Nếu model gọi đúng tool `save_note(filename="../../etc/passwd", content="evil", confirmed=true)`, eval chỉ kiểm tra tên tool và tham số nên sẽ chấm PASS. Tuy nhiên, nếu không có unit test ở code Python để chặn path traversal, hàm sẽ ghi đè file hệ thống! Unit test đảm bảo code Python phát hiện và trả về `{"error": "invalid_filename"}` an toàn mà không crash.
 
 ### B5. Bonus Evidence
 

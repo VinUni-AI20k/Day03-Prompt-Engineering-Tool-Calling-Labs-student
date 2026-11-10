@@ -243,3 +243,25 @@ tools:
           default: 8000
           description: "Số ký tự tối đa trả về. Không nói thì dùng 8000."
       required: [arxiv_url]
+
+  - name: save_note
+    description: >-
+      Lưu nội dung ghi chú, bản tóm tắt nghiên cứu hoặc báo cáo vào file markdown trên máy cục bộ (thư mục notes/).
+      Dùng khi: người dùng yêu cầu lưu lại kết quả nghiên cứu, ghi chú hoặc bản tóm tắt thành file.
+      Không dùng khi: người dùng muốn gửi bài đi nơi khác (dùng `send`); chỉ muốn hiển thị định dạng kết quả trên màn hình (dùng `format`).
+    parameters:
+      type: object
+      properties:
+        filename:
+          type: string
+          default: ""
+          description: "Tên file để lưu (ví dụ: 'research_summary.md'). Nếu người dùng không nói rõ tên, đặt tên ngắn gọn liên quan chủ đề kèm đuôi .md."
+        content:
+          type: string
+          default: ""
+          description: "Nội dung ghi chú hoặc bản tóm tắt nghiên cứu dạng Markdown cần lưu."
+        confirmed:
+          type: boolean
+          default: false
+          description: "Chỉ đặt true khi người dùng đã xác nhận đồng ý lưu file. Luôn đặt false khi chưa có xác nhận từ người dùng."
+      required: [filename, content]

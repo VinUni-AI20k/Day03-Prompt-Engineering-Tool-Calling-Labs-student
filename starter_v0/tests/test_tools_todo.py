@@ -104,19 +104,41 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
     pytest.skip(TODO)
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# ---------------- save_note (YOUR NEW TOOL) ----------------
+# 1. happy path (confirmed write)
+# 2. guardrail (confirmed=False does not write to disk)
+# 3. bad input / path traversal safety (empty input, directory traversal blocked)
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+save_note_tool = TOOL_FUNCTIONS["save_note"]
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_save_note_without_confirmation_does_not_write(tmp_path) -> None:
+    result = save_note_tool(filename="research_ai.md", content="# AI Summary", confirmed=False, base_dir=tmp_path)
+
+    assert result["status"] == "needs_confirmation"
+    assert result["preview"]["filename"] == "research_ai.md"
+    assert not (tmp_path / "notes" / "research_ai.md").exists()
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_save_note_happy_path(tmp_path) -> None:
+    result = save_note_tool(filename="research_ai", content="# AI Summary\nKey findings.", confirmed=True, base_dir=tmp_path)
+
+    assert result["status"] == "saved"
+    assert result["filename"] == "research_ai.md"
+    target_file = tmp_path / "notes" / "research_ai.md"
+    assert target_file.is_file()
+    assert target_file.read_text(encoding="utf-8") == "# AI Summary\nKey findings."
+
+
+def test_save_note_bad_input_from_model() -> None:
+    # Empty filename
+    res_empty_name = save_note_tool(filename="", content="test", confirmed=True)
+    assert res_empty_name.get("error") == "invalid_filename"
+
+    # Empty content
+    res_empty_content = save_note_tool(filename="test.md", content="", confirmed=True)
+    assert res_empty_content.get("error") == "empty_content"
+
+    # Directory traversal attempt
+    res_traversal = save_note_tool(filename="../../passwords.txt", content="secret", confirmed=True)
+    assert res_traversal.get("error") == "invalid_filename"
