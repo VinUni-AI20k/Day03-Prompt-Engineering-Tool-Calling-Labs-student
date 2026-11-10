@@ -11,8 +11,8 @@
 
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
-|   1 | Nguyễn Bảo Trung | 2A202604013 | nbtrungrhm@gmail.com | trungnb | |
-|   2 | | | | | |
+|   1 | | | | | |
+|   2 | Nguyễn Bảo Trung | 2A202604013 | nbtrungrhm@gmail.com | trungnb | |
 
 ## Cá nhân
 
