@@ -6,16 +6,17 @@ tools:
     description: >-
       Tạm dừng để hỏi người dùng khi thiếu thông tin bắt buộc hoặc cần xác nhận hành động
       có tác động bên ngoài. Luôn truyền response_type tường minh: text khi thiếu handle,
-      URL, địa điểm, từ khóa hoặc nội dung; yes_no khi xác nhận gửi/đăng/publish; choice
+      URL, địa điểm hoặc từ khóa; yes_no khi xác nhận gửi/đăng/publish; choice
       khi đưa ra các lựa chọn cụ thể. Với yêu cầu gửi/đăng chưa được xác nhận, bước đầu tiên
       luôn là hỏi yes_no, kể cả khi nội dung cũng đang thiếu; chỉ hỏi nội dung ở lượt sau khi
-      người dùng đã xác nhận. Không dùng clarify cho tham số tùy chọn có giá trị mặc định an toàn.
+      người dùng đã xác nhận. Không dùng response_type=text để hỏi nội dung ở lượt xác nhận
+      đầu tiên. Không dùng clarify cho tham số tùy chọn có giá trị mặc định an toàn.
     parameters:
       type: object
       additionalProperties: false
       properties:
         question: {type: string, minLength: 1, description: "Một câu hỏi ngắn, nêu chính xác thông tin hoặc xác nhận đang cần; không tự điền dữ liệu còn thiếu."}
-        response_type: {type: string, enum: [text, yes_no, choice], description: "Bắt buộc truyền rõ: text cho dữ liệu còn thiếu; yes_no cho xác nhận gửi/đăng; choice khi options chứa các lựa chọn."}
+        response_type: {type: string, enum: [text, yes_no, choice], description: "Bắt buộc truyền rõ: yes_no cho mọi yêu cầu gửi/đăng chưa xác nhận, kể cả khi nội dung thiếu; text cho dữ liệu còn thiếu của tác vụ không side-effect hoặc nội dung được hỏi sau khi đã xác nhận; choice khi options chứa lựa chọn."}
         options: {type: array, default: [], items: {type: string}, description: "Chỉ dùng với response_type=choice; danh sách lựa chọn hiển thị cho người dùng. Với text hoặc yes_no, để rỗng."}
       required: [question, response_type]
 
@@ -37,7 +38,9 @@ tools:
     description: >-
       Tìm tweet/bài đăng công khai trên X/Twitter theo chủ đề hoặc từ khóa. Dùng cho câu
       hỏi cộng đồng đang nói gì về một chủ đề; không dùng để lấy timeline của một tài khoản
-      cụ thể (hãy dùng timeline) và không dùng cho tin web (hãy dùng lookup).
+      cụ thể (hãy dùng timeline) và không dùng cho tin web (hãy dùng lookup). Nếu lượt mới
+      nói bỏ/dừng Twitter hoặc chuyển sang web thì social_search đã bị hủy: không gọi tool này
+      chỉ vì một lượt cũ từng nhắc Twitter.
     parameters:
       type: object
       additionalProperties: false
@@ -52,7 +55,9 @@ tools:
       Tìm thông tin hoặc tin tức trên web công khai. Dùng lookup cho tìm kiếm web; không
       dùng khi đã có URL cụ thể (dùng fetch), khi tìm tweet (dùng social_search/timeline),
       paper arXiv (dùng papers) hoặc policy nội bộ (dùng policy). Giữ query là chủ đề thuần;
-      biểu diễn loại tin và thời gian bằng topic/timeframe, không nối "news" vào query.
+      biểu diễn loại tin và thời gian bằng topic/timeframe, không nối "news" vào query. Khi
+      lượt mới nói bỏ Twitter và chuyển sang tin web, chỉ gọi lookup và không gọi thêm tool
+      social từ yêu cầu cũ.
     parameters:
       type: object
       additionalProperties: false
