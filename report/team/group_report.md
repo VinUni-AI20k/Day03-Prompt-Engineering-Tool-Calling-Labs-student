@@ -1,16 +1,11 @@
 # Báo cáo nhóm — Day 03 Research Agent Tool Eval
 
-> Báo cáo gồm 2 phần có hạn khác nhau:
-> - **Phần A (mục 2)** — giới thiệu agent, ngắn gọn 1 trang. **Xong trước Team showdown (16:30)** để team khác hiểu nhanh agent có tool gì, làm được gì. Có thể làm thêm poster `report/team/poster.html` hoặc `poster.svg`.
-> - **Phần B (mục 3–7)** — chi tiết và bằng chứng, dựa trên log thật. Hoàn thiện trước deadline nộp bài.
->
-> Mỗi bảng phải trỏ được tới file thật: run JSON, transcript, commit. Cách chấm xem [RUBRIC.md](../../RUBRIC.md).
 
 ## 1. Thông tin nhóm
 
 - Tên nhóm: MMV
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3: OpenRouter / `openai/gpt-4o-mini` (đối chiếu `version_log.csv` và run JSON).
+- Provider/model dùng cho v0–v3: OpenRouter / `openai/gpt-4o-mini`
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -30,7 +25,17 @@ Dependency đã thêm: `streamlit>=1.40.0` trong `starter_v0/requirements.txt`.
 
 **Link dùng thử (deploy):**
 
-Link thử nghiệm cũ đã được người dùng xác nhận mở được từ thiết bị khác, nhưng hiện đã hết hiệu lực sau khi tunnel dừng. Trước demo cần chạy lại `streamlit run app.py --server.headless true` và `cloudflared tunnel --url http://localhost:8501`; cập nhật URL chỉ sau khi xác nhận truy cập được từ thiết bị khác.
+Từ folder `starter_v0/` (đã kích hoạt venv), chạy lần lượt hai lệnh trong **hai terminal riêng biệt**:
+
+```powershell
+# Terminal 1: Khởi chạy Streamlit
+streamlit run app.py --server.headless true
+
+# Terminal 2: Tạo public URL bằng Cloudflare Tunnel
+cloudflared tunnel --url http://localhost:8501
+```
+
+Sau đó, sử dụng URL `https://....trycloudflare.com` được tạo để truy cập ứng dụng từ thiết bị khác. Link chỉ hoạt động khi cả hai tiến trình đang chạy.
 
 ### A2. Tool agent có
 
@@ -183,8 +188,6 @@ Nhận xét: luồng hỏi lại, bổ sung và xác nhận trước khi gửi h
 
 ### B5. Bonus Evidence
 
-Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool có sẵn (`send`, `policy`, `papers`, `paper_text`) không tự được bonus.
-
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
 | Small Local Model | Không có run Ollama/local trong `starter_v0/runs/` | Chưa thực hiện | Không nhận bonus nếu thiếu run evidence. |
@@ -196,7 +199,7 @@ Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách s
 
 ### B7. Small Local Model Challenge (bonus)
 
-Chưa có run local/Ollama trong evidence hiện có; nhóm chưa thực hiện bonus này. Không có số liệu để điền bảng metric hoặc failure pattern.
+Nhóm chưa run model local qua Ollama.
 
 ## 5. Khó khăn và cách xử lý
 
