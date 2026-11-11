@@ -5,7 +5,7 @@
 - Tên nhóm: MMV
 - Lớp: L3B
 - Repo nhóm: `K5-L3B-DAY03-MMV-ResearchAgentToolEval`
-- URL repo, nhánh nộp, commit chốt: https://github.com/caominhnguyen05/K5-L3B-DAY03-MMV-ResearchAgentToolEval · nhánh `main` · commit chốt: chưa chốt (sẽ ghi hash sau commit cuối cùng)
+- URL repo, nhánh nộp, commit chốt: https://github.com/caominhnguyen05/K5-L3B-DAY03-MMV-ResearchAgentToolEval · nhánh `main` · commit chốt: `9bdc382`
 
 ## Thành viên
 
@@ -13,7 +13,7 @@
 | --: | ------ | ---- | ----- | ------ | ------- |
 | 1 | Phạm Hoàng Đức Minh | 2A202604114 | ducminh03102005@gmail.com | https://github.com/PH31M | Prompt và eval, chạy run/transcript, tổng hợp B1–B5a |
 | 2 | Nguyễn Cao Minh | 2A202604099 | 26ai.minhnc@vinuni.edu.vn | https://github.com/caominhnguyen05 | 4 tool xử lý dữ liệu đã thu thập và unit test |
-| 3 | Nguyễn Công Huy | 2A202604086 | conghuycr@gmail.com | Chưa cung cấp | 2 tool tìm bài báo khoa học (`openalex`, `semantic_scholar`) |
+| 3 | Nguyễn Công Huy | 2A202604086 | conghuycr@gmail.com | https://github.com/HyperSyst | 2 tool tìm bài báo khoa học (`openalex`, `semantic_scholar`) |
 | 4 | Tào Quang Vinh | 2A202604081 | qvinhh2312@gmail.com | https://github.com/qvinhh2312 | UI Streamlit, Cloudflare Tunnel, Phần A báo cáo nhóm |
 
 ## Cá nhân
