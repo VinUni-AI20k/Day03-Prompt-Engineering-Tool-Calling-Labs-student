@@ -454,3 +454,80 @@ def test_source_deduplicator_bad_input() -> None:
     # localhost URL not permitted
     res_local = TOOL_FUNCTIONS["source_deduplicator"](items=[{"url": "http://localhost/secret"}])
     assert "error" in res_local
+
+
+def test_source_deduplicator_failure_returns_error_dict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Failure path: verify_content without API keys returns error dict instead of raising."""
+    monkeypatch.delenv("FIRECRAWL_API_KEY", raising=False)
+    monkeypatch.delenv("TAVILY_API_KEY", raising=False)
+
+    result = TOOL_FUNCTIONS["source_deduplicator"](
+        items=[
+            {"title": "Source 1", "url": "https://example.com/1"},
+            {"title": "Source 2", "url": "https://example.com/2"},
+        ],
+        verify_content=True,
+    )
+
+    assert result["tool"] == "source_deduplicator"
+    assert result["error"] == "RuntimeError"
+    assert "Missing FIRECRAWL_API_KEY or TAVILY_API_KEY" in result.get("message", "")
+
+
+# 4. rss_feed_reader tests --------------------------------------------------
+
+def test_rss_feed_reader_happy_path(fake_http) -> None:
+    """Happy path for rss_feed_reader: parses RSS 2.0 XML into normalized items."""
+    rss_xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>OpenAI News Feed</title>
+        <item>
+          <title>Agent Tool Benchmarks</title>
+          <link>https://example.org/posts/agent-benchmarks</link>
+          <pubDate>Wed, 11 Nov 2026 08:00:00 +0000</pubDate>
+          <description>&lt;p&gt;Benchmark results for research agents.&lt;/p&gt;</description>
+        </item>
+      </channel>
+    </rss>"""
+    calls = fake_http(FakeResponse(text=rss_xml))
+
+    result = TOOL_FUNCTIONS["rss_feed_reader"](url="https://example.org/rss.xml", max_items=3)
+
+    assert result["tool"] == "rss_feed_reader"
+    assert result["status"] == "ok"
+    assert result["feed_type"] == "rss"
+    assert result["feed_title"] == "OpenAI News Feed"
+    assert result["count"] == 1
+    assert result["items"][0]["source"] == "example.org"
+    assert result["items"][0]["summary"] == "Benchmark results for research agents."
+    assert calls[0]["url"] == "https://example.org/rss.xml"
+
+
+def test_rss_feed_reader_bad_input(fake_http) -> None:
+    """Bad input to rss_feed_reader rejects local/SSRF URLs and invalid limits without HTTP."""
+    calls = fake_http(FakeResponse(text=""))
+
+    res_local = TOOL_FUNCTIONS["rss_feed_reader"](url="http://localhost/rss.xml")
+    assert res_local["error"] == "ValueError"
+    assert res_local["tool"] == "rss_feed_reader"
+
+    res_ip = TOOL_FUNCTIONS["rss_feed_reader"](url="http://127.0.0.1:8080/feed.xml")
+    assert res_ip["error"] == "ValueError"
+
+    res_limit = TOOL_FUNCTIONS["rss_feed_reader"](url="https://example.org/rss.xml", max_items=99)
+    assert res_limit["error"] == "ValueError"
+    assert calls == []
+
+
+def test_rss_feed_reader_failure_returns_error_dict(fake_http) -> None:
+    """Failure path: HTTP errors and non-feed XML return structured error dict, never raise."""
+    fake_http(FakeResponse(status_code=503))
+    res_http = TOOL_FUNCTIONS["rss_feed_reader"](url="https://example.org/rss.xml")
+    assert res_http["tool"] == "rss_feed_reader"
+    assert res_http["error"] == "HTTPError"
+
+    fake_http(FakeResponse(text="<html><body>Not a feed</body></html>"))
+    res_html = TOOL_FUNCTIONS["rss_feed_reader"](url="https://example.org/page.html")
+    assert res_html["tool"] == "rss_feed_reader"
+    assert res_html["error"] == "ValueError"

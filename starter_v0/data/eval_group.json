@@ -92,22 +92,24 @@
       }
     },
     {
-      "id": "G05_lookup_general_documentation",
+      "id": "G05_rss_feed_reader_direct",
       "phase": "B",
-      "query": "Find authoritative general documentation explaining OAuth 2.0 authorization code flow with PKCE. I want technical references, not current news.",
-      "failure_type": "wrong_arg_value",
+      "query": "Read the latest 4 articles from the RSS feed at https://openai.com/news/rss.xml, filtering only items mentioning 'safety'. Read the RSS XML feed directly instead of running a general web search or HTML page scrape.",
+      "failure_type": "wrong_tool",
       "expect": {
         "tool_calls": [
           {
-            "name": "lookup",
+            "name": "rss_feed_reader",
             "args": {
-              "topic": "general"
+              "url": "https://openai.com/news/rss.xml",
+              "max_items": 4,
+              "keyword": "safety"
             }
           }
         ]
       },
       "metadata": {
-        "what_it_tests": "Tests that a request for evergreen technical documentation uses general web lookup rather than a news search."
+        "what_it_tests": "Routes a direct RSS feed URL request to rss_feed_reader instead of fetch or lookup, preserving url, max_items, and optional keyword filter."
       }
     },
     {

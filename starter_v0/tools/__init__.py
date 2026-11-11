@@ -20,6 +20,7 @@ from .lookup.tool import web_search
 from .topic_radar.tool import compare_topic_signals
 from .evidence_finder.tool import find_claim_evidence
 from .source_deduplicator.tool import deduplicate_sources
+from .rss_feed_reader.tool import read_rss_feed
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -41,6 +42,7 @@ TOOL_FUNCTIONS = {
     "topic_radar": compare_topic_signals,
     "evidence_finder": find_claim_evidence,
     "source_deduplicator": deduplicate_sources,
+    "rss_feed_reader": read_rss_feed,
 }
 
 

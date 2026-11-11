@@ -153,3 +153,13 @@ tools:
           default: false
           description: "So sánh nội dung trang thật; cần Firecrawl hoặc Tavily API key và tối đa 8 nguồn."
       required: [items]
+
+  - name: rss_feed_reader
+    description: "Đọc và phân tích trực tiếp RSS hoặc Atom feed (XML) từ một URL feed cụ thể để lấy danh sách các bài viết mới nhất trong feed. DÙNG KHI: người dùng cung cấp link RSS/Atom feed (ví dụ .xml, .rss, /feed) hoặc yêu cầu rõ lấy bài từ RSS/Atom feed. KHÔNG DÙNG KHI: đọc 1 trang web/bài báo HTML đơn lẻ (dùng fetch), đọc arXiv PDF (dùng paper_text), hoặc tìm kiếm theo từ khóa chưa có link feed (dùng lookup/papers)."
+    parameters:
+      type: object
+      properties:
+        url: {type: string, default: "", description: "Đường dẫn URL HTTP(S) trực tiếp tới RSS hoặc Atom feed (XML)."}
+        max_items: {type: integer, default: 5, description: "Số bài viết tối đa cần trích xuất từ feed (1 đến 20)."}
+        keyword: {type: string, default: "", description: "Từ khóa tùy chọn để lọc các mục trong feed theo tiêu đề hoặc tóm tắt."}
+      required: [url]

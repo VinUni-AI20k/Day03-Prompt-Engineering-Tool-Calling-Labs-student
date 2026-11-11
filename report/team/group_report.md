@@ -157,6 +157,17 @@ Lấy từ 4 file transcript trong `starter_v0/transcripts/`:
 
 Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEAM.md) và các báo cáo cá nhân `report/team/MSSV_HoTen.md`.
 
+### Đóng góp cá nhân — Nguyễn Văn Lâm (`2A202604115`)
+
+- **Phần việc chính phụ trách (UI, Báo cáo & Điều phối):**
+  - Khởi tạo và hoàn thiện giao diện Web UI bằng Streamlit (`starter_v0/app.py`, `starter_v0/requirements.txt`, hỗ trợ tunnel qua `starter_v0/cloudflared.exe`) để kiểm thử đa lượt và thực thi an toàn các tool.
+  - Biên tập khung báo cáo nhóm (`report/team/group_report.md`), cập nhật `TEAM.md`, báo cáo cá nhân (`report/team/2A202604115_NguyenVanLam.md`) và điều phối tiến độ/nộp bài của nhóm (`d80c157`, `ac2a337`, `d4c74a2`).
+- **Phần hỗ trợ các thành viên khác:**
+  - *Hỗ trợ Hưng (Prompt & Eval Engineer):* Đồng bộ và lưu lịch sử các phiên bản `system_prompt_v0.md`–`v3.md` (`ac2a337`, `d4c74a2`), chỉnh cấu hình mặc định trong `providers/gemini_provider.py` (`d80c157`).
+  - *Hỗ trợ Dũng (New Tool Builder & Tool Contract):* Thiết kế và tích hợp thêm tool thứ 4 `rss_feed_reader` (`tools/rss_feed_reader/tool.py`, `TOOL.md`, `tools/__init__.py`, `artifacts/tools.yaml`) mà không sửa `system_prompt.md`.
+  - *Hỗ trợ Toàn (QA & Unit Test Engineer):* Bổ sung 3 tests chuẩn C4 cho `rss_feed_reader` và failure path cho `source_deduplicator` trong `tests/test_tools_todo.py`, cùng bộ test offline trong `tests/test_rss_feed_reader.py`, nâng tổng suite đạt **152 passed, 0 failed, 0 skipped**.
+  - *Hỗ trợ Minh (Data & Live Chat Engineer):* Thực hiện phiên live chat gửi Telegram thật sau xác nhận (`starter_v0/transcripts/v3_gemini_20261110T235739095905.transcript.json`, `status: "sent"`) và cập nhật case `G05_rss_feed_reader_direct` trong `data/eval_group.json` cho tool thứ 4 (chưa chạy lại `run_eval` lên LLM cho case mới này).
+
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
 - **Fix nào thuộc `system_prompt.md`?**

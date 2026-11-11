@@ -12,7 +12,7 @@
 | STT | Họ tên | MSSV | Email | GitHub | Vai trò |
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Nguyễn Duy Hưng | 2A202604110 | | Hungnd1208 | Prompt & Tool Declarations (v0–v3), Eval Pipeline, `version_log.csv`, Unit Tests & Contract Sync |
-|   2 | Nguyễn Văn Lâm | 2A202604115 | 26ai.lamnv@vinuni.edu.vn | lam2121 | Streamlit UI (`app.py`), Tích hợp live Telegram workflow, System Prompts & Transcripts |
+|   2 | Nguyễn Văn Lâm | 2A202604115 | 26ai.lamnv@vinuni.edu.vn | lam2121 | Trưởng nhóm, Streamlit UI (`app.py`), Báo cáo chung & Điều phối; Hỗ trợ prompt/tool thứ 4/unit test/transcript Telegram |
 |   3 | Nguyễn Quốc Toàn | *(bổ sung MSSV)* | | nguyenquoctoan0310 | Viết Unit Tests cho các core tools trong `tests/test_tools_todo.py` |
 |   4 | Minh *(bổ sung họ tên & MSSV)* | | | Minh | Thiết kế 10 Eval cases nhóm (`data/eval_group.json`) & Live chat transcripts |
 |   5 | *(bổ sung họ tên & MSSV)* | | | bomgoa1102 | Phát triển 3 tools mới (`topic_radar`, `evidence_finder`, `source_deduplicator`) và mock tests |
@@ -63,13 +63,20 @@ report/team/MSSV_HoTen.md
 
 ### Phần việc phụ trách
 
-- Xây dựng giao diện Web UI bằng Streamlit (`starter_v0/app.py`) và bổ sung dependency vào `starter_v0/requirements.txt`.
-- Thực hiện luồng live chat và kiểm thử tính năng gửi bản tin thực tế lên Telegram sau khi người dùng xác nhận.
+- Vai trò chính (Trưởng nhóm — UI, Báo cáo chung & Điều phối): Xây dựng và nâng cấp giao diện Web UI bằng Streamlit (`starter_v0/app.py`, `starter_v0/requirements.txt`, chuẩn bị tunnel với `starter_v0/cloudflared.exe`), biên tập Phần A & tổng quan `report/team/group_report.md`, hoàn thiện bảng phân công trong `TEAM.md`, viết báo cáo cá nhân `report/team/2A202604115_NguyenVanLam.md` và điều phối nộp bài.
+
+### Đóng góp cụ thể & Hỗ trợ thành viên khác
+
+- **Phần việc chính:** Khởi tạo/hoàn thiện `starter_v0/app.py` (chat đa lượt, hiển thị tool call/lỗi rõ ràng và hỗ trợ flow xác nhận gửi Telegram) cùng khung tài liệu báo cáo nhóm/cá nhân.
+- **Hỗ trợ Hưng (Prompt & Eval Engineer):** Lưu trữ, đồng bộ các phiên bản `starter_v0/artifacts/system_prompt_v0.md`–`v3.md`, `system_prompt.md` (`ac2a337`, `d4c74a2`) và chỉnh cấu hình mặc định trong `starter_v0/providers/gemini_provider.py` (`d80c157`).
+- **Hỗ trợ Dũng (New Tool Builder & Tool Contract):** Phát triển thêm tool thứ 4 `rss_feed_reader` (`starter_v0/tools/rss_feed_reader/tool.py`, `TOOL.md`), đăng ký vào `starter_v0/tools/__init__.py` và `starter_v0/artifacts/tools.yaml` (không thay đổi `system_prompt.md`).
+- **Hỗ trợ Toàn (QA & Unit Test Engineer):** Viết 3 tests chuẩn C4 cho `rss_feed_reader` và test failure path cho `source_deduplicator` trong `starter_v0/tests/test_tools_todo.py`, cùng bộ test offline `starter_v0/tests/test_rss_feed_reader.py`, nâng tổng suite lên **152 passed, 0 failed, 0 skipped**.
+- **Hỗ trợ Minh (Data & Live Chat Engineer):** Chạy phiên live chat gửi Telegram thật sau xác nhận (`starter_v0/transcripts/v3_gemini_20261110T235739095905.transcript.json`, `status: "sent"`) và cập nhật case `G05_rss_feed_reader_direct` trong `starter_v0/data/eval_group.json` cho tool thứ 4 (chưa chạy lại `run_eval` cho case mới).
 
 ### Bằng chứng
 
-- File: `starter_v0/app.py`, `starter_v0/requirements.txt`, `starter_v0/transcripts/v3_gemini_20261110T235739095905.transcript.json`.
-- Commits: `d80c157`, `ac2a337`, `d4c74a2`.
+- Files: `starter_v0/app.py`, `starter_v0/requirements.txt`, `starter_v0/transcripts/v3_gemini_20261110T235739095905.transcript.json`, `starter_v0/tools/rss_feed_reader/`, `starter_v0/tools/__init__.py`, `starter_v0/artifacts/tools.yaml`, `starter_v0/tests/test_tools_todo.py`, `starter_v0/tests/test_rss_feed_reader.py`, `starter_v0/data/eval_group.json`, `TEAM.md`, `report/team/group_report.md`, `report/team/2A202604115_NguyenVanLam.md`.
+- Commits trên `main`: `d80c157`, `ac2a337`, `d4c74a2` (kèm phần `rss_feed_reader` & `G05` vừa cập nhật trên nền `45d93ab`).
 
 ---
 
