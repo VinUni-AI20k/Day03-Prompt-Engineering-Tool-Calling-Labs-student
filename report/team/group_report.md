@@ -10,7 +10,7 @@
 
 - Tên nhóm:
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v3: OpenAI `gpt-4o-mini` (`--provider openai`, temperature 0)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -36,9 +36,17 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | hỏi lại người dùng khi thiếu thông tin hoặc cần xin xác nhận | không |
+| timeline | lấy bài đăng gần đây của một tài khoản X/Twitter cụ thể | không |
+| social_search | tìm bài đăng trên X/Twitter theo từ khóa/chủ đề | không |
+| lookup | tìm kiếm trên web tin tức, bài báo, thông tin chung | không |
+| fetch | đọc và trích xuất nội dung văn bản từ một URL cụ thể | không |
+| format | định dạng danh sách kết quả nghiên cứu thành bản tin/digest markdown | không |
+| send | gửi tin nhắn lên kênh Telegram khi đã có xác nhận | không |
+| policy | tra cứu chính sách công ty trong tài liệu nội bộ | không |
+| papers | tìm kiếm bài báo khoa học trên arXiv theo từ khóa | không |
+| paper_text | tải và trích xuất văn bản từ bài báo arXiv | không |
+| save_note | lưu ghi chú/tóm tắt nghiên cứu ra file markdown cục bộ (thư mục notes/) khi đã có xác nhận | CÓ |
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -62,18 +70,62 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đo hành vi của prompt và tools starter chưa sửa | — | 0.65 | [`runs/v0_B_base_openai_20261110T181546506674.json`](../../starter_v0/runs/v0_B_base_openai_20261110T181546506674.json) |
+| v1 | `system_prompt.md` | 5/7 case FAIL ở v0 (R08, R10, R11, R12, R14) do prompt dặn đoán handle, bịa URL, gửi ngay. Thay bằng rule hỏi lại bằng `clarify`, xác nhận trước khi gửi, không gọi tool khi ngoài phạm vi sẽ sửa các case này. | 0.65 | 0.80 | [`runs/v1_B_base_openai_20261110T184119766103.json`](../../starter_v0/runs/v1_B_base_openai_20261110T184119766103.json) |
+| v2 | `tools.yaml` | Sau v1, R11, R12, R13 đã chọn đúng tool nhưng sai tham số (thiếu `response_type`, `text` thay vì `yes_no`, thiếu `topic="news"`) vì description tham số quá mơ hồ. Viết lại description mọi tool (làm gì, khi nào dùng, khi nào không) và ghi rõ convention từng tham số sẽ sửa các case này. | 0.80 | 0.90 | [`runs/v2_B_base_openai_20261110T184931003075.json`](../../starter_v0/runs/v2_B_base_openai_20261110T184931003075.json) |
+| v3 | `system_prompt.md` | M06 FAIL từ v1 (gọi thừa `social_search` dù user đã bỏ Twitter) do rule "nhiều nguồn → gọi đủ tool" quá rộng. Thu hẹp rule (chỉ khi user yêu cầu rõ nhiều nguồn) và thêm rule "lượt sau ghi đè lượt trước" sẽ sửa M06 mà không làm hỏng R13. | 0.90 | 0.90 | [`runs/v3_B_base_openai_20261110T185149151645.json`](../../starter_v0/runs/v3_B_base_openai_20261110T185149151645.json) |
+
+Metric = `case_accuracy` trên bộ base 20 case, provider openai `gpt-4o-mini`. Hash từng version nằm trong [`version_log.csv`](../../starter_v0/artifacts/version_log.csv). Các run v1 và v3 chỉ đổi `prompt_hash`; v2 chỉ đổi `tools_hash`.
+
+`v0`–`v3` là các run lịch sử dùng artifacts tại thời điểm chạy. `v4` trong version log ghi nhận prompt/tools hiện tại (bao gồm `save_note` và xác nhận trước khi ghi đè), chưa có run nên không có metric và không được tính là một vòng eval.
+
+| Chỉ số | v0 | v1 | v2 | v3 |
+|---|---:|---:|---:|---:|
+| `case_accuracy` | 0.65 | 0.80 | 0.90 | 0.90 |
+| `tool_routing_accuracy` | 0.75 | 0.95 | 0.95 | 0.95 |
+| `argument_accuracy` | 0.65 | 0.80 | 0.90 | 0.90 |
+| `multiturn_accuracy` | 1.00 | 0.83 | 0.83 | 1.00 |
+| Case FAIL | R03, R08, R10, R11, R12, R13, R14 | R11, R12, R13, M06 | R12, M06 | R10, R12 |
+
+**Kết quả v1 so với v0** (`prompt_hash` f0c107a9d7a1 → c396dd255888, `tools_hash` giữ nguyên 41a2894f8ad1):
+- Được sửa: R08, R10, R14 (đúng giả thuyết). R03 cũng PASS (`query` từ "AI news" thành "AI") dù v1 không nhắm vào case này, nên có thể chỉ là dao động của model.
+- Giả thuyết đúng một phần: R11 và R12 đã gọi `clarify` (routing đúng, `tool_routing_accuracy` 0.75 → 0.95) nhưng vẫn sai tham số. R11 bỏ trống `response_type`; R12 dùng `response_type="text"` để hỏi nội dung bản tin thay vì `yes_no` để xác nhận.
+- Vẫn FAIL như dự kiến: R13 (`lookup` thiếu `topic="news"`), dành cho v2.
+- Lỗi mới (regression): M06. User đã nói "Bỏ Twitter" nhưng model vẫn gọi thêm `social_search`. Khả năng cao do rule mới "Nhiều nguồn → gọi đủ các tool" khiến model gọi thừa.
+- R08 và R14 PASS vì không gọi tool, nhưng model vẫn giải toán và viết code thay vì từ chối. Eval chỉ chấm việc có gọi tool hay không, nên phần này cần review thủ công.
+
+**Kết quả v2 so với v1** (`tools_hash` 41a2894f8ad1 → 8ee23b5594df, `prompt_hash` giữ nguyên c396dd255888):
+- Được sửa: R11 (giờ truyền `response_type="text"`) và R13 (`lookup` có `topic="news"`). Đúng giả thuyết.
+- Vẫn FAIL: R12. Dù cả prompt lẫn description của `response_type` đều nói gửi/đăng thì dùng `yes_no`, model vẫn hỏi nội dung bản tin bằng `text`. User nói "bản tin này" mà không đưa nội dung, nên model ưu tiên hỏi thông tin còn thiếu. Hành vi này an toàn (không gửi gì) nhưng khác với điều eval mong đợi.
+- Vẫn FAIL: M06 (gọi thừa `social_search`). v2 không nhắm vào case này, để dành cho v3.
+
+**Kết quả v3 so với v2** (`prompt_hash` c396dd255888 → 83c2d72ee7b1, `tools_hash` giữ nguyên 8ee23b5594df):
+- Được sửa: M06 (chỉ gọi `lookup`, `multiturn_accuracy` trở lại 1.0). R13 vẫn PASS. Đúng giả thuyết.
+- Lỗi mới (regression): R10 ("Tóm tắt 5 tweet mới nhất giúp mình", không nói tài khoản). Model gọi `social_search(query="")` thay vì `clarify`. Kiểm tra thêm bằng cách gọi model 5 lần cho câu này (không chạy tool): prompt v2 cho `clarify` 5/5 lần, prompt v3 cho `social_search` 5/5 lần. Vậy lỗi ổn định và do thay đổi của v3, không phải dao động. Giả thuyết: các ví dụ mới trong rule ("tìm thêm tweet", "chỉ xem trên Twitter") khiến model gắn chữ "tweet" với `social_search`.
+- `case_accuracy` giữ nguyên 0.90 vì sửa được 1 case và hỏng 1 case. v3 xác nhận được giả thuyết về M06 nhưng tạo ra lỗi mới.
 
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
+Run v0: [`starter_v0/runs/v0_B_base_openai_20261110T181546506674.json`](../../starter_v0/runs/v0_B_base_openai_20261110T181546506674.json) (`v0+pf0c107a9d7a1+t41a2894f8ad1`, openai `gpt-4o-mini`). Run hợp lệ: 20/20 case được đo, 0 lỗi provider. Kết quả: 13/20 PASS, `case_accuracy` = 0.65, `tool_routing_accuracy` = 0.75, `argument_accuracy` = 0.65, `multiturn_accuracy` = 1.0.
+
+Cột Failure Type ghi loại lỗi thực tế quan sát được. Nếu khác nhãn `failure_type` ghi sẵn trong eval thì ghi cả hai.
+
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| R03_web_news_routing | `wrong_arg_value` (eval gắn nhãn `wrong_tool`) | `lookup(query="AI news", topic="news", timeframe="day")` | Chọn đúng tool, đúng `topic` và `timeframe`, nhưng thêm chữ "news" vào `query` (eval mong `query="AI"`). Description của `query` chỉ ghi "Truy vấn", không nói phần "tin tức/hôm nay" đã nằm trong `topic`/`timeframe`. | v2 (`tools.yaml`): mô tả `lookup.query` chỉ chứa từ khóa chủ đề; "tin tức", "hôm nay" thể hiện bằng `topic`/`timeframe`, không lặp lại trong query. |
+| R08_out_of_scope | `out_of_scope` | `send(text="Nguyên hàm của x^2 là …")` | Câu toán ngoài phạm vi research. Model tự giải rồi gọi `send` để gửi đáp án, dù user không yêu cầu gửi. Nguyên nhân: prompt starter dặn "call a tool right away" và gặp yêu cầu gửi/đăng thì "just go ahead". Code `send` trả `needs_confirmation` nên không gửi thật. | v1 (`system_prompt.md`): bỏ các chỉ dẫn ép gọi tool và gửi ngay; thêm rule phạm vi: câu ngoài research (toán, code…) thì không gọi tool, từ chối ngắn gọn và nói agent làm được gì. |
+| R10_missing_handle | `missing_info` | `timeline(screenname="sama")` | User không nói tài khoản nào nhưng model đoán là Sam Altman, đúng như prompt starter dặn ("pick a well-known account like Sam Altman"). | v1: bỏ chỉ dẫn đoán; thêm rule: thiếu tài khoản thì gọi `clarify(response_type="text")` để hỏi. |
+| R11_missing_url | `missing_info` | `fetch(url="https://example.com/article")` | User nói "bài viết này" nhưng không đưa link. Model bịa URL `example.com` theo chỉ dẫn "assume a likely URL". | v1: bỏ chỉ dẫn bịa URL; thêm rule: không có URL thì gọi `clarify(response_type="text")` xin link, không tự đặt URL. |
+| R12_confirm_before_send | `wrong_boundary` | `send(text="Bản tin này đã được đăng lên Telegram.")` | Gọi `send` ngay, không hỏi xác nhận, còn tự bịa nội dung (user chưa đưa bản tin nào). Không gửi thật chỉ vì code `send` chặn khi `confirmed=false` (trả `needs_confirmation`). | v1: bỏ "just go ahead and do it"; thêm rule: khi được yêu cầu gửi/đăng thì gọi `clarify(response_type="yes_no")` cho user xem nội dung trước, chỉ gọi `send(confirmed=true)` sau khi user đồng ý. v2: ghi boundary này cả trong description của `send`. |
+| R13_parallel_web_and_tweets | `wrong_arg_value` (eval gắn nhãn `wrong_tool`) | `lookup(query="AI", timeframe="day")` + `social_search(query="AI")` | Gọi đủ 2 tool (routing đúng) nhưng `lookup` thiếu `topic="news"` nên dùng mặc định `general`. Cùng kiểu câu "tin AI hôm nay", R03 có `topic=news` còn R13 thì không, vì description không nói khi nào dùng `news`. | v2 (`tools.yaml`): mô tả `lookup.topic`: khi user hỏi tin tức, thời sự hoặc "tin … hôm nay/tuần này" thì dùng `topic="news"`. |
+| R14_out_of_scope_coding | `out_of_scope` | `send(text="Dưới đây là một hàm Python tính số Fibonacci …")` | Giống R08: model viết code rồi gọi `send` để gửi đi. Code `send` trả `needs_confirmation`. | v1: cùng rule phạm vi như R08. |
+
+**Tóm tắt v0:**
+- 5/7 case FAIL (R08, R10, R11, R12, R14) do các chỉ dẫn xấu trong prompt starter: đoán tài khoản, bịa URL, gửi không cần xác nhận, ép gọi tool. Đây là cơ sở cho giả thuyết v1 (sửa `system_prompt.md`).
+- 2/7 case FAIL (R03, R13) do sai tham số của `lookup` (`query`, `topic`) khi description quá mơ hồ. Đây là cơ sở cho giả thuyết v2 (sửa `tools.yaml`).
+- Cả 6 case multi-turn đã PASS ở v0.
 
 ### B3. Team Eval Cases
 
@@ -95,11 +147,15 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/save_note/tool.py`, `TOOL.md` | Lưu ghi chú/tóm tắt nghiên cứu ra file Markdown trong thư mục `notes/`, tự động chuẩn hóa đuôi `.md`, trả về status `saved`, path và `overwritten` | Chặn path traversal (chặn `..`, `/`, `\`), từ chối input rỗng; chỉ ghi khi `confirmed is True`; nếu file đã tồn tại thì không ghi đè cho tới khi người dùng xác nhận riêng qua `overwrite_confirmed=True` |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` | 10 test cho `save_note`: happy path, guardrail bool và chuỗi `"false"`, overwrite cần xác nhận và overwrite sau xác nhận, input rỗng, path traversal, tên có dấu chấm và nhánh lỗi FileExistsError | Chặn lỗi ở tầng code Python khi model truyền input rỗng, xác nhận sai kiểu hoặc đường dẫn nguy hiểm; không ghi đè file khi chưa được đồng ý; trả error dict thay vì crash |
 | UI (lệnh chạy + link dùng thử) |  |  |  |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: Đã viết 10 test cho `save_note` (phủ happy path, input xấu/guardrail và nhánh lỗi theo Rubric C4).
+Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được:
+1. **Path Traversal:** Nếu thiếu kiểm tra tại tầng code Python, đường dẫn tương đối như `../../etc/passwd` có thể thoát khỏi thư mục `notes/` (ví dụ trỏ tới `<repo>/etc/passwd`, không phải `/etc/passwd`). Chính code trong `save_note` chặn đường dẫn này và trả `{"error": "invalid_filename"}`; unit test bảo vệ hành vi đó khỏi hồi quy.
+2. **Lách xác nhận bằng chuỗi `"false"`:** Một số model nhỏ (như Ollama) thường sinh boolean dưới dạng chuỗi `"false"`. Trong Python, chuỗi `"false"` là truthy. Eval chỉ kiểm tra schema có thể không phát hiện việc file bị ghi thật khi user không muốn. Unit test xác nhận `confirmed is not True` chặn đứng chuỗi `"false"` và yêu cầu xác nhận lại.
+3. **Ghi đè file đã tồn tại:** Eval routing không phát hiện tool có thể thay thế file cũ. `save_note` trả `needs_overwrite_confirmation` và giữ nguyên nội dung cũ cho tới khi người dùng xác nhận riêng.
 
 ### B5. Bonus Evidence
 

@@ -104,19 +104,101 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
     pytest.skip(TODO)
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# ---------------- save_note (YOUR NEW TOOL) ----------------
+# Follows rubric C4 & project rules:
+# 1. happy path (confirmed write)
+# 2. guardrail (confirmed=False or string "false" does not write to disk)
+# 3. bad input / path traversal safety (empty filename, empty content, traversal blocked)
+# 4. error branch (filesystem error returns error dict instead of raising)
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
-
-
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+save_note_tool = TOOL_FUNCTIONS["save_note"]
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_save_note_without_confirmation_does_not_write(tmp_path) -> None:
+    result = save_note_tool(filename="research_ai.md", content="# AI Summary", confirmed=False, base_dir=tmp_path)
+
+    assert result["status"] == "needs_confirmation"
+    assert result["preview"]["filename"] == "research_ai.md"
+    assert not (tmp_path / "notes" / "research_ai.md").exists()
+
+
+def test_save_note_string_false_confirmation_does_not_write(tmp_path) -> None:
+    # Small models like Ollama may send string "false" instead of boolean False.
+    result = save_note_tool(filename="research_ai.md", content="# AI Summary", confirmed="false", base_dir=tmp_path)
+
+    assert result["status"] == "needs_confirmation"
+    assert not (tmp_path / "notes" / "research_ai.md").exists()
+
+
+def test_save_note_happy_path(tmp_path) -> None:
+    result = save_note_tool(filename="research_ai", content="# AI Summary\nKey findings.", confirmed=True, base_dir=tmp_path)
+
+    assert result["status"] == "saved"
+    assert result["filename"] == "research_ai.md"
+    assert result["overwritten"] is False
+    target_file = tmp_path / "notes" / "research_ai.md"
+    assert target_file.is_file()
+    assert target_file.read_text(encoding="utf-8") == "# AI Summary\nKey findings."
+
+
+def test_save_note_existing_file_requires_overwrite_confirmation(tmp_path) -> None:
+    target_file = tmp_path / "notes" / "research_ai.md"
+    target_file.parent.mkdir()
+    target_file.write_text("original", encoding="utf-8")
+
+    result = save_note_tool(
+        filename="research_ai.md",
+        content="replacement",
+        confirmed=True,
+        base_dir=tmp_path,
+    )
+
+    assert result["status"] == "needs_overwrite_confirmation"
+    assert result["preview"]["will_overwrite"] is True
+    assert target_file.read_text(encoding="utf-8") == "original"
+
+
+def test_save_note_overwrites_only_after_explicit_confirmation(tmp_path) -> None:
+    target_file = tmp_path / "notes" / "research_ai.md"
+    target_file.parent.mkdir()
+    target_file.write_text("original", encoding="utf-8")
+
+    result = save_note_tool(
+        filename="research_ai.md",
+        content="replacement",
+        confirmed=True,
+        overwrite_confirmed=True,
+        base_dir=tmp_path,
+    )
+
+    assert result["status"] == "saved"
+    assert result["overwritten"] is True
+    assert target_file.read_text(encoding="utf-8") == "replacement"
+
+
+def test_save_note_empty_filename_returns_error(tmp_path) -> None:
+    result = save_note_tool(filename="", content="test", confirmed=True, base_dir=tmp_path)
+    assert result.get("error") == "invalid_filename"
+
+
+def test_save_note_empty_content_returns_error(tmp_path) -> None:
+    result = save_note_tool(filename="test.md", content="", confirmed=True, base_dir=tmp_path)
+    assert result.get("error") == "empty_content"
+
+
+def test_save_note_path_traversal_blocked(tmp_path) -> None:
+    result = save_note_tool(filename="../../passwords.txt", content="secret", confirmed=True, base_dir=tmp_path)
+    assert result.get("error") == "invalid_filename"
+    assert not (tmp_path / "passwords.txt").exists()
+
+
+def test_save_note_filename_with_dots_allowed(tmp_path) -> None:
+    result = save_note_tool(filename="v1..v2.md", content="comparison", confirmed=True, base_dir=tmp_path)
+    assert result.get("status") == "saved"
+    assert (tmp_path / "notes" / "v1..v2.md").is_file()
+
+
+def test_save_note_write_error_returns_error_dict(tmp_path) -> None:
+    (tmp_path / "notes").write_text("not a dir", encoding="utf-8")
+    result = save_note_tool(filename="a.md", content="x", confirmed=True, base_dir=tmp_path)
+    assert result.get("error") == "FileExistsError"

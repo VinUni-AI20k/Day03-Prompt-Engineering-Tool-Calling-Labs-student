@@ -3,5 +3,31 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_save_note_after_confirmation",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Lưu nội dung ghi chú này vào file research_summary.md: Tóm tắt các phát hiện chính về AI."},
+        {"role": "user", "content": "Đồng ý, hãy lưu lại."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "save_note",
+            "args": {
+              "filename": "research_summary.md",
+              "content": "Tóm tắt các phát hiện chính về AI.",
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Yêu cầu lưu ghi chú và xác nhận rõ ở lượt sau phải route tới save_note với confirmed=true."
+      }
+    }
+  ]
 }
