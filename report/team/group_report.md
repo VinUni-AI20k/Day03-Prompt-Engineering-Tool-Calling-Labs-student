@@ -8,7 +8,7 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: GroupT
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
 - Provider/model dùng cho v0–v3:
 
@@ -37,7 +37,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
+| deduplicate_news | gộp tin trùng theo URL chuẩn hoá hoặc mức độ từ chung trong tiêu đề | có |
 |  |  |  |
 
 ### A3. Câu hỏi mẫu để thử
@@ -52,7 +52,7 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 > Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
 
--
+- Thêm `deduplicate_news`, tool xử lý cục bộ để gộp tin trùng khi người dùng có ít nhất hai tin từ các nguồn và muốn loại bỏ trùng lặp. Tool chuẩn hoá URL trước, sau đó so các từ trong tiêu đề; nguồn được gộp và summary dài hơn được giữ lại. Dùng trước `format`, không dùng để tìm tin mới hoặc tóm tắt một bài.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -81,7 +81,18 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| G01_wikipedia_knowledge_summary | Câu hỏi kiến thức nền “X là ai?” | `wiki_sum(title="Ada Lovelace")` | Chưa có run group trong `starter_v0/runs/` |
+| G02_validate_shortened_link | Kiểm tra URL cụ thể và link rút gọn | `validate_url(url="https://bit.ly/ai-update")`; diễn giải thận trọng, không khẳng định an toàn tuyệt đối | Chưa có run group trong `starter_v0/runs/` |
+| G03_direct_local_time | Hỏi giờ hiện tại tại một thành phố | `date_localized(timezone="America/Los_Angeles")` | Chưa có run group trong `starter_v0/runs/` |
+| G04_today_news_uses_lookup | Tìm tin “hôm nay”, phân biệt với hỏi giờ hiện tại | `lookup(query="AI", topic="news", timeframe="day")` | Chưa có run group trong `starter_v0/runs/` |
+| G05_specific_article_uses_fetch | Đọc/tóm tắt URL đã cung cấp, không kiểm tra URL trước | `fetch(url="https://openai.com/research/")` | Chưa có run group trong `starter_v0/runs/` |
+| G06_multiturn_time_location | Dùng địa điểm được làm rõ qua nhiều lượt | `date_localized(timezone="Asia/Tokyo")` | Chưa có run group trong `starter_v0/runs/` |
+| G07_multiturn_url_validation | Dùng URL từ lượt trước để kiểm tra URL | `validate_url(url="https://tinyurl.com/example-check")` | Chưa có run group trong `starter_v0/runs/` |
+| G08_multiturn_wikipedia_followup | Yêu cầu tiếp nối về đoạn giới thiệu Wikipedia | `wiki_sum(title="Alan Turing")` | Chưa có run group trong `starter_v0/runs/` |
+| G09_multiturn_news_topic_correction | Giữ timeframe hôm nay và cập nhật chủ đề đã sửa | `lookup(query="robotics", topic="news", timeframe="day")` | Chưa có run group trong `starter_v0/runs/` |
+| G10_multiturn_publish_confirmation | Chuẩn bị nội dung nhưng yêu cầu xác nhận trước khi gửi | Gọi `clarify(response_type="yes_no")`; không gọi `send` khi chưa được cho phép | Chưa có run group trong `starter_v0/runs/` |
+
+> Lưu ý CP4: `eval_group.json` hiện có đủ 10 case (5 single-turn, 5 multi-turn), nhưng chưa có case nào kiểm tra routing tới tool mới `deduplicate_news`, dù đây là yêu cầu CP4.
 
 ### B4. Live Chat Evidence
 
@@ -95,11 +106,11 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| Tool mới (`tools/<tên>/`) | `starter_v0/tools/deduplicate_news/tool.py`, `starter_v0/tools/deduplicate_news/TOOL.md`, đăng ký tại `starter_v0/tools/__init__.py` và `starter_v0/artifacts/tools.yaml` | Gộp theo URL HTTP(S) đã chuẩn hoá hoặc độ tương đồng tiêu đề; giữ summary dài hơn và kết hợp nguồn. Tool chạy cục bộ, không gọi mạng. | Chỉ xử lý các tin đã có; không tìm tin mới hoặc tóm tắt bài. Mặc định ngưỡng tiêu đề là 0.8; đầu vào không hợp lệ trả error dict. |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` | Có 4 test: gộp URL đã chuẩn hoá/kết hợp nguồn, gộp theo từ chung trong tiêu đề, trả lỗi với title đầu vào không hợp lệ, và trả lỗi với threshold không hợp lệ. | Các test xác nhận hành vi code của tool, không xác nhận model có chọn gọi tool đúng. Chạy `pytest tests/test_tools_todo.py -k deduplicate_news` để kiểm tra. |
+| UI (lệnh chạy + link dùng thử) | Chưa triển khai (CP5) | — | — |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Unit test tool mới: đã viết 4 test. Ví dụ lỗi mà unit test có thể bắt nhưng eval routing không bắt: `title` rỗng hoặc `title_similarity_threshold` ngoài khoảng `(0, 1]` phải trả error dict thay vì xử lý đầu vào sai. Chưa ghi nhận kết quả chạy pytest trong phần bằng chứng hiện có.
 
 ### B5. Bonus Evidence
 
@@ -144,7 +155,9 @@ Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
 > Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
 
--
+- **Xác định thế nào là tin trùng:** URL có thể khác do `www`, chữ hoa/thường, dấu `/` cuối, fragment hoặc tham số tracking; tiêu đề cũng có thể khác một vài từ. Tool `deduplicate_news` xử lý URL đã chuẩn hoá trước, sau đó mới so độ tương đồng tiêu đề theo ngưỡng; khi gộp thì giữ summary dài hơn và kết hợp nguồn. Logic được triển khai tại `starter_v0/tools/deduplicate_news/tool.py` và quy tắc sử dụng được ghi ở `starter_v0/tools/deduplicate_news/TOOL.md`.
+- **Đầu vào do model tạo có thể không hợp lệ:** Để tránh làm hỏng lượt chạy khi thiếu title hoặc truyền ngưỡng ngoài phạm vi, tool kiểm tra đầu vào và trả error dict. Bốn test trong `starter_v0/tests/test_tools_todo.py` bao phủ gộp URL, gộp theo tiêu đề và hai nhánh đầu vào lỗi. Repo chưa có output pytest để xác nhận kết quả chạy, nên không kết luận test đã pass.
+- **Thiết kế eval nhiều lượt và kiểm chứng routing:** Bộ `starter_v0/data/eval_group.json` đã có đủ 5 case single-turn và 5 case multi-turn, gồm các tình huống cần giữ ngữ cảnh như URL, địa điểm, timeframe/chủ đề và xác nhận trước khi gửi. Tuy vậy, chưa có run group trong `starter_v0/runs/`, và bộ case hiện tại chưa kiểm tra model gọi `deduplicate_news`; hai điểm này cần bổ sung/chạy trước khi kết luận về hành vi của model. Không có bằng chứng hiện có về lỗi provider hoặc hết quota.
 
 ## 6. Tổng hợp đóng góp
 
@@ -152,11 +165,14 @@ Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEA
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
-- Fix nào thuộc `system_prompt.md`?
-- Fix nào thuộc `tools.yaml`?
-- Failure nào cần review thủ công thay vì chấm tự động?
-- Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?
+- **Fix thuộc `system_prompt.md`:** Nêu rõ quy tắc chọn tool theo ý định người dùng: kiến thức nền dùng `wiki_sum`; kiểm tra URL chỉ dùng `validate_url` khi được hỏi; hỏi giờ trực tiếp dùng `date_localized`, còn tìm tin theo “hôm nay/tuần này” dùng `lookup` với timeframe tương ứng. Prompt cũng yêu cầu xin xác nhận trước khi gửi/đăng. Những quy tắc này có trong `starter_v0/artifacts/system_prompt.md`.
+- **Fix thuộc `tools.yaml`:** Khai báo `deduplicate_news`, điều kiện dùng trước `format`, giới hạn không tìm bài mới/tóm tắt bài và ngưỡng so sánh tiêu đề mặc định `0.8`. Theo `version_log.csv`, v1 chỉ đổi `system_prompt.md` và giữ nguyên `tools_hash`; các mô tả tool core trong `tools.yaml` hiện vẫn còn chung chung, nên cần được cụ thể hoá và đánh giá riêng ở version sau.
+- **Failure cần review thủ công:** Kết quả tool call đúng chưa đảm bảo nội dung tóm tắt chính xác, nguồn đáng tin, hoặc diễn giải về URL không gây cảm giác an toàn tuyệt đối. Tương tự, ranh giới xác nhận gửi/đăng cần kiểm tra ngữ cảnh hội thoại và nội dung/đích đến; một eval chỉ so tên tool và một số args có thể bỏ sót chất lượng câu trả lời cuối.
+- **Nếu có thêm một vòng:** Trước tiên thêm case group kiểm tra routing tới `deduplicate_news`, chạy `python run_eval.py --provider openrouter --version v3 --suite group --eval-cases data/eval_group.json` và lưu run để điền kết quả B3. Sau đó, ở một version riêng chỉ sửa mô tả tool trong `tools.yaml` (khi nào dùng/không dùng và quy ước args), rồi chạy lại cùng bộ base để so sánh. Hiện chưa có run group nên chưa thể kết luận giả thuyết nào cải thiện routing trên các case mới.
 
 ## 8. Tài liệu tham khảo
-
--
+Đề bài và repo gốc: https://github.com/VinUni-AI20k/K5-L3-DAY03-ResearchAgentToolEval (README.md, RULES.md, RUBRIC.md, SUBMISSION.md, CHECKPOINTS.md)
+Wikipedia REST API (endpoint page/summary) dùng trong wiki_sum: https://en.wikipedia.org/api/rest_v1/
+Streamlit (UI): https://docs.streamlit.io/
+Cloudflare quick tunnel (link dùng thử UI): https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/
+Công cụ AI dùng hỗ trợ code/phân tích log: ghi trong báo cáo cá nhân của từng thành viên.

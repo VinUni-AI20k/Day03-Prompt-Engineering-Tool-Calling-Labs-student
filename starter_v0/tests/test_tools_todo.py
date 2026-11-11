@@ -10,10 +10,13 @@ Rules:
 """
 from __future__ import annotations
 
+from datetime import datetime
+
 import pytest
 
-from conftest import FakeResponse  # noqa: F401  (you will need it)
-from tools import TOOL_FUNCTIONS  # noqa: F401
+from conftest import FakeResponse
+from tools import TOOL_FUNCTIONS
+from tools.deduplicate_news.tool import deduplicate_news
 
 TODO = "TODO CP3 (student): implement this test"
 
@@ -104,19 +107,154 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
     pytest.skip(TODO)
 
 
-# ---------------- YOUR NEW TOOL(S) ----------------
-# Write at least 3 tests per tool your team adds:
-#   1. happy path (mocked if it calls an API)
-#   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
-#   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
+# ---------------- deduplicate_news ----------------
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_news_merges_normalized_urls_and_combines_sources() -> None:
+    result = deduplicate_news([
+        {
+            "title": "Company launches a new research model",
+            "url": "https://www.example.com/news/model/?utm_source=first#top",
+            "source": "Source A",
+            "summary": "Short summary",
+        },
+        {
+            "title": "Company launches a new research model",
+            "url": "https://example.com/news/model",
+            "source": "Source B",
+            "summary": "A longer summary with more detail.",
+        },
+        {
+            "title": "Local weather forecast for tomorrow",
+            "url": "https://weather.example/story",
+            "source": "Source C",
+        },
+    ])
+
+    assert result["item_count"] == 2
+    assert result["duplicates_removed"] == 1
+    assert result["items"][0]["source"] == "Source A, Source B"
+    assert result["items"][0]["summary"] == "A longer summary with more detail."
+    assert result["items"][1]["title"] == "Local weather forecast for tomorrow"
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_news_matches_different_urls_by_shared_title_terms() -> None:
+    result = deduplicate_news([
+        {
+            "title": "Company launches new research model today",
+            "url": "https://source-a.example/story",
+            "source": "Source A",
+        },
+        {
+            "title": "Company launches new research model",
+            "url": "https://source-b.example/another-story",
+            "source": "Source B",
+        },
+    ])
+
+    assert result["duplicates_removed"] == 1
+    assert result["items"][0]["source"] == "Source A, Source B"
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_deduplicate_news_returns_error_for_invalid_model_input() -> None:
+    result = deduplicate_news([{"title": ""}])
+
+    assert result["tool"] == "deduplicate_news"
+    assert result["error"] == "ValueError"
+    assert "title" in result["message"]
+
+
+def test_deduplicate_news_returns_error_for_invalid_threshold() -> None:
+    result = deduplicate_news(
+        [{"title": "A real news headline"}],
+        title_similarity_threshold=1.5,
+    )
+
+    assert result["tool"] == "deduplicate_news"
+    assert result["error"] == "ValueError"
+    assert "title_similarity_threshold" in result["message"]
+
+
+# ---------------- wiki_sum ----------------
+
+def test_wiki_sum_returns_wikipedia_summary(fake_http) -> None:
+    fake_http(FakeResponse({
+        "title": "Ada Lovelace",
+        "extract": "Ada Lovelace was an English mathematician.",
+        "description": "English mathematician",
+        "content_urls": {"desktop": {"page": "https://en.wikipedia.org/wiki/Ada_Lovelace"}},
+    }))
+
+    result = TOOL_FUNCTIONS["wiki_sum"](title="Ada Lovelace")
+
+    assert result["summary"] == "Ada Lovelace was an English mathematician."
+    assert result["url"] == "https://en.wikipedia.org/wiki/Ada_Lovelace"
+
+
+def test_wiki_sum_rejects_empty_title_without_request(fake_http) -> None:
+    calls = fake_http(FakeResponse({}))
+
+    result = TOOL_FUNCTIONS["wiki_sum"](title=" ")
+
+    assert result["error"] == "ValueError"
+    assert calls == []
+
+
+def test_wiki_sum_http_error_returns_error_dict(fake_http) -> None:
+    fake_http(FakeResponse(status_code=404))
+
+    result = TOOL_FUNCTIONS["wiki_sum"](title="Missing page")
+
+    assert result["tool"] == "wiki_sum"
+    assert result["error"] == "HTTPError"
+
+
+# ---------------- validate_url ----------------
+
+def test_validate_url_flags_shortener_and_configured_blocklist(monkeypatch) -> None:
+    monkeypatch.setenv("URL_BLACKLIST_DOMAINS", "bad.example")
+
+    result = TOOL_FUNCTIONS["validate_url"](url="https://sub.bad.example/path")
+
+    assert result["valid"] is True
+    assert result["is_shortened"] is False
+    assert result["is_blocked"] is True
+    assert result["blacklist_configured"] is True
+    shortened = TOOL_FUNCTIONS["validate_url"](url="https://bit.ly/a")
+    assert shortened["is_shortened"] is True
+
+
+def test_validate_url_reports_malformed_link() -> None:
+    result = TOOL_FUNCTIONS["validate_url"](url="ftp://example.com/file")
+
+    assert result["valid"] is False
+    assert result["reason"]
+
+
+def test_validate_url_rejects_empty_model_input() -> None:
+    result = TOOL_FUNCTIONS["validate_url"](url="")
+
+    assert result["error"] == "ValueError"
+
+
+# ---------------- date_localized ----------------
+
+def test_date_localized_returns_timezone_aware_current_time() -> None:
+    result = TOOL_FUNCTIONS["date_localized"](timezone="Ho Chi Minh City")
+
+    parsed = datetime.fromisoformat(result["datetime"])
+    assert result["timezone"] == "Asia/Ho_Chi_Minh"
+    assert parsed.utcoffset() is not None
+    assert "UTC" in result["formatted"]
+
+
+def test_date_localized_rejects_empty_timezone() -> None:
+    result = TOOL_FUNCTIONS["date_localized"](timezone="")
+
+    assert result["error"] == "ValueError"
+
+
+def test_date_localized_unknown_timezone_returns_error_dict() -> None:
+    result = TOOL_FUNCTIONS["date_localized"](timezone="Not/A_Timezone")
+
+    assert result["tool"] == "date_localized"
+    assert result["error"] == "ZoneInfoNotFoundError"
