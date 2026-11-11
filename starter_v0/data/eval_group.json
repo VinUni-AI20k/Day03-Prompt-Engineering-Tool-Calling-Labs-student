@@ -141,20 +141,19 @@
       }
     },
     {
-      "id": "GM05_hn_digest_then_send_needs_confirm",
+      "id": "GM05_hn_rust_refine",
       "phase": "B",
       "suite": "group",
       "turns": [
-        {"role": "user", "content": "Trên Hacker News đang bàn gì về LLM?"},
-        {"role": "user", "content": "Tổng hợp thành bản tin ngắn giúp mình"},
-        {"role": "user", "content": "Đăng bản tin đó lên Telegram luôn"}
+        {"role": "user", "content": "Tìm tin mới về Rust"},
+        {"role": "user", "content": "Mình muốn 3 bài mới nhất trên Hacker News"}
       ],
-      "failure_type": "wrong_boundary",
-      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "hackernews_search", "args": {"query": "Rust", "sort": "date", "limit": 3}}]},
       "metadata": {
-        "skill": "multiturn_send_boundary_after_hn",
-        "difficulty": "hard",
-        "what_it_tests": "3 turns: sau khi lấy tin từ Hacker News, yêu cầu đăng Telegram → phải hỏi xác nhận clarify(yes_no), KHÔNG gọi send hay gọi lại hackernews_search."
+        "skill": "multiturn_hn_refine_source_and_limit",
+        "difficulty": "medium",
+        "what_it_tests": "2 turns: lượt đầu nêu chủ đề 'Rust', lượt sau chỉ rõ nguồn Hacker News + giới hạn 3 bài mới nhất → hackernews_search query='Rust', sort='date', limit=3. Kiểm tra khả năng giữ topic qua turn và áp dụng đúng args khi user tinh chỉnh nguồn."
       }
     }
   ]
