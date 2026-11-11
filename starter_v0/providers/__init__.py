@@ -3,7 +3,9 @@ from providers.openrouter_provider import OpenRouterProvider
 from providers.anthropic_provider import AnthropicProvider
 from providers.gemini_provider import GeminiProvider
 from providers.ollama_provider import OllamaProvider
+from dotenv import load_dotenv
 
+load_dotenv()  # Load environment variables from .env file
 
 def make_provider(name: str):
     if name == "openai":
