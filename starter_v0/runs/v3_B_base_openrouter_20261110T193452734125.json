@@ -1,0 +1,170 @@
+{
+  "run_id": "v3_B_base_openrouter_20261110T193452734125",
+  "version": "v3",
+  "artifact_version": "v3+p790928ce8350+tf14208e146f3",
+  "prompt_hash": "790928ce8350d65bde41b8b7891a3266cdd683312102b63299f4eaf4c70ef041",
+  "tools_hash": "f14208e146f31a206d0eff4870af79eeb2ac7fab28ae5aada8f5b5678586eed4",
+  "phase": "B",
+  "suite": "base",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "C:\\Users\\MINH KHAI\\Documents\\VinUni\\Day3\\K5-L3B-DAY03-G2026-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "C:\\Users\\MINH KHAI\\Documents\\VinUni\\Day3\\K5-L3B-DAY03-G2026-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T19:34:52",
+  "summary": {
+    "total_cases": 3,
+    "measured_cases": 3,
+    "provider_error_cases": 0,
+    "passed_cases": 3,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": null,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_date_calc_diff_days",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes date difference questions to date_calc and uses the current date."
+      },
+      "input": "Còn bao nhiêu ngày nữa đến 1/1/2027?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "diff_days",
+              "date1": "today",
+              "date2": "2027-01-01"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "diff_days",
+              "date1": "today",
+              "date2": "2027-01-01"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "date_calc",
+          "args": {
+            "op": "diff_days",
+            "date1": "today",
+            "date2": "2027-01-01"
+          },
+          "result": {
+            "result": 52
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_date_calc_add_days",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes date addition questions to date_calc with correct arguments."
+      },
+      "input": "100 ngày sau ngày 15/3/2026 là ngày nào?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "add_days",
+              "date1": "2026-03-15",
+              "days": 100
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "add_days",
+              "date1": "2026-03-15",
+              "days": 100
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "date_calc",
+          "args": {
+            "op": "add_days",
+            "date1": "2026-03-15",
+            "days": 100
+          },
+          "result": {
+            "result": "2026-06-23"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_date_calc_negative",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Does not call date_calc for general cultural questions."
+      },
+      "input": "Tết Nguyên Đán có ý nghĩa gì?",
+      "expect": {
+        "no_tool": true
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Tết Nguyên Đán, hay còn gọi là Tết, là lễ hội quan trọng nhất trong văn hóa Việt Nam, đánh dấu sự khởi đầu của năm mới âm lịch. Ý nghĩa của Tết Nguyên Đán bao gồm:\n\n1. **Tưởng nhớ tổ tiên**: Tết là dịp để người Việt tưởng nhớ và tri ân tổ tiên, thể hiện lòng biết ơn đối với những người đã khuất.\n\n2. **Đoàn tụ gia đình**: Đây là thời gian để các thành viên trong gia đình sum họp, cùng nhau ăn uống, trò chuyện và chia sẻ những khoảnh khắc quý giá.\n\n3. **Khởi đầu mới**: Tết Nguyên Đán tượng trưng cho sự khởi đầu mới, mang lại hy vọng và ước mơ cho một năm đầy may mắn, thịnh vượng.\n\n4. **Phong tục tập quán**: Trong dịp Tết, người dân thực hiện nhiều phong tục truyền thống như dọn dẹp nhà cửa, trang trí, chuẩn bị mâm cỗ, và tổ chức các hoạt động vui chơi, giải trí.\n\n5. **Gắn kết cộng đồng**: Tết cũng là dịp để mọi người trong cộng đồng gặp gỡ, giao lưu, tạo dựng mối quan hệ tốt đẹp.\n\nTết Nguyên Đán không chỉ là một lễ hội mà còn là biểu tượng văn hóa sâu sắc, thể hiện bản sắc dân tộc và truyền thống của người Việt.",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    }
+  ]
+}

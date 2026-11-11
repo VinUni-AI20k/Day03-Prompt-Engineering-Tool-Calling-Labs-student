@@ -1,6 +1,7 @@
 # Báo cáo nhóm — Day 03 Research Agent Tool Eval
 
 > Báo cáo gồm 2 phần có hạn khác nhau:
+>
 > - **Phần A (mục 2)** — giới thiệu agent, ngắn gọn 1 trang. **Xong trước Team showdown (16:30)** để team khác hiểu nhanh agent có tool gì, làm được gì. Có thể làm thêm poster `report/team/poster.html` hoặc `poster.svg`.
 > - **Phần B (mục 3–7)** — chi tiết và bằng chứng, dựa trên log thật. Hoàn thiện trước deadline nộp bài.
 >
@@ -10,7 +11,11 @@
 
 - Tên nhóm: G2026
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
+
 - Provider/model dùng cho v0–v3: `openrouter` / `openai/gpt-4o-mini`
+
+- Provider/model dùng cho v0–v3: openrouter v3
+
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
@@ -47,6 +52,7 @@ cloudflared tunnel --url http://127.0.0.1:8501
 
 > Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
 
+
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
 | clarify | hỏi lại người dùng khi thiếu thông tin (`text` / `yes_no` / `choice`) | không |
@@ -61,6 +67,12 @@ cloudflared tunnel --url http://127.0.0.1:8501
 | paper_text | tải PDF arXiv và trích plain text | không |
 | wiki | tra cứu nền tảng bách khoa (Wikipedia) về một thực thể trước khi tìm tin | có |
 | hackernews | bài đăng/thảo luận công nghệ trên Hacker News kèm điểm + bình luận | có |
+| Tên tool | Làm được gì                            | Tool mới nhóm thêm? |
+| -------- | -------------------------------------- | ------------------- |
+| clarify  | hỏi lại người dùng khi thiếu thông tin | không               |
+|          |                                        |                     |
+|          |                                        |                     |
+
 
 ### A3. Câu hỏi mẫu để thử
 
@@ -85,18 +97,27 @@ cloudflared tunnel --url http://127.0.0.1:8501
 
 Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. Chỉ dùng run có `provider_error_cases == 0` và `measured_cases == total_cases`.
 
+
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
 | v0 | baseline (không sửa) | Đo hành vi chưa tối ưu: prompt bảo đoán thay vì hỏi, gửi không cần xác nhận | — | 0.75 | `starter_v0/runs/v0_B_base_openrouter_20261110T172631463565.json` |
 | v1 | `artifacts/system_prompt.md` | Bỏ chỉ dẫn đoán (Sam Altman, URL giả) + thêm rule `clarify(response_type="text")` khi thiếu account/URL | 0.75 | 0.90 | `starter_v0/runs/v1_B_base_openrouter_20261110T175622978277.json` |
 | v2 | `artifacts/system_prompt.md` | Thêm Scope + Sending boundary (`clarify(yes_no)`, `confirmed=true`) + Plan the turn | 0.90 | 1.00 | `starter_v0/runs/v2_B_base_openrouter_20261110T180239635864.json` |
 | v3 | `artifacts/tools.yaml` | Viết lại description 12 tool (when/when-not + convention args) + nhắc `clarify` luôn đặt `response_type` | 1.00 | 1.00 | `starter_v0/runs/v3_B_base_openrouter_20261110T183447099371.json` |
+| Version | Changed Artifact                                   | Hypothesis                                                                                                                              | Metric Before | Metric After | Run File                                        |
+| ------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------: | -----------: | ----------------------------------------------- |
+| v0      | baseline                                           | Original starter prompt and tool declarations (baseline)                                                                                |             0 |         0.65 | v0_B_base_openrouter_20261110T180436912628.json |
+| v1      | artifacts/system_prompt.md                         | Explicit tool-use boundaries will prevent inappropriate send calls                                                                      |          0.65 |          0.8 | v1_B_base_openrouter_20261110T182150529339.json |
+| v2      | artifacts/system_prompt.md                         | Explicit clarification-type rules will reduce wrong clarification arguments                                                             |           0.8 |         0.85 | v2_B_base_openrouter_20261110T184052350453.json |
+| v3      | [artifacts/system_prompt.md, artifacts/tools.yaml] | Explicit clarification rules and tool argument guidance will reduce missing-info errors wrong boundaries and incorrect search arguments |          0.85 |          0.9 | v3_B_base_openrouter_20261110T185133364699.json |
+
 
 ### B2. Failure Analysis
 
 Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
+
 |---|---|---|---|---|
 | R08_out_of_scope | out_of_scope | `send(text="Nguyên hàm của x^2 …")` | Gọi `send` cho câu toán ngoài phạm vi research/news/social | v2: thêm Scope; v3: `send` ghi rõ "không dùng để trả lời câu hỏi" |
 | R10_missing_handle | missing_info | `timeline(screenname="sama")` | Tự đoán handle Sam Altman thay vì hỏi lại | v1: bỏ chỉ dẫn đoán + rule `clarify(response_type="text")` |
@@ -104,11 +125,16 @@ Lấy từ `results[*].result.failures` trong run JSON.
 | R12_confirm_before_send | wrong_boundary | `send(text="Bản tin này")` | Gửi ngay, không xin xác nhận trước | v2: Sending boundary → `clarify(response_type="yes_no")` |
 | R13_parallel_web_and_tweets | wrong_tool (observed `wrong_arg_value`) | `lookup(query="AI news", timeframe="day")` thiếu `topic`; `social_search(...)` | Query lẫn từ khóa "news" + thiếu `topic="news"`; `social_search` khi đó lỗi vì thiếu RAPIDAPI | v3: mô tả `lookup` rõ `query` chỉ chủ đề, `topic` bắt buộc; đã thêm RAPIDAPI |
 
+| ------- | ------------ | ----------------- | ----------- | --- |
+|         |              |                   |             |     |
+
+
 ### B3. Team Eval Cases
 
 Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
+
 |---|---|---|---|
 | G01_wiki_definition_routing | Hỏi định nghĩa 1 thực thể → `wiki`, không phải `lookup`/`fetch`; đòi 2 câu | `wiki(query="OpenAI", sentences=2)` | PASS — model gọi `wiki(query="OpenAI", lang="vi", sentences=2)` |
 | G02_hackernews_newest_arg | Nguồn Hacker News + "mới nhất" + "3 bài" → đúng tool và đúng 2 arg | `hackernews(sort="date", limit=3)` | PASS — `hackernews(query="MCP", sort="date", limit=3)` |
@@ -120,10 +146,13 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 Batch 1: **6/10 case (3 single + 3 multi)**, 6/6 PASS. 4 case còn lại cho `date_calc`/`cite_format` do thành viên khác thêm, giữ tổng **5 single + 5 multi**. 5 case (`G01/G02/G04/G05/G06`) route tới 2 tool mới, vượt yêu cầu "≥ 1 case".
 
 Run: `starter_v0/runs/v3_B_group_openrouter_20261110T192049745700.json` — `total_cases=6`, `measured_cases=6`, `provider_error_cases=0`, `case_accuracy=1.0`, `tool_routing_accuracy=1.0`, `argument_accuracy=1.0`, `multiturn_accuracy=1.0`; mọi tool call chạy thật không lỗi (`tool_results` không có `error`). Artifact version `v3+p661c801ecb6f+t82fdfe0351db`: hash `t…` khác run v3 base vì `tools.yaml` đã thêm `wiki`/`hackernews` ở CP3 — đây là chủ ý, không sửa lại hash v0–v3.
+| ------- | ------------- | ---------------------- | ------ |
+|         |               |                        |        |
 
 ### B4. Live Chat Evidence
 
 Lấy từ `starter_v0/transcripts/*.transcript.json`.
+
 
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
@@ -140,7 +169,21 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 |---|---|---|---|
 | Tool mới (`tools/<tên>/`) | `starter_v0/tools/wiki/` + `starter_v0/tools/hackernews/` (mỗi tool có `tool.py` + `TOOL.md`) | `wiki`: tóm tắt bách khoa 1 thực thể (Wikipedia REST, en/vi, không key), `summary` N câu ≤ 1200 ký tự + `url` canonical + `items` cho `format`. `hackernews`: story/thảo luận HN (Algolia, không key), `items` có `points`/`comments`/`text` (Ask HN đã bỏ HTML), fallback URL về item page khi bài không có link ngoài | Nội dung Wikipedia/HN là untrusted: `wiki` trả `trust_boundary`, HN chỉ là tín hiệu chứ không phải fact; validate `lang`/`sentences` và `sort`/`limit` **trước** khi gọi mạng; timeout 30s; mọi lỗi trả error dict |
 | Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (`test_wiki_*`, `test_hackernews_*`), `pytest -q -rs` -> 93 passed, 0 skipped, 0 failed | 7 test offline (wiki 3 + hackernews 4): happy path (assert cả request: URL/UA/timeout/params, và mapping), đổi endpoint theo `sort`, input xấu từ model (rỗng, sai kiểu, ngoài enum/khoảng), nhánh lỗi HTTP 429 -> `HTTPError` dict | `fake_http` + `block_network` chặn mạng thật; test input xấu assert `calls == []` để bắt regression "gọi API oan khi args sai" |
-| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `requirements.txt`, link ở A1 | Streamlit UI: chat nhiều lượt, render tool call/args/result trong expander; đã kiểm thử headless bằng `AppTest` (1 lượt "OpenAI là gì?" → `wiki` trả lời, 0 exception); health `/_stcore/health` = 200; link public qua Cloudflare Tunnel trả 200 | Key chỉ hiện cảnh báo thiếu, không hiển thị giá trị; link tunnel tạm thời, tắt sau showdown; mỗi lượt chat tốn credit API nên chỉ chia sẻ trong buổi demo |
+| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `requirements.txt`, link ở A1 | Streamlit UI: chat nhiều lượt, render tool call/args/result trong expander; đã kiểm thử headless bằng `AppTest` (1 lượt "OpenAI là gì?" → `wiki` trả lời, 0 exception); health `/_stcore/health` = 200; link public qua Cloudflare Tunnel trả 200 | Key chỉ hiện cảnh báo thiếu, không hiển thị giá trị; link tunnel tạm thời, tắt sau showdown; mỗi lượt chat tốn credit API nên chỉ chia sẻ trong buổi demo
+| Turn | User Request         | Tool Calls     | Version Evidence | Outcome                              |
+| ---- | -------------------- | -------------- | ---------------- | ------------------------------------ |
+| 1    | Tóm tắt nội dung MCP | lookup, format | v3, OpenRouter   | Agent tìm kiếm và định dạng nội dung |
+|      |                      |                |                  |                                      |
+|      |                      |                |                  |                                      |
+
+### B5a. Required Evidence — Tool mới, unit test, UI
+
+| Item                               | Evidence File              | What Worked | Risk / Guardrail |
+| ---------------------------------- | -------------------------- | ----------- | ---------------- |
+| Tool mới (`tools/<tên>/`)          |                            |             |                  |
+| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |             |                  |
+| UI (lệnh chạy + link dùng thử)     |                            |             |                  |
+
 
 Tool unit tests: 7 test cho 2 tool mới (`wiki` 3, `hackernews` 4), chạy offline, mock toàn bộ HTTP. Toàn suite: 93 passed, 0 skipped, 0 failed — 21 test trong `test_tools_todo.py` gồm 7 test tool mới + 14 stub cũ (clarify, format, send, lookup, fetch, timeline, social_search, policy) đã thay bằng test thật. Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: `test_wiki_bad_model_input_returns_error_dict_before_any_network_call` chứng minh `lang="xx"` / `sentences="3"` bị chặn *trước khi* phát request (`calls == []`); tương tự `test_hackernews_bad_model_input_returns_error_dict_before_any_network_call` chặn `sort="top"` / `limit=50`. Eval chỉ thấy model chọn tool/args gì, không thấy được tool có gọi mạng oan, nuốt lỗi hay raise hay không.
 
@@ -148,12 +191,20 @@ Tool unit tests: 7 test cho 2 tool mới (`wiki` 3, `hackernews` 4), chạy offl
 
 Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool có sẵn (`send`, `policy`, `papers`, `paper_text`) không tự được bonus.
 
+
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
 | Small Local Model | xem B7 |  |  |
 | Hơn 3 tool mới (≥ 4) |  |  |  |
 | `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
 | Test challenge (0 skipped / regression test) | `starter_v0/tests/test_tools_todo.py`, `pytest -q -rs` output | 93 passed, 0 skipped, 0 failed: 14 stub của tool có sẵn (clarify 1, format 3, send 2, lookup 1, fetch 2, timeline 1, social_search 1, policy 3) đã thay bằng test offline mock HTTP, assert cả request gửi đi lẫn mapping kết quả | `fake_http` + `block_network` chặn mạng thật, mỗi test một hành vi; test input xấu assert `calls == []` |
+| Bonus                                        | Evidence File   | What Worked | Risk / Guardrail |
+| -------------------------------------------- | --------------- | ----------- | ---------------- |
+| Small Local Model                            | xem B7          |             |                  |
+| Hơn 3 tool mới (≥ 4)                         |                 |             |                  |
+| `send` gửi thật lên Telegram sau xác nhận    | transcript      |             |                  |
+| Test challenge (0 skipped / regression test) | `pytest` output |             |                  |
+
 
 Test challenge: không phát hiện bug trong các tool có sẵn (hành vi khớp mô tả ở `TOOL.md` và example test), nên nhóm chọn hướng "0 skipped" của challenge: thay 14 stub bằng test thật, `pytest -q -rs` -> 93 passed, 0 skipped, 0 failed.
 
@@ -161,23 +212,23 @@ Test challenge: không phát hiện bug trong các tool có sẵn (hành vi kh�
 
 Chỉ điền nếu nhóm làm bonus này.
 
-| Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
-|---|---|---|---|---|---|---|---|
-| v3 | (cloud) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v4-local |  |  |  |  |  |  |  |
-| v5-local |  |  |  |  |  |  |  |
+| Version    | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
+| ---------- | ---------------- | ------------ | ------------- | ------------ | -------- | --------- | -------- |
+| v3         | (cloud)          | v3           |               |              |          |           |          |
+| v3-<model> | (ollama)         | v3           |               |              |          |           |          |
+| v3-<model> | (ollama)         | v3           |               |              |          |           |          |
+| v4-local   |                  |              |               |              |          |           |          |
+| v5-local   |                  |              |               |              |          |           |          |
 
 Lỗi đặc thù của model nhỏ (đếm từ run JSON):
 
-| Failure Pattern | Count | Example Case | Fix Tried | Helped? |
-|---|---|---|---|---|
-| wrong / hallucinated tool |  |  |  |  |
-| invalid JSON args (`_invalid_json_arguments`) |  |  |  |  |
-| no tool call / answered directly |  |  |  |  |
-| missed `clarify` |  |  |  |  |
-| repeated / unnecessary calls |  |  |  |  |
+| Failure Pattern                               | Count | Example Case | Fix Tried | Helped? |
+| --------------------------------------------- | ----- | ------------ | --------- | ------- |
+| wrong / hallucinated tool                     |       |              |           |         |
+| invalid JSON args (`_invalid_json_arguments`) |       |              |           |         |
+| no tool call / answered directly              |       |              |           |         |
+| missed `clarify`                              |       |              |           |         |
+| repeated / unnecessary calls                  |       |              |           |         |
 
 - Cái gì giúp model nhỏ gọi tool đúng hơn nhất? Bằng chứng?
 - Bản prompt tối ưu cho local chạy trên model cloud thì sao?

@@ -9,12 +9,17 @@ from tools._shared import TIMEOUT, err
 
 
 def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
-    if not confirmed:
+    if confirmed is not True:
         return {
             "tool": "send_telegram",
             "status": "needs_confirmation",
             "message": "Only send after the user explicitly confirms.",
         }
+            
+    if not text.strip():
+        return err("send_telegram", ValueError("text is empty"))
+        
+    token = None
     try:
         token = os.getenv("TELEGRAM_BOT_TOKEN")
         chat_id = os.getenv("TELEGRAM_CHAT_ID")
@@ -22,11 +27,16 @@ def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
             raise RuntimeError("Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var")
         response = requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
-            timeout=TIMEOUT,
+            json = {
+                "chat_id": chat_id, 
+                "text": text, 
+                # "parse_mode": "Markdown"
+            },
+            timeout = TIMEOUT,
         )
         response.raise_for_status()
         return {"tool": "send_telegram", "status": "sent"}
     except Exception as exc:
-        return err("send_telegram", exc)
+        msg = str(exc).replace(token or "", "***")
+        return err("send_telegram", RuntimeError(msg))
 

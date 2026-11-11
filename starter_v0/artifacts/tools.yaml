@@ -20,18 +20,28 @@ tools:
     parameters:
       type: object
       properties:
+
         question: {type: string, default: "", description: "Câu hỏi"}
         response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Bắt buộc đặt rõ ràng: text cho câu hỏi mở, yes_no khi xin xác nhận, choice khi có options (always pass explicitly)"}
         options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
       required: [question, response_type]
+
+        question: { type: string, default: "", description: "Câu hỏi" }
+        response_type: { type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời" }
+        options: { type: array, default: [], items: { type: string }, description: "Các lựa chọn" }
+      required: [question]
+
 
   - name: timeline
     description: "Các bài đăng gần đây từ tài khoản X/Twitter mà người dùng đã nêu tên. Tên tài khoản (screenname) là tên người dùng không bao gồm ký tự '@' (ví dụ: Sam Altman -> sama, Elon Musk -> elonmusk); tuyệt đối không tự đoán tên tài khoản – hãy yêu cầu làm rõ nếu cần. 'limit' là số lượng bài đăng mà người dùng yêu cầu (mặc định là 5)."
     parameters:
       type: object
       properties:
+
         screenname: {type: string, default: "", description: "Tên tài khoản, không có ký tự '@' (handle without @)"}
         limit: {type: integer, default: 5, description: "Số lượng"}
+        screenname: { type: string, default: "", description: "Tên tài khoản" }
+        limit: { type: integer, default: 5, description: "Số lượng" }
       required: [screenname]
 
   - name: social_search
@@ -39,6 +49,7 @@ tools:
     parameters:
       type: object
       properties:
+
         query: {type: string, default: "", description: "Từ khóa"}
         search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp: 'Top' cho bài phổ biến/viral, 'Latest' cho bài mới nhất (Top for popular, Latest for newest)"}
         limit: {type: integer, default: 5, description: "Số lượng"}
@@ -53,6 +64,31 @@ tools:
         topic: {type: string, enum: [general, news], default: "general", description: "Phân loại: 'news' cho tin tức/báo chí, 'general' còn lại (explicitly pass news|general)"}
         timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian: day|week|month|year (always pass explicitly)"}
         max_results: {type: integer, default: 5, description: "Số kết quả"}
+
+        query: { type: string, default: "", description: "Từ khóa" }
+        search_type: { type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp" }
+        limit: { type: integer, default: 5, description: "Số lượng" }
+      required: [query]
+
+  - name: lookup
+    # description: "Tra cứu thông tin trên internet." # Old
+    description: >
+      Search the internet for general information or news.
+      Use topic="news" for news searches and topic="general"
+      for other searches.
+      For news searches, query must contain only the subject,
+      without adding the word "news".
+      Examples:
+      - AI news today: query="AI", topic="news", timeframe="day".
+      Do not use this tool to search social media posts;
+      use social_search instead.
+    parameters:
+      type: object
+      properties:
+        query: { type: string, default: "", description: "Truy vấn" }
+        topic: { type: string, enum: [general, news], default: "general", description: "Phân loại" }
+        timeframe: { type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian" }
+        max_results: { type: integer, default: 5, description: "Số kết quả" }
       required: [query]
 
   - name: fetch
@@ -60,7 +96,7 @@ tools:
     parameters:
       type: object
       properties:
-        url: {type: string, default: "", description: "Địa chỉ"}
+        url: { type: string, default: "", description: "Địa chỉ" }
       required: [url]
 
   - name: format
@@ -75,13 +111,13 @@ tools:
           items:
             type: object
             properties:
-              title: {type: string}
-              url: {type: string}
-              source: {type: string}
-              summary: {type: string}
-              section: {type: string}
-        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Khuôn"}
-        headline: {type: string, default: "", description: "Tiêu đề"}
+              title: { type: string }
+              url: { type: string }
+              source: { type: string }
+              summary: { type: string }
+              section: { type: string }
+        template: { type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Khuôn" }
+        headline: { type: string, default: "", description: "Tiêu đề" }
       required: [items, template]
 
   # ---------------- Bonus tools ----------------
@@ -90,8 +126,12 @@ tools:
     parameters:
       type: object
       properties:
+
         text: {type: string, default: "", description: "Nội dung"}
         confirmed: {type: boolean, default: false, description: "Cờ xác nhận: chỉ true sau khi người dùng đã xác nhận ở lượt trước (true only after the user confirmed in an earlier turn)"}
+
+        text: { type: string, default: "", description: "Nội dung" }
+        confirmed: { type: boolean, default: false, description: "Cờ xác nhận" }
       required: [text]
 
   - name: policy
@@ -99,9 +139,10 @@ tools:
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        policy_area: {type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Nhóm"}
-        top_k: {type: integer, default: 3, description: "Số mục"}
+        query: { type: string, default: "", description: "Truy vấn" }
+        policy_area:
+          { type: string, enum: [all, ai_research, source_citation, data_privacy, external_publishing, tool_usage], default: "all", description: "Nhóm" }
+        top_k: { type: integer, default: 3, description: "Số mục" }
       required: [query]
 
   - name: papers
@@ -109,9 +150,9 @@ tools:
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa"}
-        max_results: {type: integer, default: 5, description: "Số lượng"}
-        sort_by: {type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "Sắp xếp"}
+        query: { type: string, default: "", description: "Từ khóa" }
+        max_results: { type: integer, default: 5, description: "Số lượng" }
+        sort_by: { type: string, enum: [relevance, lastUpdatedDate, submittedDate], default: "relevance", description: "Sắp xếp" }
       required: [query]
 
   - name: paper_text
@@ -119,10 +160,11 @@ tools:
     parameters:
       type: object
       properties:
-        arxiv_url: {type: string, default: "", description: "ID hoặc địa chỉ"}
-        max_pages: {type: integer, default: 5, description: "Số trang"}
-        max_chars: {type: integer, default: 8000, description: "Số ký tự"}
+        arxiv_url: { type: string, default: "", description: "ID hoặc địa chỉ" }
+        max_pages: { type: integer, default: 5, description: "Số trang" }
+        max_chars: { type: integer, default: 8000, description: "Số ký tự" }
       required: [arxiv_url]
+
 
   # ---------------- Team-added tool (CP3) ----------------
   - name: wiki
@@ -144,3 +186,71 @@ tools:
         sort: {type: string, enum: [relevance, date], default: "relevance", description: "'relevance' = liên quan nhất, 'date' = mới nhất"}
         limit: {type: integer, default: 5, description: "Số bài, 1-20 (mặc định 5)"}
       required: [query]
+  - name: date_calc
+    description: >
+      Calculate dates accurately using date arithmetic.
+      Use when the user asks for the number of days between dates,
+      a date after or before a given number of days, today's date,
+      or the weekday of a specific date.
+      Do not use for general questions about holidays, calendars,
+      or cultural events.
+      Supported operations: today, diff_days, add_days, weekday.
+      Dates must use YYYY-MM-DD format.
+      For diff_days, return date2 minus date1.
+      For add_days, provide date1 and integer days.
+    parameters:
+      type: object
+      properties:
+        op:
+          type: string
+          enum: [today, diff_days, add_days, weekday]
+          description: Operation to perform
+        date1:
+          type: string
+          description: >
+            First date in YYYY-MM-DD format, or "today" to represent
+            the current date.
+        date2:
+          type: string
+          description: >
+            Second date in YYYY-MM-DD format, or "today" to represent
+            the current date. Used for diff_days.
+        days:
+          type: integer
+          description: Number of days to add, for add_days
+      required: [op]
+
+  - name: cite_format
+    description: >
+      Format publication metadata into an APA 7 citation.
+      Use when the user explicitly asks to create, format, or convert
+      a reference or citation into APA style.
+      Do not use for general questions about citation styles,
+      such as asking what APA means.
+      Only APA style is supported.
+      Authors must be provided as a list in "Last, First" format.
+      Missing year is represented as (n.d.).
+      Missing URL is omitted.
+    parameters:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Publication title
+        authors:
+          type: array
+          items:
+            type: string
+          description: Authors in "Last, First" format
+        year:
+          type: integer
+          description: Publication year, optional
+        url:
+          type: string
+          description: Publication URL, optional
+        style:
+          type: string
+          enum: [apa]
+          description: Citation style. Only APA is supported.
+      required: [title, authors]
+

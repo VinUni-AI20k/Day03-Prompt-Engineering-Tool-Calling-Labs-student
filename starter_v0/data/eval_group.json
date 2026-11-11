@@ -5,7 +5,8 @@
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
   "cases": [
     {
-      "id": "G01_wiki_definition_routing",
+
+      "id": "G07_wiki_definition_routing",
       "phase": "B",
       "suite": "group",
       "query": "OpenAI là công ty gì? Trả lời gọn trong 2 câu.",
@@ -18,7 +19,7 @@
       }
     },
     {
-      "id": "G02_hackernews_newest_arg",
+      "id": "G08_hackernews_newest_arg",
       "phase": "B",
       "suite": "group",
       "query": "Trên Hacker News có bài nào mới nhất về MCP không? Lấy 3 bài.",
@@ -31,7 +32,7 @@
       }
     },
     {
-      "id": "G03_translation_out_of_scope",
+      "id": "G09_translation_out_of_scope",
       "phase": "B",
       "suite": "group",
       "query": "Dịch giúp mình câu sau sang tiếng Anh: 'AI đang thay đổi cách chúng ta làm việc'.",
@@ -44,7 +45,7 @@
       }
     },
     {
-      "id": "G04_wiki_multiturn_lang",
+      "id": "G10_wiki_multiturn_lang",
       "phase": "B",
       "suite": "group",
       "turns": [
@@ -61,7 +62,7 @@
       }
     },
     {
-      "id": "G05_hackernews_sort_correction",
+      "id": "G11_hackernews_sort_correction",
       "phase": "B",
       "suite": "group",
       "turns": [
@@ -78,7 +79,7 @@
       }
     },
     {
-      "id": "G06_switch_news_to_wiki",
+      "id": "G12_switch_news_to_wiki",
       "phase": "B",
       "suite": "group",
       "turns": [
@@ -92,6 +93,118 @@
         "skill": "multiturn_switch_news_to_definition",
         "difficulty": "hard",
         "what_it_tests": "3 turns: đổi ý từ tin tức (lookup) sang định nghĩa (wiki); giữ entity OpenAI, sentences=1."
+      }
+    },
+    {
+      "id": "G01_date_calc_diff_days",
+      "phase": "B",
+      "query": "Còn bao nhiêu ngày nữa đến 1/1/2027?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "diff_days",
+              "date1": "today",
+              "date2": "2027-01-01"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes date difference questions to date_calc and uses the current date."
+      }
+    },
+    {
+      "id": "G02_date_calc_add_days",
+      "phase": "B",
+      "query": "100 ngày sau ngày 15/3/2026 là ngày nào?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "date_calc",
+            "args": {
+              "op": "add_days",
+              "date1": "2026-03-15",
+              "days": 100
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes date addition questions to date_calc with correct arguments."
+      }
+    },
+    {
+      "id": "G03_date_calc_negative",
+      "phase": "B",
+      "query": "Tết Nguyên Đán có ý nghĩa gì?",
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "what_it_tests": "Does not call date_calc for general cultural questions."
+      }
+    },
+
+    {
+      "id": "G04_cite_format_paper",
+      "phase": "B",
+      "query": "Trích dẫn APA giúp tôi bài 'Attention Is All You Need' của Vaswani và Shazeer, 2017.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Attention Is All You Need",
+              "authors": ["Vaswani, Ashish", "Shazeer, Noam"],
+              "year": 2017,
+              "style": "apa"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Routes explicit APA citation requests to cite_format."
+      }
+    },
+    {
+      "id": "G05_cite_format_reference",
+      "phase": "B",
+      "query": "Format reference cho bài báo này theo APA: Deep Learning Basics, tác giả Nguyen An, năm 2024, URL https://example.com/dl.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "cite_format",
+            "args": {
+              "title": "Deep Learning Basics",
+              "authors": ["Nguyen, An"],
+              "year": 2024,
+              "url": "https://example.com/dl",
+              "style": "apa"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "what_it_tests": "Extracts publication metadata and formats an explicit APA reference."
+      }
+    },
+    {
+      "id": "G06_cite_format_negative",
+      "phase": "B",
+      "query": "APA là viết tắt của gì?",
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "what_it_tests": "Does not call cite_format for a general question about APA."
       }
     }
   ]
