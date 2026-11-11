@@ -85,6 +85,35 @@ def test_format_empty_items_does_not_crash() -> None:
 
 
 
+# ---------------- send (guardrail) ----------------
+
+def test_send_confirmed_posts_to_telegram(monkeypatch, fake_http) -> None:
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "bot-token")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "chat-123")
+    calls = fake_http(FakeResponse({"ok": True}))
+
+    result = TOOL_FUNCTIONS["send"](text="Bản tin", confirmed=True)
+
+    assert result["status"] == "sent"
+    assert len(calls) == 1
+    assert calls[0]["method"] == "POST"
+    assert "bot-token" in calls[0]["url"]
+    assert calls[0]["json"] == {
+        "chat_id": "chat-123",
+        "text": "Bản tin",
+        "parse_mode": "Markdown",
+    }
+
+
+def test_send_confirmed_without_env_returns_error_and_no_request(fake_http) -> None:
+    calls = fake_http(FakeResponse({"ok": True}))
+
+    result = TOOL_FUNCTIONS["send"](text="Bản tin", confirmed=True)
+
+    assert result["error"] == "RuntimeError"
+    assert calls == []
+
+
 # ---------------- lookup ----------------
 
 def test_lookup_without_timeframe_omits_time_range(monkeypatch, fake_http) -> None:
@@ -152,6 +181,111 @@ def test_fetch_truncates_markdown_to_4000_chars(monkeypatch, fake_http) -> None:
 
     assert len(result["items"][0]["summary"]) == 4000
     assert result["items"][0]["summary"] == "A" * 4000
+
+
+# ---------------- papers / paper_text ----------------
+
+def test_papers_maps_arxiv_atom_response(monkeypatch, fake_http) -> None:
+    import tools.papers.tool as papers_module
+
+    monkeypatch.setattr(papers_module, "_rate_limit_arxiv", lambda: None)
+    atom_xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom"
+          xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
+          xmlns:arxiv="http://arxiv.org/schemas/atom">
+      <opensearch:totalResults>1</opensearch:totalResults>
+      <entry>
+        <id>http://arxiv.org/abs/2401.12345</id>
+        <title>Research Agents</title>
+        <summary>Useful agent research.</summary>
+        <published>2024-01-01T00:00:00Z</published>
+        <updated>2024-01-02T00:00:00Z</updated>
+        <author><name>Jane Doe</name></author>
+        <arxiv:primary_category term="cs.AI" />
+        <category term="cs.AI" />
+        <link title="pdf" href="https://arxiv.org/pdf/2401.12345.pdf" />
+      </entry>
+    </feed>"""
+    calls = fake_http(FakeResponse(text=atom_xml))
+
+    result = TOOL_FUNCTIONS["papers"](
+        query="research agents",
+        max_results=2,
+        sort_by="submittedDate",
+    )
+
+    assert result["tool"] == "arxiv_search"
+    assert result["total_results"] == 1
+    assert result["items"][0]["arxiv_id"] == "2401.12345"
+    assert result["items"][0]["authors"] == ["Jane Doe"]
+    assert result["items"][0]["primary_category"] == "cs.AI"
+    assert calls[0]["url"] == "https://export.arxiv.org/api/query"
+    assert calls[0]["params"]["max_results"] == 2
+    assert calls[0]["params"]["sortBy"] == "submittedDate"
+
+
+def test_papers_http_failure_returns_error_dict(monkeypatch, fake_http) -> None:
+    import tools.papers.tool as papers_module
+
+    monkeypatch.setattr(papers_module, "_rate_limit_arxiv", lambda: None)
+    fake_http(FakeResponse(status_code=503))
+
+    result = TOOL_FUNCTIONS["papers"](query="agents")
+
+    assert result["error"] == "HTTPError"
+    assert result["tool"] == "arxiv_search"
+
+
+def test_paper_text_downloads_and_extracts_text(monkeypatch, fake_http, tmp_path) -> None:
+    import tools.paper_text.tool as paper_text_module
+
+    monkeypatch.setattr(paper_text_module, "ARXIV_DIR", tmp_path)
+    monkeypatch.setattr(paper_text_module, "_rate_limit_arxiv", lambda: None)
+    monkeypatch.setattr(
+        paper_text_module,
+        "_extract_pdf_text",
+        lambda pdf_path, max_pages: ("Extracted paper text", 7),
+    )
+    response = FakeResponse(content=b"fake-pdf")
+    response.iter_content = lambda chunk_size: [b"fake-pdf"]
+    calls = fake_http(response)
+
+    result = TOOL_FUNCTIONS["paper_text"](
+        arxiv_url="https://arxiv.org/abs/2401.12345",
+        max_pages=2,
+        max_chars=1000,
+    )
+
+    assert result["tool"] == "get_arxiv_paper_text"
+    assert result["arxiv_id"] == "2401.12345"
+    assert result["page_count"] == 7
+    assert result["pages_read"] == 2
+    assert result["items"][0]["summary"] == "Extracted paper text"
+    assert calls[0]["url"] == "https://arxiv.org/pdf/2401.12345.pdf"
+    assert (tmp_path / "2401.12345.pdf").read_bytes() == b"fake-pdf"
+    assert (tmp_path / "2401.12345.txt").read_text(encoding="utf-8") == "Extracted paper text"
+
+
+def test_paper_text_invalid_arxiv_url_returns_error_without_request(fake_http) -> None:
+    calls = fake_http(FakeResponse(content=b"unused"))
+
+    result = TOOL_FUNCTIONS["paper_text"](arxiv_url="not-an-arxiv-url")
+
+    assert result["error"] == "ValueError"
+    assert result["tool"] == "get_arxiv_paper_text"
+    assert calls == []
+
+
+def test_paper_text_network_failure_returns_error_dict(monkeypatch, fake_http) -> None:
+    import tools.paper_text.tool as paper_text_module
+
+    monkeypatch.setattr(paper_text_module, "_rate_limit_arxiv", lambda: None)
+    fake_http(requests.RequestException("connection timed out"))
+
+    result = TOOL_FUNCTIONS["paper_text"](arxiv_url="2401.12345")
+
+    assert result["error"] == "RequestException"
+    assert result["tool"] == "get_arxiv_paper_text"
 
 
 # ---------------- timeline / social_search ----------------
