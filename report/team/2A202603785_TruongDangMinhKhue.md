@@ -2,9 +2,9 @@
 
 ## 1. Thông tin thành viên
 
-- Họ tên: Trương Đặng Minh Khuê
-- MSSV: 2A202603785
-- Email: 26ai.khuetdm@vinuni.edu.vn
+- **Họ tên:** Trương Đặng Minh Khuê
+- **MSSV:** 2A202603785
+- **Email:** 26ai.khuetdm@vinuni.edu.vn
 
 ## 2. Phần việc phụ trách
 
