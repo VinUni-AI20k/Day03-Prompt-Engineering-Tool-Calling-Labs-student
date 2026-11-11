@@ -7,7 +7,7 @@
 - Repo nhóm: `K5-L3B-DAY03-NhomSNN-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
 - URL repo: https://github.com/sybui2004/K5-L3B-DAY03-NhomSNN-ResearchAgentToolEval
 - Nhánh nộp: `main`
-- Commit chốt: `<điền hash sau khi merge commit cuối vào main>`
+- Commit chốt: 0661df47ff2bbd649161476022bb464b3e86ef55
 
 ## Thành viên
 
