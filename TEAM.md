@@ -13,7 +13,7 @@
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Nguyễn Duy Hưng | 2A202604110 | | Hungnd1208 | Prompt & Tool Declarations (v0–v3), Eval Pipeline, `version_log.csv`, Unit Tests & Contract Sync |
 |   2 | Nguyễn Văn Lâm | 2A202604115 | 26ai.lamnv@vinuni.edu.vn | lam2121 | Trưởng nhóm, Streamlit UI (`app.py`), Báo cáo chung & Điều phối; Hỗ trợ prompt/tool thứ 4/unit test/transcript Telegram |
-|   3 | Nguyễn Quốc Toàn | *(bổ sung MSSV)* | | nguyenquoctoan0310 | Viết Unit Tests cho các core tools trong `tests/test_tools_todo.py` |
+|   3 | Nguyễn Quốc Toàn | 2A202604098 | | nguyenquoctoan0310 | Viết Unit Tests cho các core tools trong `tests/test_tools_todo.py` |
 |   4 | Minh *(bổ sung họ tên & MSSV)* | | | Minh | Thiết kế 10 Eval cases nhóm (`data/eval_group.json`) & Live chat transcripts |
 |   5 | *(bổ sung họ tên & MSSV)* | | | bomgoa1102 | Phát triển 3 tools mới (`topic_radar`, `evidence_finder`, `source_deduplicator`) và mock tests |
 
