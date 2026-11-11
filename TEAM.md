@@ -95,7 +95,15 @@ Ví dụ: `report/team/20241234_NguyenVanAn.md`.
 
 ### Đóng góp cụ thể
 
-- _(Hiếu tự điền. Lưu ý: nội dung `eval_group.json`, các stub TODO và 2 bug đầu của test challenge — `send` `confirmed` dạng chuỗi, `timeline`/`social_search` `limit <= 0` — nằm trong commit `7811714` đứng tên sybui2004; cần ghi rõ ai làm phần nào.)_
+- Xây dựng bộ 10 eval case nhóm: Thiết kế 5 single-turn và 5 multi-turn, bao phủ các tình huống tool routing, argument correctness, missing information, wrong boundary và unnecessary tool invocation. Bổ sung case kiểm tra tool mới github_repo, đồng thời kiểm tra khả năng hỏi lại khi thiếu owner, cập nhật yêu cầu khi người dùng sửa thông tin và duy trì context qua nhiều lượt hội thoại.
+
+- Hoàn thiện unit test challenge: Viết 14 test cho 8 tool có sẵn, kiểm tra các hành vi chính và trường hợp biên. Các test bao gồm kiểm tra định dạng đầu ra, tham số API, xử lý input rỗng, giới hạn nội dung, xử lý dữ liệu thiếu và điều kiện xác nhận trước khi gửi Telegram.
+
+- Kiểm thử độc lập với API bên ngoài: Sử dụng fake_http, FakeResponse và monkeypatch để mock HTTP request, giả lập API key và kiểm tra kết quả trong môi trường offline. Nhờ đó, test có thể kiểm tra request method, URL, headers, parameters, request body và dữ liệu trả về mà không phụ thuộc dịch vụ thật.
+
+- Kiểm tra an toàn dữ liệu và trust boundary: Bổ sung test cho policy, xác minh nội dung chứa chỉ dẫn giả mạo được phân loại vào untrusted_text, không bị đưa vào phần facts.
+
+- Đánh giá khả năng tổng quát hóa của agent: Các eval case được thiết kế không chỉ kiểm tra việc chọn đúng tool mà còn kiểm tra khả năng không gọi tool khi không cần thiết, không tự suy đoán thông tin còn thiếu và không thực hiện hành động vượt quá phạm vi của tool.
 
 ### Bằng chứng
 
