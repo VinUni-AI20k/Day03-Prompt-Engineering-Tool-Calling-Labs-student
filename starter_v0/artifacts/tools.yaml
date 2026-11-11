@@ -55,18 +55,14 @@ tools:
 
   # ---------------- Web ----------------
   - name: lookup
-    description: >-
-      Search the web (Tavily) for news articles or general information.
-      USE WHEN the user wants news ("tin tức AI hôm nay", "tin công nghệ tuần này") or background facts that need a web search.
-      DO NOT USE when the user already gave a URL (use fetch), for company policy questions (use policy),
-      for arXiv papers (use papers), for GitHub repos (use github_search), or for math/coding/out-of-scope questions (no tool).
+    description: "Tra cứu thông tin trên internet."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Only the core topic keyword exactly as written by the user, e.g. 'Tin tức AI hôm nay' → 'AI', 'còn robotics thì sao' → 'robotics'. Never add 'news', 'tin tức', 'hôm nay', translations or synonyms — topic and timeframe already carry that meaning."}
-        topic: {type: string, enum: [general, news], default: "general", description: "news for news / current events (tin, tin tức, thời sự, bản tin, mới nhất). general for background information."}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "hôm nay / 24h → day; tuần này / 7 ngày → week; tháng này → month; năm nay → year. Default week. Keep the previous timeframe in multi-turn unless the user changes it."}
-        max_results: {type: integer, default: 5, description: "Number of results. Default 5."}
+        query: {type: string, default: "", description: "Truy vấn"}
+        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
+        max_results: {type: integer, default: 5, description: "Số kết quả"}
       required: [query]
 
   - name: fetch
