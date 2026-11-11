@@ -26,12 +26,6 @@ tools:
         options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
       required: [question, response_type]
 
-        question: { type: string, default: "", description: "Câu hỏi" }
-        response_type: { type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời" }
-        options: { type: array, default: [], items: { type: string }, description: "Các lựa chọn" }
-      required: [question]
-
-
   - name: timeline
     description: "Các bài đăng gần đây từ tài khoản X/Twitter mà người dùng đã nêu tên. Tên tài khoản (screenname) là tên người dùng không bao gồm ký tự '@' (ví dụ: Sam Altman -> sama, Elon Musk -> elonmusk); tuyệt đối không tự đoán tên tài khoản – hãy yêu cầu làm rõ nếu cần. 'limit' là số lượng bài đăng mà người dùng yêu cầu (mặc định là 5)."
     parameters:
@@ -56,22 +50,6 @@ tools:
       required: [query]
 
   - name: lookup
-    description: "Tìm kiếm trên web công khai. Sử dụng để tra cứu thông tin/tin tức trên web khi không có URL cụ thể. Tham số `topic` nhận giá trị 'news' cho tin tức/báo chí (ví dụ: 'tin tức', 'tin ... hôm nay') hoặc 'general' cho các trường hợp khác. Tham số `timeframe` xác định khoảng thời gian: 'hôm nay' (ngày), 'tuần này' (tuần), 'tháng này' (tháng), 'năm nay' (năm); luôn phải truyền tham số này một cách rõ ràng. Tham số `query` là các từ khóa chính (ví dụ: 'AI'); không cần thêm các từ như 'tin tức' hay chỉ dấu thời gian vào truy vấn vì các thông tin này đã được bao hàm trong `topic` và `timeframe`. Tham số `max_results` là số lượng kết quả mong muốn."
-    parameters:
-      type: object
-      properties:
-        query: {type: string, default: "", description: "Từ khóa chính, chỉ chủ đề (bare keywords, no 'news'/time words)"}
-        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại: 'news' cho tin tức/báo chí, 'general' còn lại (explicitly pass news|general)"}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian: day|week|month|year (always pass explicitly)"}
-        max_results: {type: integer, default: 5, description: "Số kết quả"}
-
-        query: { type: string, default: "", description: "Từ khóa" }
-        search_type: { type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp" }
-        limit: { type: integer, default: 5, description: "Số lượng" }
-      required: [query]
-
-  - name: lookup
-    # description: "Tra cứu thông tin trên internet." # Old
     description: >
       Search the internet for general information or news.
       Use topic="news" for news searches and topic="general"
@@ -164,9 +142,7 @@ tools:
         max_pages: { type: integer, default: 5, description: "Số trang" }
         max_chars: { type: integer, default: 8000, description: "Số ký tự" }
       required: [arxiv_url]
-
-
-  # ---------------- Team-added tool (CP3) ----------------
+      
   - name: wiki
     description: "Tra cứu nền tảng bách khoa về MỘT thực thể cụ thể (người, tổ chức, sản phẩm, khái niệm) từ Wikipedia, trả tóm tắt ngắn + URL trang gốc. Dùng khi người dùng hỏi 'X là gì/là ai', cần 1-2 câu bối cảnh trước khi tìm tin, hoặc cần chuẩn hóa tên thực thể. KHÔNG dùng cho tin mới (dùng lookup với topic=news), bài đăng cộng đồng (dùng social_search), paper (dùng papers), hoặc khi chưa rõ thực thể (dùng clarify)."
     parameters:
