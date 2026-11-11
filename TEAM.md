@@ -2,9 +2,9 @@
 
 ## Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: **DaCoChu**
 - Lớp: L3A / L3B
-- Repo nhóm: `K5-L3A-DAY03-TenNhom-ResearchAgentToolEval` hoặc `K5-L3B-DAY03-TenNhom-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
+- Repo nhóm: `K5-L3-DAY03-DaCoChu-ResearchAgentToolEval` (xem [SUBMISSION.md](SUBMISSION.md))
 - URL repo, nhánh nộp, commit chốt:
 
 ## Thành viên
@@ -14,7 +14,7 @@
 |   1 | Bùi Đặng Nhật Nguyên | 2A202603937 | nhatnguyenmtvt@gmail.com | double-n-021 | Dev Tool & `tools.yaml` |
 |   2 | Nguyễn Bá Quang Huy | 2A202603926 | quanghuynguyenba@gmail.com | quanghuynguyenba | Update System Prompt |
 |   3 | Đỗ Hoàng Vũ  | 2A202603920 | dohoangvu.nt2005@gmail.com | hoangvu1806 | Tester |
-|   4 | Lê Hải Lân  | 2A202603915 | lehailan110@gmail.com | lehailan110@gmail.com | Design UI |
+|   4 | Lê Hải Lân  | 2A202603915 | lehailan110@gmail.com | laaaaanleeeee | Design UI |
 
 ## Cá nhân
 
@@ -75,3 +75,47 @@ Sao chép mục dưới đây cho từng thành viên.
 - `starter_v0/artifacts/version_log.csv` (dòng v0–v4) và các run JSON trong `starter_v0/runs/`.
 - `pytest`: 137 passed.
 - Báo cáo cá nhân: `report/team/2A202603920_DoHoangVu.md`.
+
+## NguyenBaQuangHuy-2A202603926
+
+### Phần việc phụ trách
+
+- **CP1 (`starter_v0/artifacts/system_prompt.md`):** Cải tiến system prompt cho **v1** — bỏ chỉ dẫn xấu của starter, thêm rule clarify / xác nhận trước `send` / routing tool / multi-turn chỉ xử lý lượt mới nhất.
+- Phối hợp tester (Vũ) đọc fail log và phản hồi rủi ro credentials để chốt bản prompt cuối trước khi ghi dòng v1 vào `artifacts/version_log.csv`.
+
+### Đóng góp cụ thể
+
+- Commit `ba02a75` (`update system prompt`): thay toàn bộ starter xấu bằng rule clarify + routing + confirm trước khi `send`. Agent không còn được đoán handle/URL hay tự gửi.
+- Commit `425911f` (`fix system prompt`): bỏ rule xin platform/credentials ngay trong chat (Vũ báo rủi ro lộ token); thu hẹp xác nhận còn `clarify(response_type=yes_no)` rồi `send(confirmed=true)`; siết multi-turn chỉ hành động theo message mới nhất.
+- Giả thuyết v1: bỏ chỉ dẫn xấu + thêm rule clarify / xác nhận send / routing / chỉ xử lý lượt mới nhất sẽ giảm lỗi `missing_info`, `wrong_boundary`, `out_of_scope`.
+- Kết quả đo được: Base v0 **0.65** → v1 **0.90** (18/20); Group **7/9** (case_accuracy 0.7778); cả hai run `provider_error_cases = 0`.
+- Phân tích FAIL còn lại sau v1 và bàn giao giả thuyết cho v2/v3: `R10`/`R12` thiếu `response_type`; `G01` chưa map “tháng này → month”; `GM03` gọi thừa `lookup` — phần arg contract thuộc `tools.yaml` (Nguyên xử lý ở v2/v3).
+
+### Bằng chứng
+
+- Commit `ba02a75` (bản đầu), `425911f` (bản cuối v1); dòng v1 trong `artifacts/version_log.csv` (author `quanghuynguyenba`, prompt_hash `8c876c84e53c`).
+- Run JSON: `runs/v1_B_base_openrouter_20261110T185510918902.json`, `runs/v1_B_group_openrouter_20261110T185542663317.json` (Vũ chạy lại trên prompt cuối).
+- Báo cáo cá nhân: `report/team/2A202603926_NguyenBaQuangHuy.md`.
+
+## LeHaiLan-2A202603915
+
+### Phần việc phụ trách
+
+- **UI Live Chat:** Xây giao diện Streamlit (`app.py` + `chat_service.py`) để người dùng chat trực tiếp với Research Agent thay vì terminal.
+- **Bonus Telegram:** Tích hợp gửi tin nhắn thật lên Telegram sau khi người dùng xác nhận (`confirmed=true`).
+- **Bonus Small Local Model Challenge:** Thử nghiệm Ollama (`qwen2.5:7b`, `llama3.2:3b`) với prompt/tools rút gọn và eval mini.
+
+### Đóng góp cụ thể
+
+- Xây `app.py` (Streamlit) và `chat_service.py` (`ChatSession`): khởi tạo provider, load system prompt + tool declarations, quản lý conversation history / transcript theo session, gọi `run_model_tool_loop()`.
+- Dùng `st.session_state` giữ session riêng từng cuộc hội thoại; spinner/lỗi provider; khu vực `tool_events`; transcript ID + đường dẫn lưu.
+- Thiết kế UI không phụ thuộc tên tool cụ thể — khi thêm `github_search` / `hf_models` / … vẫn hiện qua `tool_events` mà không sửa lại chat.
+- Kiểm thử Live Chat với OpenRouter; đồng bộ version UI ↔ `ChatSession` ↔ transcript; bổ sung `streamlit` vào `requirements.txt`.
+- Bonus Telegram: tích hợp gửi thật qua Bot Token/Chat ID, chỉ gửi khi `clarify(yes_no)` → `send(confirmed=true)`; chạy thử và lưu transcript chứng minh.
+- Bonus Local Model: cấu hình `system_prompt_local.md` + `tools_local.yaml` (rút gọn, few-shot); eval `eval_base.json` / `eval_mini.json`; ghi log tới `v5` / `v5-mini` trên Ollama; khắc phục hang ở `R12` bằng cách đưa rule ép `clarify` lên đầu prompt.
+
+### Bằng chứng
+
+- File: `app.py`, `chat_service.py`, `artifacts/system_prompt_local.md`, `data/eval_mini.json`, `artifacts/version_log.csv` (đến v5), run JSON trong `runs/` (v1–v5, gồm `v5-mini` Ollama).
+- Demo: Streamlit tại `http://localhost:8501/`; transcript Live Chat; log `OK provider=ollama model=llama3.2:3b` / `qwen2.5:7b`.
+- Báo cáo cá nhân: `report/team/2A202603915_LeHaiLan.md`.
