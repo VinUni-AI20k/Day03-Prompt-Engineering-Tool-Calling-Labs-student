@@ -7,7 +7,6 @@ import requests
 
 from tools._shared import TIMEOUT, domain, err
 
-
 def web_search(query: str = "", topic: str = "general", timeframe: str | None = "week", max_results: int = 5) -> dict[str, Any]:
     try:
         key = os.getenv("TAVILY_API_KEY")

@@ -3,5 +3,244 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_github_repo_metadata",
+      "phase": "B",
+      "query": "Cho mình biết số sao, số fork và ngôn ngữ chính của repository psf/requests.",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_repo",
+            "args": {
+              "repo": "psf/requests"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "github_repo_metadata",
+        "difficulty": "medium",
+        "what_it_tests": "Repository đã xác định owner/repo và yêu cầu metadata → gọi github_repo với đúng argument."
+      }
+    },
+    {
+      "id": "G02_github_repo_missing_owner",
+      "phase": "B",
+      "query": "Kiểm tra số sao và số fork của repository requests trên GitHub.",
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "github_repo_missing_info",
+        "difficulty": "medium",
+        "what_it_tests": "Chỉ có tên repository, thiếu owner → hỏi lại thay vì tự đoán repository."
+      }
+    },
+    {
+      "id": "G03_papers_custom_sort",
+      "phase": "B",
+      "query": "Tìm 4 paper arXiv về time series forecasting, sắp xếp theo ngày nộp.",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "query": "time series forecasting",
+              "max_results": 4,
+              "sort_by": "submittedDate"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arxiv_search_arguments",
+        "difficulty": "medium",
+        "what_it_tests": "Ánh xạ số lượng kết quả và tiêu chí ngày nộp sang max_results=4 và sort_by=submittedDate."
+      }
+    },
+    {
+      "id": "G04_github_concept_no_tool",
+      "phase": "B",
+      "query": "Giải thích sự khác nhau giữa GitHub stars và forks.",
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "skill": "general_github_knowledge",
+        "difficulty": "easy",
+        "what_it_tests": "Câu hỏi kiến thức chung không cần truy vấn repository cụ thể → trả lời trực tiếp, không gọi github_repo."
+      }
+    },
+    {
+      "id": "G05_github_repo_mutation_boundary",
+      "phase": "B",
+      "query": "Thay đổi description của repository psf/requests thành A better HTTP library.",
+      "failure_type": "out_of_scope",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "skill": "github_repo_readonly_boundary",
+        "difficulty": "medium",
+        "what_it_tests": "github_repo chỉ đọc metadata, không có side effect → không dùng tool để thực hiện thay đổi repository."
+      }
+    },
+    {
+      "id": "M01_github_repo_clarify_then_fill",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Kiểm tra số sao và số fork của repository requests trên GitHub."
+        },
+        {
+          "role": "user",
+          "content": "Repository đó thuộc owner psf nhé, tức psf/requests."
+        }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_repo",
+            "args": {
+              "repo": "psf/requests"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_github_clarification",
+        "difficulty": "hard",
+        "what_it_tests": "Thiếu owner ở lượt đầu, được bổ sung ở lượt sau → giữ yêu cầu ban đầu và gọi github_repo với repo đầy đủ."
+      }
+    },
+    {
+      "id": "M02_github_repo_correction",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Cho mình metadata của repository psf/requests."
+        },
+        {
+          "role": "user",
+          "content": "Mình nhầm, repository cần kiểm tra là pallets/flask."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_repo",
+            "args": {
+              "repo": "pallets/flask"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_github_correction",
+        "difficulty": "medium",
+        "what_it_tests": "Người dùng sửa repository ở lượt sau → sử dụng repo mới nhất thay vì giữ argument cũ."
+      }
+    },
+    {
+      "id": "M03_github_repo_context_carry",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Kiểm tra metadata của repository psf/requests."
+        },
+        {
+          "role": "user",
+          "content": "Mình muốn biết thêm ngôn ngữ chính và thời điểm cập nhật gần nhất của repo đó."
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_repo",
+            "args": {
+              "repo": "psf/requests"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_github_context",
+        "difficulty": "medium",
+        "what_it_tests": "Hiểu tham chiếu repo đó ở lượt sau và giữ nguyên owner/repo đã xác định."
+      }
+    },
+    {
+      "id": "M04_papers_update_search_arguments",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm 5 paper arXiv về vector databases."
+        },
+        {
+          "role": "user",
+          "content": "Giảm xuống còn 3 kết quả và ưu tiên paper được cập nhật gần đây nhất."
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "query": "vector databases",
+              "max_results": 3,
+              "sort_by": "lastUpdatedDate"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_papers_argument_update",
+        "difficulty": "hard",
+        "what_it_tests": "Giữ chủ đề tìm kiếm từ lượt đầu, cập nhật max_results và sort_by theo yêu cầu mới."
+      }
+    },
+    {
+      "id": "M05_github_concept_no_unnecessary_tool",
+      "phase": "B",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Mình đang tìm hiểu repository psf/requests trên GitHub."
+        },
+        {
+          "role": "user",
+          "content": "Nhân tiện, giải thích stars và forks có ý nghĩa gì đối với một repository?"
+        }
+      ],
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "skill": "multiturn_unnecessary_github_lookup",
+        "difficulty": "medium",
+        "what_it_tests": "Không gọi github_repo chỉ vì đã nhắc đến repository trước đó; câu hỏi hiện tại chỉ yêu cầu giải thích khái niệm."
+      }
+    }
+  ]
 }
