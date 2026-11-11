@@ -123,3 +123,40 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang"}
         max_chars: {type: integer, default: 8000, description: "Số ký tự"}
       required: [arxiv_url]
+
+  # ---------------- Team tools (CP3) ----------------
+  - name: hackernews_search
+    description: >-
+      Search Hacker News (developer/startup community) stories; returns title, url, points, author, number of comments.
+      USE WHEN the user mentions Hacker News / HN, asks what developers or the tech community are discussing,
+      wants community traction (points, comments), or Show HN / Ask HN / the HN front page.
+      DO NOT USE for general press news (use lookup), tweets (use timeline / social_search),
+      code repositories (use github_search) or papers (use papers).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Only the topic keyword as the user wrote it, e.g. 'LLM', 'Rust'. Do not add 'Hacker News' or 'news'. May be empty when tags=front_page."}
+        tags: {type: string, enum: [story, show_hn, ask_hn, front_page, comment], default: "story", description: "story = normal posts (default); show_hn = 'Show HN' / people showcasing projects; ask_hn = 'Ask HN' / community questions; front_page = currently on the HN front page; comment = comments."}
+        sort: {type: string, enum: [relevance, date], default: "relevance", description: "relevance = most relevant / popular (default); date = newest first, when the user says mới nhất / gần đây / latest."}
+        date_from: {type: string, default: "", description: "Start date YYYY-MM-DD (UTC). Fill ONLY when the user gives a concrete date or you know today's date; otherwise leave empty."}
+        date_to: {type: string, default: "", description: "End date YYYY-MM-DD (UTC), inclusive. Leave empty unless given."}
+        limit: {type: integer, default: 5, description: "Number of stories the user asked for (1-20). Default 5."}
+      required: [query]
+
+  - name: github_search
+    description: >-
+      Search GitHub repositories; returns owner/repo, url, description, stars, forks, language, updated_at.
+      USE WHEN the user wants open-source projects, libraries, frameworks or repos on GitHub, wants to compare
+      popularity by stars, or find recently created projects.
+      DO NOT USE to read the README of a repo whose link is already given (use fetch), for news (use lookup),
+      community discussion (use hackernews_search) or papers (use papers).
+    parameters:
+      type: object
+      properties:
+        query: {type: string, default: "", description: "Only the topic keyword as the user wrote it, e.g. 'agentic AI', 'RAG'. Do not add 'github' or 'repo', and do not put language:/created: qualifiers here — use the dedicated parameters."}
+        sort: {type: string, enum: [stars, forks, updated, best_match], default: "stars", description: "stars = most stars / most popular (default); forks = most forked; updated = recently updated / đang active; best_match = most relevant."}
+        order: {type: string, enum: [desc, asc], default: "desc", description: "desc = highest / newest first (default)."}
+        language: {type: string, default: "", description: "Programming language if the user names one, lowercase: python, typescript, rust. Leave empty otherwise."}
+        created_after: {type: string, default: "", description: "Only repos created on/after this date, YYYY-MM-DD, when the user says 'repo mới' / 'tạo năm nay' and you know the date. Leave empty otherwise."}
+        limit: {type: integer, default: 5, description: "Number of repos the user asked for (1-20). Default 5."}
+      required: [query]
