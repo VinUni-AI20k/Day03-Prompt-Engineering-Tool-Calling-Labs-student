@@ -266,7 +266,7 @@ Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEA
 | Bùi Thái Sỹ | Nhóm trưởng; UI (`app.py`), Phần A, live chat; v4 (`tools.yaml`) trên OpenRouter; v5–v8; bonus Small Local Model, 3 tool bonus, gửi Telegram thật, 2 bug test challenge (`papers`, lộ token) | `f173fac`, `5357c6f`, `7811714`, `b73f1e8`, `a60356a` và commit chốt |
 | Nguyễn Lương Nguyên | `system_prompt.md` v1–v3, base eval v0–v3 (Gemini), `version_log.csv` v0–v3 | `e4827f3`, `d56f348` |
 | Mai Xuân Nhân | Tool mới `github_repo` + 3 unit test, đăng ký trong `tools/__init__.py` và `tools.yaml` | `b7a2a27`, `0399b62` |
-| Bùi Đức Hiếu | 10 case `eval_group.json`, stub TODO và 2 bug đầu của test challenge (nội dung này nằm trong commit `7811714`) | — |
+| Bùi Đức Hiếu | 10 case `eval_group.json`, stub TODO và 2 bug đầu của test challenge (nội dung này nằm trong commit `7811714`) | `bed87cc`, `64f6929` |
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
