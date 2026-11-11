@@ -6,7 +6,9 @@ from typing import Any
 import requests
 
 from tools._shared import TIMEOUT, domain, err
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def web_search(query: str = "", topic: str = "general", timeframe: str | None = "week", max_results: int = 5) -> dict[str, Any]:
     try:
