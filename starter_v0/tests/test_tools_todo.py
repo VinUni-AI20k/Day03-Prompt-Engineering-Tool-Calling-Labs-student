@@ -1,7 +1,6 @@
-"""TODO CP3 (student): Tool Unit Test Challenge.
+"""Tool Unit Test Challenge (CP3): unit tests for the starter tools and the new github_repo tool.
 
-Each test below is a stub. Replace `pytest.skip(...)` with a real test.
-Patterns to copy are in test_tools_examples.py. Fixtures are in conftest.py.
+Patterns are in test_tools_examples.py. Fixtures are in conftest.py.
 
 Rules:
 - Offline only: mock HTTP with `fake_http`, set fake keys with `monkeypatch.setenv`.
@@ -11,6 +10,7 @@ Rules:
 from __future__ import annotations
 
 import pytest
+import requests
 
 from conftest import FakeResponse  # noqa: F401  (you will need it)
 from tools import TOOL_FUNCTIONS  # noqa: F401
