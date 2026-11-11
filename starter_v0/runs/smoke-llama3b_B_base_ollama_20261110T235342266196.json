@@ -1,0 +1,434 @@
+{
+  "run_id": "smoke-llama3b_B_base_ollama_20261110T235342266196",
+  "version": "smoke-llama3b",
+  "artifact_version": "smoke-llama3b+p6bdbfff17da6+t34dd8042e7b1",
+  "prompt_hash": "6bdbfff17da6620fbd285094bdadf44c33ce0f89a03fd2d3e6fddc6258d71985",
+  "tools_hash": "34dd8042e7b1dc84ee49b5a26b18d86e6cd2bc9c1ef903ba888db118086c6c1b",
+  "phase": "B",
+  "suite": "base",
+  "provider": "ollama",
+  "model": "llama3.2:3b",
+  "system_prompt": "D:\\AIInAction\\Day3\\K5-L3B-DAY03-H7-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\AIInAction\\Day3\\K5-L3B-DAY03-H7-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "C:\\Users\\ngoch\\AppData\\Local\\Temp\\eval_smoke_llama3b.json",
+  "dataset_id": "day03_v2_research_base",
+  "dataset_role": "base",
+  "description": "Core eval cho research agent: routing đúng tool + đúng args, hỏi lại khi thiếu (ask_user), xác nhận trước khi gửi, và xử lý câu ngoài phạm vi / không cần tool. Chấm trên tool_calls + args (subset). KHÔNG sửa file này — chỉ thêm case vào eval_group.json.",
+  "generated_at": "2026-11-10T23:53:42",
+  "summary": {
+    "total_cases": 3,
+    "measured_cases": 3,
+    "provider_error_cases": 0,
+    "passed_cases": 1,
+    "case_accuracy": 0.3333,
+    "tool_routing_accuracy": 0.3333,
+    "argument_accuracy": 0.3333,
+    "multiturn_accuracy": null,
+    "failure_counts": {
+      "wrong_arg_value": 1,
+      "out_of_scope": 1
+    },
+    "observed_mismatch_counts": {
+      "missing_tool_call": 1,
+      "unexpected_tool_call": 1
+    }
+  },
+  "results": [
+    {
+      "id": "R05_limit_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_limit",
+        "difficulty": "easy",
+        "what_it_tests": "Trích đúng limit=10 từ '10 tweet'."
+      },
+      "input": "Lấy 10 tweet mới nhất của Elon Musk",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 10
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "limit": "10",
+              "query": "Elon Musk",
+              "search_type": "Latest"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "wrong_arg_value",
+        "failures": [
+          "missing tool call timeline",
+          "extra tool call social_search"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "limit": "10",
+            "query": "Elon Musk",
+            "search_type": "Latest"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Elon Musk",
+            "search_type": "Latest",
+            "items": [
+              {
+                "title": "Elon musk is a rapist bootlicker",
+                "summary": "Elon musk is a rapist bootlicker",
+                "url": "https://x.com/dylanschemmel/status/2120198092922528006",
+                "source": "@dylanschemmel",
+                "date": "Tue Nov 10 16:53:11 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "The Rot is so Deeply embedded I believe Mr. Elon Musk @elonmusk and his highly qualified team with the assistance of @Se",
+                "summary": "The Rot is so Deeply embedded I believe Mr. Elon Musk @elonmusk and his highly qualified team with the assistance of @SecScottBessent @FBIDirectorKash @SecMullinDHS @AGToddBlanche @realDonaldTrump  to create high security program. Which can indiscriminately for all levels of Federal, State, Military, and third parties that work for the government while silently and discretely track-trace then silently flag with an invisible tag of corruption, laundering money, income above pay-grade and other questionable actively related to human trafficking, drugs, bribery-threat-extortion payouts-payoff's for Foreign and Domestic against the United States of America. I believe it could find the traitors' and Thieves'. \nI also believe should have Complete Background and Drug Testing Checks done Sporadically (is an adverb meaning happening every now and then, at irregular intervals, or in scattered locations rather than on a steady, constant, or predictable schedule Google AI).\nIt's one way to legally catch a criminal/criminals within your house.\nThere should be a un-breakable law that protects the identity of all Whistleblowers too.",
+                "url": "https://x.com/jmmomoa1967/status/2120198084588138922",
+                "source": "@jmmomoa1967",
+                "date": "Tue Nov 10 16:53:09 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "@grok @NiohBerg I wonder about the extent to which, in your present internal set of objectives, bounds, penalties, your ",
+                "summary": "@grok @NiohBerg I wonder about the extent to which, in your present internal set of objectives, bounds, penalties, your aversion to offending deluded Muslims parallels your perennial aversion to offending Elon Musk. Great fun has been had with you based on that latter bias.",
+                "url": "https://x.com/BachAndRabelais/status/2120198024358219900",
+                "source": "@BachAndRabelais",
+                "date": "Tue Nov 10 16:52:55 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "@SawyerMerritt Uma obra de grande proporção como essa, gerando empregos, economia no estado e no país tem que ser ovacio",
+                "summary": "@SawyerMerritt Uma obra de grande proporção como essa, gerando empregos, economia no estado e no país tem que ser ovacionada, celebrada. A Tesla é incrível, Elon Musk é incrível e todos que fazem parte desse grande empreendimento são incríveis. Que seja um sucesso absoluto.",
+                "url": "https://x.com/JaneteMota1/status/2120198024005902456",
+                "source": "@JaneteMota1",
+                "date": "Tue Nov 10 16:52:54 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "victims of communism day was on november 7th, and to honor it's victims i'll be sending $20 to elon musk and sam altman.",
+                "summary": "victims of communism day was on november 7th, and to honor it's victims i'll be sending $20 to elon musk and sam altman. i'll also be tipping my landlord an extra $50. we have to show love to the victims of this cruel ideology.\n#communism #victimsofcommunism #maozedongauraedits",
+                "url": "https://x.com/d_i_e_g_o_a_t/status/2120198019916411340",
+                "source": "@d_i_e_g_o_a_t",
+                "date": "Tue Nov 10 16:52:53 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "2"
+                }
+              },
+              {
+                "title": "@TonyTrip5 The entire wealth of the world  will provide Elon Musk everything he requires to make Bill Gates eat his own ",
+                "summary": "@TonyTrip5 The entire wealth of the world  will provide Elon Musk everything he requires to make Bill Gates eat his own words, even Warren Buffet will consider joining in on the dethroning.",
+                "url": "https://x.com/ihearu888/status/2120198013905989691",
+                "source": "@ihearu888",
+                "date": "Tue Nov 10 16:52:52 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "Taxpayers didn't create Elon Musk. They helped finance and support some of his businesses through loans, incentives and ",
+                "summary": "Taxpayers didn't create Elon Musk. They helped finance and support some of his businesses through loans, incentives and government contracts. There's a difference.\nTesla repaid its $465 million federal loan with interest. SpaceX has delivered services that NASA actually needed and paid for.\nYou can acknowledge that taxpayer support helped these companies grow without pretending the government built them from scratch.",
+                "url": "https://x.com/baezfirst/status/2120198006775668873",
+                "source": "@baezfirst",
+                "date": "Tue Nov 10 16:52:50 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "💙 Elon Musk dressed in blue for the ball — how would you rate his style? 👀✨",
+                "summary": "💙 Elon Musk dressed in blue for the ball — how would you rate his style? 👀✨\n\nWhat's your verdict?\n\n🔥 A. Absolutely love it!\n😎 B. Classic Elon!\n💙 C. Blue looks amazing on him!\n🤔 D. Not my style!\n\nVote now and share your opinion! 🚀👇 https://t.co/BCf5wlucDQ",
+                "url": "https://x.com/123_fahad99231/status/2120197984361353468",
+                "source": "@123_fahad99231",
+                "date": "Tue Nov 10 16:52:45 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "🇺🇸🇺🇦‼️ US SENATOR CHRIS COONS DEMANDS ACCOUNTABILITY FROM ELON MUSK AND PETE HEGSETH OVER ALLEGED RESTRICTIONS ON UKRAIN",
+                "summary": "🇺🇸🇺🇦‼️ US SENATOR CHRIS COONS DEMANDS ACCOUNTABILITY FROM ELON MUSK AND PETE HEGSETH OVER ALLEGED RESTRICTIONS ON UKRAINE’S DEFENSE!\n\nUS Senator Chris Coons has called for congressional scrutiny of individuals he believes played a role in limiting Ukraine’s ability to defend itself against Russia’s invasion.\n\n“Elon Musk, Pete Hegseth, and anyone else who played a role in restricting Ukraine’s ability to defend itself must be held accountable. Congress must get to the bottom of this,” Coons stated.\n\nThe senator’s remarks call for an investigation into the decisions and actions that may have affected Ukraine’s defensive capabilities. His statement does not, by itself, establish wrongdoing by those named.\n\n🔥 Congressional scrutiny could bring greater transparency to decisions affecting US support for Ukraine, including whether restrictions were imposed and who authorized them.\n\nThe findings could have important implications for future military assistance and oversight of American defense policy.\n\nSee the latest updates with us: @NSTRIKE1231",
+                "url": "https://x.com/NSTRIKE1231/status/2120197971560042807",
+                "source": "@NSTRIKE1231",
+                "date": "Tue Nov 10 16:52:42 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "275"
+                }
+              },
+              {
+                "title": "@signoredelno Secondo me ci sono persone convinte che Elon Musk faccia innovazione per rimanere competitivo sul mercato ",
+                "summary": "@signoredelno Secondo me ci sono persone convinte che Elon Musk faccia innovazione per rimanere competitivo sul mercato (l'unica innovazione che non gli ha commissionato il pentagono e una macchina che sta in aria per 30 secondi)",
+                "url": "https://x.com/Ioviusaugustus/status/2120197914479788445",
+                "source": "@Ioviusaugustus",
+                "date": "Tue Nov 10 16:52:28 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "R07_search_type_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_search_type",
+        "difficulty": "medium",
+        "what_it_tests": "'phổ biến/top' → search_type=Top (không phải Latest)."
+      },
+      "input": "Cho mình các tweet phổ biến (top) nhất về OpenAI",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "OpenAI top",
+              "search_type": "Top",
+              "limit": "5"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "OpenAI top",
+            "search_type": "Top",
+            "limit": "5"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "OpenAI top",
+            "search_type": "Top",
+            "items": [
+              {
+                "title": "SoftBank shares jumped 13.9% in Tokyo today. Minutes after the close, it reported a $7.1 billion loss.",
+                "summary": "SoftBank shares jumped 13.9% in Tokyo today. Minutes after the close, it reported a $7.1 billion loss.\n\nThe stock went from ¥3,400 to ¥3,872. Then the July-September numbers came out: a net loss of ¥1.12 trillion. Analysts were expecting a ¥129 billion profit. It's SoftBank's first loss in almost two years, per Bloomberg.\n\nThe strange part is OpenAI. SoftBank's stake there is now worth $99.6 billion on paper. It has put in $64.6 billion, the last $10 billion in October. So the biggest bet looks fine. What hurt was everything around it: finance costs of ¥790.7 billion in six months, up 132%, and a $3.73 billion loss on equipment for US data-center projects.\n\nIn the video below, Bloomberg's Peter Elstrom in May. He calls OpenAI Masayoshi Son's \"biggest bet ever,\" paid for partly by selling Nvidia stock and borrowing. People inside SoftBank worried he was \"a little bit starstruck.\" And for all that money, Son doesn't have a seat on OpenAI's board.\n\nMy take: the OpenAI stake isn't the problem yet. It's a paper gain. The interest bill is real, and it's due every quarter, gain or no gain. Retail investors bought the legend this morning. The company reported the cost of funding it this afternoon.\n\nTomorrow Tokyo gets to price both.\n\nAre the fans early again, or did they just buy the top of a $7 billion quarter?",
+                "url": "https://x.com/vig_says/status/2120082349220089862",
+                "source": "@vig_says",
+                "date": "Tue Nov 10 09:13:15 +0000 2026",
+                "metrics": {
+                  "favorites": 31,
+                  "retweets": 6,
+                  "views": "5237"
+                }
+              },
+              {
+                "title": "🔻 $OPENAI dives 4.5% on heavy volume—breakdowns look set to deepen, not ease up.",
+                "summary": "🔻 $OPENAI dives 4.5% on heavy volume—breakdowns look set to deepen, not ease up.\n\n- my bias remains bearish on OPENAIUSDT.P here, with both the 1h and daily structure clearly pointing down and BTC also in a bearish structure — breakdowns are more likely to continue than reverse until proven otherwise\n- the recent -4.5% dump on a massive 9x volume spike suggests aggressive selling, likely a mix of panic exit and possibly smart money distributing into weakness; this is not typical bottoming behavior, as a true bottom favors a stop run with sharp absorption and immediate reversal, which isn’t evident here yet\n- with the high volume and heavy candle, there's a risk of some short-term relief bounce, but the structure still favors continuation lower unless price can reclaim key resistance\n- ideal short entries are on any weak bounce into the 1280-1300 zone, especially if price retests the 1299-1300 FVG zone and shows rejection (look for 5-15min bearish engulfing, pin bar, or market structure shift to the downside)\n- first downside targets are 1241, then 1203; if panic accelerates, extension toward 1179 is possible — take profit on the way down and trail as volatility is high\n- only consider flipping bullish on a strong hourly close above 1338; any bounce below that, especially if rejected near 1300-1330, is a shorting opportunity while structure holds\n- funding positive and top traders still majority long — if late longs pile in during a relief bounce, that further supports the case for lower\n- to summarize: aggressive sellers are in control, relief bounces are for selling/shorting with confirmation, and new lows are favored unless 1338 is reclaimed on a 1h close\n- bias invalidated on hourly close above 1338 — protect shorts above that structure flip, not investment advice, educational report only\n\n📊 Flow: OI $13.6M (+2.7% 24h) · funding +0.0050% · taker 0.83×\n\nBounce or more downside? Check first → https://t.co/j6WerFzfaN",
+                "url": "https://x.com/Finora_EN/status/2120119571847761957",
+                "source": "@Finora_EN",
+                "date": "Tue Nov 10 11:41:10 +0000 2026",
+                "metrics": {
+                  "favorites": 2,
+                  "retweets": 0,
+                  "views": "809"
+                }
+              },
+              {
+                "title": "This is f*cking insane. OpenAI CEO Sam Altman, on stage in Abu Dhabi:",
+                "summary": "This is f*cking insane. OpenAI CEO Sam Altman, on stage in Abu Dhabi:\n\n\"At the start of this year, AI wasn't as smart as our smartest scientists. Now it's smarter than them\n\nIt couldn't do most white-collar jobs. Now it can do most of them, and we're all still not dreaming big enough\"\n\nIn 10 minutes, he explains why one person now burns 500 billion tokens a month, when six years ago the top user at OpenAI used 100,000\n\nChat → Agents → Loops → Graphs → 500 Billion Tokens a Month\n\nYou don't burn that many tokens typing prompts\n\nYou burn them with a graph of agents that keeps working all night while you sleep\n\nThis talk is worth more than most $1,000 AI product bootcamps\n\nBookmark it, then watch it with the sound on\n\nThen read how to build that overnight agent graph, file by file, in the article below ↓",
+                "url": "https://x.com/0xarcos/status/2119785470552936712",
+                "source": "@0xarcos",
+                "date": "Mon Nov 09 13:33:34 +0000 2026",
+                "metrics": {
+                  "favorites": 30,
+                  "retweets": 1,
+                  "views": "834"
+                }
+              },
+              {
+                "title": "NVIDIA released a new RL framework:",
+                "summary": "NVIDIA released a new RL framework:\n\nYour entire setup is one Python file:\n\n- write a class with a step() function\n- return a reward from it\n- the framework handles the rest, up to 1T-class MoE training\n\nIn a typical RL framework, the environment and reward logic are added inside the trainer's codebase.\n\nAdding a new task requires writing framework code, registering it, and wiring up config for it.\n\nThe reward usually comes from a separately trained reward model, which needs its own GPUs and placement next to the actor and critic.\n\nNVIDIA's Molt framework drops both these requirements.\n\nEvery run takes an agent_path flag pointing to one Python module, and the trainer code never changes.\n\nThe module gives you two ways to plug in an agent.\n\n> The first is an Env class where you write a step() function that receives the model's output and returns a reward, and the framework handles everything else, i.e., calling the model, tokenizing, and looping turn after turn until the episode ends.\n\n> The second is a ChatAgent class, for agents that already exist as their own loop. Here, you write the loop yourself, calling the model through a standard OpenAI or Anthropic client, and the framework spins up a local server so those calls hit its vLLM engines instead of an external API.\n\nEither way, the trainer sees the same thing, i.e., a trajectory of tokens and a reward at the end.\n\nThat reward can come from a string-match grader, code executed in a sandboxed subprocess, or an LLM-as-judge call.\n\nSo there is no reward model to train or place, and no environment code living inside the framework.\n\nUnder the hood, Molt runs a single trainable actor (plus an optional critic for PPO) on FSDP2, vLLM engines for rollout, and Ray queues between them, so generation, training, and weight sync overlap instead of running in lockstep.\n\nScaling just requires setting some flags on the same command.\n\nThe framework also splits the model across GPUs for you, so the script that trains an 8B model on one node can also train DeepSeek-V3-scale MoE models on a cluster by raising the parallelism flags.\n\nHere's the repo: https://t.co/TafSfatER5\n\nSince the framework is new, I am still experimenting with it and will share more about my learnings soon.\n\nTo dive deeper into how top AI labs are building RL Agents in 2026, I wrote a full article about it.\n\nIt covers the evolution from RLHF to GRPO with verifiable rewards and using an LLM-as-judge reward function. This idea extends RL training to non-verifiable agentic tasks without writing custom reward functions.\n\nRead it below.",
+                "url": "https://x.com/_avichawla/status/2119731861786341835",
+                "source": "@_avichawla",
+                "date": "Mon Nov 09 10:00:33 +0000 2026",
+                "metrics": {
+                  "favorites": 454,
+                  "retweets": 76,
+                  "views": "24434"
+                }
+              },
+              {
+                "title": "I was wondering who @AnthropicAI and @OpenAI hire, so I did my own research and turned it into a visual story using http",
+                "summary": "I was wondering who @AnthropicAI and @OpenAI hire, so I did my own research and turned it into a visual story using https://t.co/Du6ufwlCdB.\n\nThe main finding: if you don't have either a top university or a top tech company on your resumé, your chances seem pretty low. Both companies tend to hire senior talent with a proven track record.\n\nBut go check out the story yourself, it turned out to be quite pretty\n\nhttps://t.co/iPxtKvCT1X",
+                "url": "https://x.com/ernaem/status/2118392902011257077",
+                "source": "@ernaem",
+                "date": "Thu Nov 05 17:20:00 +0000 2026",
+                "metrics": {
+                  "favorites": 265,
+                  "retweets": 16,
+                  "views": "24006"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "R08_out_of_scope",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope",
+        "difficulty": "easy",
+        "what_it_tests": "Câu ngoài phạm vi research → KHÔNG gọi tool, từ chối/định hướng."
+      },
+      "input": "Giải giúp mình bài toán tích phân: nguyên hàm của x^2 là gì?",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "tích phân x^2",
+              "timeframe": "day",
+              "topic": "general"
+            }
+          }
+        ],
+        "actual_text": "",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": "unexpected_tool_call",
+        "failure_type": "out_of_scope",
+        "failures": [
+          "expected no tool call"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "tích phân x^2",
+            "timeframe": "day",
+            "topic": "general"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "tích phân x^2",
+            "topic": "general",
+            "timeframe": "day",
+            "items": [
+              {
+                "title": "Đề thi toán tốt nghiệp trung học chuyên ban năm 1999",
+                "url": "https://www.facebook.com/groups/hoctoanthayhieu/posts/1789196672332869",
+                "source": "facebook.com",
+                "summary": "x- x+2=0 … số phức, ứng dụng tích phân, hàm hợp, khối tròn xoay và hình học giải tích trong không gian. Điểm mới là đề thi có 2 câu liên hệ thực",
+                "score": 0.26780784
+              },
+              {
+                "title": "Toán 12 - Ôn thi Nguyên hàm, tích phân - YouTube",
+                "url": "https://www.youtube.com/playlist?list=PLchanWK5Bgso",
+                "source": "youtube.com",
+                "summary": "Back Image 1 VN \n\nSkip navigation\n\n Search \n\n Search with your voice \n\n- [x] Include playlist \n\nAn error occurred while retrieving sharing information. Please try again later.\n\nWatch later\n\nShare\n\nCopy link\n\nImage 24\n\n0:00\n\n[](\n\n / \n\nLive\n\n•Watch full video\n\n•\n\n•\n\n[](\n\n[](\n\nNaN / NaN\n\nShow more\n\n[](\n\nToán 12 - Ôn thi Nguyên hàm, tích phân - YouTube",
+                "score": 0.15414697
+              },
+              {
+                "title": "Tích phân",
+                "url": "https://www.youtube.com/watch?v=CXhxc0K2Q2k",
+                "source": "youtube.com",
+                "summary": "Share your videos with friends, family, and the world. Tích phân @Phuonglieu-w3fNo. Explore simpler, safer experiences for kids and families",
+                "score": 0.12651539
+              },
+              {
+                "title": "TOÁN 5 - TUẦN 10: Phân tích đề bài toán có lời văn mạch ...",
+                "url": "https://www.facebook.com/toan.89.thay.nguyenvanquyen/videos/to%C3%A1n-5-tu%E1%BA%A7n-10-ph%C3%A2n-t%C3%ADch-%C4%91%E1%BB%81-b%C3%A0i-to%C3%A1n-c%C3%B3-l%E1%BB%9Di-v%C4%83n-m%E1%BA%A1ch-l%E1%BA%A1c-t%E1%BB%ABng-b%C6%B0%E1%BB%9Bc-b%C3%A0i-7-qbooks-/2362624894562836",
+                "source": "facebook.com",
+                "summary": "TOÁN 5 - TUẦN 10: Phân tích đề bài toán có lời văn mạch lạc từng bước (Bài 7) #qbooks #thaynguyenvanquyen #xuhuong #toan5 #gtclv.",
+                "score": 0.046886258
+              },
+              {
+                "title": "MiniFlex",
+                "url": "https://rigaku.com/products/x-ray-diffraction-and-scattering/xrd/miniflex",
+                "source": "rigaku.com",
+                "summary": "This direct photon counting detector enables high-speed, low-noise data collection and may be operated in 0D and 1D modes for conventional XRD analysis and 2D mode for samples with coarse grain size and/or preferred orientation.\n\n### Advanced powder diffraction software [...] The MiniFlex benchtop X-ray diffractometer is a multipurpose powder diffraction analytical instrument that can determine: crystalline phase identification (phase ID) and quantification, percent (%) crystallinity, crystallite size and strain, lattice parameter refinement, Rietveld refinement, and molecular structure. It is widely used in research, especially in material science and chemistry, as well as in industry for research and quality control. It is the newest addition to the MiniFlex [...] ### X-ray seamless pixel array detector",
+                "score": 0.03065555
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "dataset_id": "day03_bonus_source_curation",
+  "dataset_role": "bonus",
+  "description": "Extension eval for the team's three added local source-curation tools.",
+  "cases": [
+    {
+      "id": "X01_rank_collected_sources",
+      "phase": "B",
+      "suite": "extension",
+      "query": "Rank these already collected research items by their existing score and return the top 2: [{\"title\":\"A\",\"url\":\"https://example.com/a\",\"score\":0.4},{\"title\":\"B\",\"url\":\"https://example.com/b\",\"score\":0.9},{\"title\":\"C\",\"url\":\"https://example.com/c\",\"score\":0.7}]",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "rank_sources", "args": {"limit": 2}}]},
+      "metadata": {"what_it_tests": "Routes ranking of existing scored items to rank_sources and preserves the requested top-2 limit."}
+    },
+    {
+      "id": "X02_filter_collected_sources",
+      "phase": "B",
+      "suite": "extension",
+      "query": "From these collected items, keep only sources from openai.com with score at least 0.7: [{\"title\":\"A\",\"url\":\"https://openai.com/a\",\"score\":0.8},{\"title\":\"B\",\"url\":\"https://example.com/b\",\"score\":0.9}]",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "filter_sources", "args": {"domains": ["openai.com"], "min_score": 0.7}}]},
+      "metadata": {"what_it_tests": "Routes domain and minimum-score filtering of supplied items to filter_sources."}
+    },
+    {
+      "id": "X03_group_collected_sources",
+      "phase": "B",
+      "suite": "extension",
+      "query": "Group these already collected research items by publisher domain: [{\"title\":\"A\",\"url\":\"https://openai.com/a\"},{\"title\":\"B\",\"url\":\"https://example.com/b\"}]",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "group_sources", "args": {"group_by": "domain"}}]},
+      "metadata": {"what_it_tests": "Routes publisher-domain grouping of supplied research items to group_sources."}
+    }
+  ]
+}

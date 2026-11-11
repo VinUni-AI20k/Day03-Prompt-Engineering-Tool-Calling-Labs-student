@@ -112,7 +112,8 @@ def run_model_tool_loop(
         non_clarification_events: list[dict[str, Any]] = []
 
         for call in calls:
-            print(f"🔧 {call.name}({json.dumps(call.args, ensure_ascii=False, sort_keys=True)})")
+            # Keep terminal output compatible with Windows consoles using legacy encodings.
+            print(f"[tool] {call.name}({json.dumps(call.args, ensure_ascii=False, sort_keys=True)})")
             event = execute_tool_call(call)
             round_record["tool_results"].append(event)
             all_tool_events.append(event)
@@ -146,7 +147,14 @@ def run_model_tool_loop(
 def write_transcript(path: Path, transcript: dict[str, Any]) -> None:
     transcript["updated_at"] = now_iso()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(transcript, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    # Replace only a complete JSON document so an interrupted save cannot leave
+    # an exported transcript unreadable.
+    temporary_path = path.with_suffix(path.suffix + ".tmp")
+    temporary_path.write_text(
+        json.dumps(transcript, ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8",
+    )
+    temporary_path.replace(path)
 
 
 def main() -> None:

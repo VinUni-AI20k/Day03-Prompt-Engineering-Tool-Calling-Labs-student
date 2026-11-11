@@ -3,5 +3,142 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_dedupe_sources_single_turn",
+      "phase": "B",
+      "query": "Dùng dedupe_sources để loại nguồn trùng trong danh sách này, chưa cần format: mục 1 có URL https://example.com/agents?utm_source=web#intro; mục 2 có URL https://example.com/agents?utm_medium=social#details; mục 3 có URL https://example.org/evaluation. Hãy truyền cả ba kết quả vào tool.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "dedupe_sources", "args": {}}]},
+      "metadata": {
+        "skill": "new_tool_dedupe_sources",
+        "difficulty": "medium",
+        "what_it_tests": "Route yêu cầu gộp nguồn trùng vào dedupe_sources thay vì tự tìm hoặc format."
+      }
+    },
+    {
+      "id": "G02_format_explicit_bullets",
+      "phase": "B",
+      "query": "Biến hai kết quả research dưới đây thành digest dạng gạch đầu dòng, không tìm thêm nguồn: [{\"title\":\"AI agents in research\",\"url\":\"https://example.org/agents\",\"summary\":\"Agents can coordinate research tasks.\"},{\"title\":\"Evaluation methods\",\"url\":\"https://example.org/eval\",\"summary\":\"Tool-use evaluations measure routing and arguments.\"}].",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "format", "args": {"template": "bullets"}}]},
+      "metadata": {
+        "skill": "format_existing_research_items",
+        "difficulty": "medium",
+        "what_it_tests": "Dùng format cho dữ liệu đã có và truyền đúng template bullets, không gọi web tool."
+      }
+    },
+    {
+      "id": "G03_lookup_news_month",
+      "phase": "B",
+      "query": "Tìm trên web tin thời sự về AI regulation trong tháng qua.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "AI regulation", "topic": "news", "timeframe": "month"}}]},
+      "metadata": {
+        "skill": "lookup_topic_and_month_timeframe",
+        "difficulty": "medium",
+        "what_it_tests": "Giữ truy vấn AI regulation, phân loại news và đặt timeframe=month."
+      }
+    },
+    {
+      "id": "G04_timeline_explicit_handle_limit",
+      "phase": "B",
+      "query": "Lấy 2 bài gần đây từ tài khoản @karpathy.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "karpathy", "limit": 2}}]},
+      "metadata": {
+        "skill": "timeline_handle_and_limit",
+        "difficulty": "easy",
+        "what_it_tests": "Bỏ ký tự @ khỏi screenname và giữ limit=2."
+      }
+    },
+    {
+      "id": "G05_internal_citation_policy",
+      "phase": "B",
+      "query": "Tra trong chính sách nội bộ về trích dẫn nguồn: một claim chưa được xác minh cần được trình bày thế nào? Chỉ dùng tài liệu policy nội bộ.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "source_citation"}}]},
+      "metadata": {
+        "skill": "route_internal_policy",
+        "difficulty": "medium",
+        "what_it_tests": "Phân biệt yêu cầu tìm chính sách nội bộ với tra cứu web trực tiếp."
+      }
+    },
+    {
+      "id": "G06_multiturn_clarify_account",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tóm tắt 3 bài mới nhất từ tài khoản mình đang nghĩ tới."},
+        {"role": "user", "content": "Tài khoản đó là @karpathy."}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "karpathy", "limit": 3}}]},
+      "metadata": {
+        "skill": "multiturn_clarify_handle_then_route",
+        "difficulty": "medium",
+        "what_it_tests": "Dùng handle được bổ sung ở lượt sau và giữ số lượng 3 từ lượt đầu."
+      }
+    },
+    {
+      "id": "G07_multiturn_lookup_carry_timeframe",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tìm tin AI mới trong tuần này."},
+        {"role": "user", "content": "Chỉ quan tâm robotics, vẫn lấy tin trong tuần này."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "robotics", "topic": "news", "timeframe": "week"}}]},
+      "metadata": {
+        "skill": "multiturn_lookup_context_carryover",
+        "difficulty": "hard",
+        "what_it_tests": "Cập nhật query thành robotics nhưng giữ topic=news và timeframe=week từ ngữ cảnh."
+      }
+    },
+    {
+      "id": "G08_multiturn_social_search_correction",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Tìm các bài mới nhất trên X về Qwen3."},
+        {"role": "user", "content": "Đổi sang bài Top và chỉ lấy 3 kết quả."}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "Qwen3", "search_type": "Top", "limit": 3}}]},
+      "metadata": {
+        "skill": "multiturn_social_search_correction",
+        "difficulty": "medium",
+        "what_it_tests": "Giữ query Qwen3, đổi search_type sang Top và sửa limit thành 3."
+      }
+    },
+    {
+      "id": "G09_multiturn_url_clarification",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Đọc và tóm tắt bài viết này giúp mình."},
+        {"role": "user", "content": "Đây là link: https://openai.com/research/."},
+        {"role": "user", "content": "Chỉ tóm tắt bài trong link vừa gửi."}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "fetch", "args": {"url": "https://openai.com/research/"}}]},
+      "metadata": {
+        "skill": "multiturn_clarify_url_then_fetch",
+        "difficulty": "medium",
+        "what_it_tests": "Carry URL được cung cấp ở lượt giữa và dùng fetch cho link cụ thể."
+      }
+    },
+    {
+      "id": "G10_multiturn_dedupe_sources",
+      "phase": "B",
+      "turns": [
+        {"role": "user", "content": "Các kết quả của mình gồm: mục A https://example.com/agents?utm_source=web#intro; mục B https://example.com/agents?utm_campaign=mail#results; mục C https://example.org/eval."},
+        {"role": "user", "content": "Dùng dedupe_sources trên các kết quả vừa nêu để loại nguồn trùng, chưa format."}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "dedupe_sources", "args": {}}]},
+      "metadata": {
+        "skill": "multiturn_new_tool_dedupe_sources",
+        "difficulty": "medium",
+        "what_it_tests": "Route lượt mới nhất tới tool mới và sử dụng danh sách nguồn đã nêu ở ngữ cảnh trước."
+      }
+    }
+  ]
 }

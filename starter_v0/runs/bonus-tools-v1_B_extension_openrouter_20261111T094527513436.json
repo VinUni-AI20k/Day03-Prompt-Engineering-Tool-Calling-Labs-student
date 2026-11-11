@@ -1,0 +1,320 @@
+{
+  "run_id": "bonus-tools-v1_B_extension_openrouter_20261111T094527513436",
+  "version": "bonus-tools-v1",
+  "artifact_version": "bonus-tools-v1+p6bdbfff17da6+te1336038a300",
+  "prompt_hash": "6bdbfff17da6620fbd285094bdadf44c33ce0f89a03fd2d3e6fddc6258d71985",
+  "tools_hash": "e1336038a300832c45a2338cc0c38ce0b373a113248d1cfe67cd2f43ba0f6e36",
+  "phase": "B",
+  "suite": "extension",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "D:\\AIInAction\\Day3\\K5-L3B-DAY03-H7-ResearchAgentToolEval\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\AIInAction\\Day3\\K5-L3B-DAY03-H7-ResearchAgentToolEval\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_bonus_tools.json",
+  "dataset_id": "day03_bonus_source_curation",
+  "dataset_role": "bonus",
+  "description": "Extension eval for the team's three added local source-curation tools.",
+  "generated_at": "2026-11-11T09:45:27",
+  "summary": {
+    "total_cases": 3,
+    "measured_cases": 3,
+    "provider_error_cases": 0,
+    "passed_cases": 3,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": null,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "X01_rank_collected_sources",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes ranking of existing scored items to rank_sources and preserves the requested top-2 limit."
+      },
+      "input": "Rank these already collected research items by their existing score and return the top 2: [{\"title\":\"A\",\"url\":\"https://example.com/a\",\"score\":0.4},{\"title\":\"B\",\"url\":\"https://example.com/b\",\"score\":0.9},{\"title\":\"C\",\"url\":\"https://example.com/c\",\"score\":0.7}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "rank_sources",
+            "args": {
+              "limit": 2
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "rank_sources",
+            "args": {
+              "items": [
+                {
+                  "title": "A",
+                  "url": "https://example.com/a",
+                  "score": 0.4
+                },
+                {
+                  "title": "B",
+                  "url": "https://example.com/b",
+                  "score": 0.9
+                },
+                {
+                  "title": "C",
+                  "url": "https://example.com/c",
+                  "score": 0.7
+                }
+              ],
+              "limit": 2
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "rank_sources",
+          "args": {
+            "items": [
+              {
+                "title": "A",
+                "url": "https://example.com/a",
+                "score": 0.4
+              },
+              {
+                "title": "B",
+                "url": "https://example.com/b",
+                "score": 0.9
+              },
+              {
+                "title": "C",
+                "url": "https://example.com/c",
+                "score": 0.7
+              }
+            ],
+            "limit": 2
+          },
+          "result": {
+            "tool": "rank_sources",
+            "items": [
+              {
+                "title": "B",
+                "url": "https://example.com/b",
+                "score": 0.9
+              },
+              {
+                "title": "C",
+                "url": "https://example.com/c",
+                "score": 0.7
+              }
+            ],
+            "item_count": 2,
+            "limit": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "X02_filter_collected_sources",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes domain and minimum-score filtering of supplied items to filter_sources."
+      },
+      "input": "From these collected items, keep only sources from openai.com with score at least 0.7: [{\"title\":\"A\",\"url\":\"https://openai.com/a\",\"score\":0.8},{\"title\":\"B\",\"url\":\"https://example.com/b\",\"score\":0.9}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "filter_sources",
+            "args": {
+              "domains": [
+                "openai.com"
+              ],
+              "min_score": 0.7
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "filter_sources",
+            "args": {
+              "items": [
+                {
+                  "title": "A",
+                  "url": "https://openai.com/a",
+                  "score": 0.8
+                },
+                {
+                  "title": "B",
+                  "url": "https://example.com/b",
+                  "score": 0.9
+                }
+              ],
+              "domains": [
+                "openai.com"
+              ],
+              "min_score": 0.7
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "filter_sources",
+          "args": {
+            "items": [
+              {
+                "title": "A",
+                "url": "https://openai.com/a",
+                "score": 0.8
+              },
+              {
+                "title": "B",
+                "url": "https://example.com/b",
+                "score": 0.9
+              }
+            ],
+            "domains": [
+              "openai.com"
+            ],
+            "min_score": 0.7
+          },
+          "result": {
+            "tool": "filter_sources",
+            "items": [
+              {
+                "title": "A",
+                "url": "https://openai.com/a",
+                "score": 0.8
+              }
+            ],
+            "item_count": 1,
+            "domains": [
+              "openai.com"
+            ],
+            "min_score": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "id": "X03_group_collected_sources",
+      "phase": "B",
+      "suite": "extension",
+      "case_suite": "extension",
+      "is_multiturn": false,
+      "metadata": {
+        "what_it_tests": "Routes publisher-domain grouping of supplied research items to group_sources."
+      },
+      "input": "Group these already collected research items by publisher domain: [{\"title\":\"A\",\"url\":\"https://openai.com/a\"},{\"title\":\"B\",\"url\":\"https://example.com/b\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "group_sources",
+            "args": {
+              "group_by": "domain"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "group_sources",
+            "args": {
+              "items": [
+                {
+                  "title": "A",
+                  "url": "https://openai.com/a"
+                },
+                {
+                  "title": "B",
+                  "url": "https://example.com/b"
+                }
+              ],
+              "group_by": "domain"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "group_sources",
+          "args": {
+            "items": [
+              {
+                "title": "A",
+                "url": "https://openai.com/a"
+              },
+              {
+                "title": "B",
+                "url": "https://example.com/b"
+              }
+            ],
+            "group_by": "domain"
+          },
+          "result": {
+            "tool": "group_sources",
+            "group_by": "domain",
+            "groups": [
+              {
+                "key": "openai.com",
+                "item_count": 1,
+                "items": [
+                  {
+                    "title": "A",
+                    "url": "https://openai.com/a"
+                  }
+                ]
+              },
+              {
+                "key": "example.com",
+                "item_count": 1,
+                "items": [
+                  {
+                    "title": "B",
+                    "url": "https://example.com/b"
+                  }
+                ]
+              }
+            ],
+            "group_count": 2,
+            "item_count": 2
+          }
+        }
+      ]
+    }
+  ]
+}
