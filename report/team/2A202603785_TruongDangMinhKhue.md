@@ -1,197 +1,98 @@
-# Báo cáo cá nhân — HoVaTen-MSSV
-
-Đổi tên file theo quy tắc `MSSV_HoTen.md`.
-
-Ví dụ: `20241234_NguyenVanAn.md`.
+# Báo cáo cá nhân — Trương Đặng Minh Khuê
 
 ## 1. Thông tin thành viên
 
-- Họ tên: Trương Đặng Minh Khuê
-- MSSV: 2A202603785
-- Email: 26ai.khuetdm@vinuni.edu.vn
+- **Họ tên:** Trương Đặng Minh Khuê
+- **MSSV:** 2A202603785
+- **Email:** 26ai.khuetdm@vinuni.edu.vn
 
 ## 2. Phần việc phụ trách
 
-...
+- Cải tiến System Prompt và đánh giá khả năng routing, sử dụng tool của AI Agent.
+- Phân tích lỗi từ evaluation, đề xuất giả thuyết và thực hiện các phiên bản prompt v1, v2, v3.
+- Implement và tích hợp các tool mới: `date_calc`, `cite_format`.
+- Viết và sửa unit tests, xử lý các lỗi phát sinh để đảm bảo chất lượng và độ an toàn của tool.
+- Kiểm tra kết quả evaluation và ghi nhận thực nghiệm qua các artifacts.
 
 ## 3. Đóng góp cụ thể
 
-...
+### 3.1. Cải tiến System Prompt và Tool Routing
+
+Thực hiện phân tích lỗi từ baseline v0 (13/20 cases PASS, accuracy 65%) và cải tiến prompt qua nhiều phiên bản:
+
+- **v1 – Send boundary:** Làm rõ sự khác biệt giữa trả lời trực tiếp trong chat và sử dụng tool `send` để thực hiện hành động bên ngoài. Kết quả: 16/20 PASS (80%), sửa được R08 và R14.
+- **v2 – Clarification routing:** Bổ sung quy tắc phân biệt `response_type="text"` khi thiếu thông tin và `response_type="yes_no"` khi cần xác nhận hành động. Kết quả: 17/20 PASS (85%).
+- **v3 – Missing information:** Bổ sung quy tắc phân biệt `timeline`, `social_search` và `clarify` khi thiếu username hoặc chủ đề tìm kiếm. Kết quả: R10 PASS, base suite đạt 19/20 PASS.
+
+Ngoài ra, xử lý các vấn đề liên quan đến argument convention (R03, R13), xác nhận trước khi gửi (R12) và thiếu `response_type` khi yêu cầu thông tin dạng văn bản.
+
+### 3.2. Implement tool mới
+
+**Tool `date_calc`:**
+
+- Hỗ trợ lấy ngày hiện tại, tính số ngày giữa hai mốc, cộng ngày và xác định thứ.
+- Cập nhật `tools.yaml`, System Prompt, tool registry và evaluation cases G01–G03.
+- Kết quả: cả 3 evaluation cases PASS.
+
+**Tool `cite_format`:**
+
+- Implement chức năng tạo citation theo chuẩn APA 7 từ metadata gồm title, authors, year và URL.
+- Xử lý trường hợp thiếu year bằng `(n.d.)`, thiếu URL thì bỏ phần URL.
+- Chuyển tên tác giả dạng Last, First thành initials; hỗ trợ hai tác giả nối bằng `&`.
+- Trả về error có cấu trúc khi yêu cầu style không được hỗ trợ.
+- Phân biệt rõ chức năng với tool `format` có sẵn: `format` xử lý nội dung chung, `cite_format` chỉ dành cho APA.
+- Sửa lỗi mất dấu chấm cuối citation khi có URL sau khi unit test phát hiện.
+- Kết quả: unit tests PASS, group evaluation G04–G06 đạt 6/6 PASS.
+
+### 3.3. Kiểm thử và xử lý lỗi
+
+Tham gia xử lý các vấn đề trong quá trình chạy test:
+
+- Sửa test `send` sau khi đọc lại fixture `fake_http` trong `conftest.py` và xác định đúng cách sử dụng factory.
+- Cải thiện `send_telegram`: che token trong error message, yêu cầu `confirmed is True`, bỏ `parse_mode="Markdown"` để tránh lỗi định dạng, kiểm tra nội dung rỗng trước khi gửi request.
+- Sửa test policy do nhầm cấu trúc dữ liệu `untrusted_text`, vốn nằm trong từng item của `results`.
+- Điều chỉnh test trust boundary để tìm đúng nội dung trong source, tăng `top_k` và tránh phụ thuộc vào thứ hạng kết quả tìm kiếm.
+- Sửa cách tìm kiếm file bằng PowerShell khi `Select-String` không hỗ trợ tham số `-Recurse`.
+
+### 3.4. Bài học rút ra
+
+- Cần đọc implementation và fixture thực tế trước khi viết test, thay vì suy đoán tên tham số hoặc cấu trúc dữ liệu.
+- Test trust boundary cần dựa trên dữ liệu thực tế và kiểm tra đúng nguồn chứa nội dung.
+- Prompt engineering cần dựa trên lỗi quan sát được, có giả thuyết cụ thể và đánh giá lại bằng cùng bộ test.
+- Cần phân biệt rõ lỗi routing, lỗi arguments, lỗi thiếu thông tin và lỗi vi phạm ranh giới hành động.
 
 ## 4. Bằng chứng
 
-- File/commit/PR:
-- AI/công cụ đã dùng và cách tự kiểm tra kết quả:
+**File/artifacts:**
+
+- `artifacts/system_prompt.md`: Các phiên bản System Prompt và quy tắc routing được cải tiến.
+- `artifacts/tools.yaml`: Cập nhật mô tả và hướng dẫn arguments của tools.
+- `tools/date_calc.py`: Implementation tool tính toán ngày.
+- `tools/cite_format.py`: Implementation tool tạo citation APA 7.
+- `tools/__init__.py`: Đăng ký tool mới.
+- `version_log.csv`: Ghi nhận hypothesis, thay đổi và kết quả qua từng phiên bản.
+- `runs/*.json`: Lưu kết quả evaluation của từng lần chạy.
+- Các file unit tests và test policy liên quan.
+
+**AI/công cụ đã dùng và cách tự kiểm tra kết quả:**
+
+- Sử dụng AI hỗ trợ phân tích lỗi, đề xuất hướng cải tiến System Prompt và hỗ trợ debugging.
+- Sử dụng Python và pytest để chạy unit tests và evaluation.
+- Sử dụng Git để quản lý các thay đổi và phiên bản.
+- Tự kiểm tra bằng cách đối chiếu expected/actual tool calls, arguments, kết quả evaluation và chạy lại unit tests sau khi sửa lỗi.
 
 ## 5. Tự đánh giá
 
-...
+**Điểm đã làm tốt:**
 
-## Hướng V1:
+- Có khả năng phân tích lỗi dựa trên kết quả thực nghiệm và đưa ra giả thuyết cải tiến cụ thể.
+- Chủ động triển khai tool mới, tích hợp vào hệ thống và viết kiểm thử.
+- Biết sử dụng test failures để truy ngược nguyên nhân thay vì chỉ sửa kết quả đầu ra.
 
-Case Lỗi thực tế Nguyên nhân
-R03 wrong_arg_value Thêm "news" vào query dù đã có topic=news
-R08 unexpected_tool_call Dùng send để trả lời bài toán
-R10 missing_info Tự đoán handle sama thay vì hỏi
-R11 missing_info Tự đoán URL example.com/article
-R12 wrong_boundary Gọi send trước khi user xác nhận
-R13 wrong_arg_value Query web sai; thiếu topic=news
-R14 unexpected_tool_call Dùng send để trả lời yêu cầu coding
+**Điểm cần cải thiện:**
 
-Hai lỗi cần chú ý nhất
-R08 và R14:
+- Cần thiết kế test cases có độ bao phủ tốt hơn, đặc biệt với các trường hợp biên và trust boundary.
+- Cần cải thiện khả năng thiết kế System Prompt để xử lý các tình huống phức tạp mà không gây ảnh hưởng đến các cases đã PASS.
+- Cần chú trọng hơn đến việc kiểm thử hồi quy sau mỗi lần thay đổi prompt hoặc tool.
 
-Agent có thể tạo câu trả lời trực tiếp, nhưng lại gọi send để đưa câu trả lời vào một hành động bên ngoài.
-
-Đây là lỗi phân biệt giữa:
-
-- Trả lời user trong chat.
-- Gọi tool để thực hiện hành động bên ngoài.
-  R10 và R11:
-
-Agent tự điền thông tin còn thiếu thay vì hỏi user. Đây là lỗi hallucination ở bước thu thập thông tin.
-
-2. Phân loại lỗi để ghi vào báo cáo
-   Loại lỗi Case
-   wrong_arg_value R03, R13
-   out_of_scope R08, R14
-   missing_info R10, R11
-   wrong_boundary R12
-
-v1: Sửa send boundary.
-
-v2: Sửa missing information (R10, R11).
-
-v3: Sửa argument convention (R03, R13).
-
-**Note**:
-v1 đã cải thiện đúng hướng:
-Metric v0 v1
-Passed 13/20 16/20
-Accuracy 65% 80%
-R08 FAIL PASS
-R14 FAIL PASS
-R12 FAIL FAIL
-R12 chưa sửa được dù đã thêm confirmation boundary. Có thể model chưa hiểu rõ thứ tự bắt buộc: hỏi xác nhận trước, chỉ gửi sau khi user trả lời đồng ý.
-
-Nhưng đừng sửa tiếp v1. Ta cần giữ kết quả thực nghiệm.
-
-16/20 — 80%
-
-- R08: fixed
-- R14: fixed
-- R12: chưa fixed
-- R10: chưa fixed
-- R03, R13: chưa fixed
-
-**Note**:
-
-## Hướng v2
-
-Giả thuyết: Explicit clarification-type routing rules will reduce incorrect clarify.response_type selection.
-
-**V2 Prompt**:
-
-#### Clarification Rules
-
-- Use clarify with response_type="text" when required
-  information is missing, such as a username or URL.
-
-- Use clarify with response_type="yes_no" when the user
-  requests an external action that requires confirmation,
-  such as sending, posting, or publishing.
-
-- Never use response_type="text" to ask for action confirmation.
-
-**Result**:
-17/20 — 85%
-So với v0: +20 percentage points (65% → 85%).
-
-Phân tích R13
-Routing đã đúng cả hai tool:
-
-- lookup: đúng.
-- social_search: đúng.
-  Nhưng arguments sai:
-  Argument Expected Actual
-  query AI AI news
-  topic news Missing
-
-Nguyên nhân: Model chưa tuân thủ convention topic=news, đồng thời thêm "news" vào query.
-Trạng thái hiện tại
-Case Trạng thái
-R03 PASS
-R08 PASS
-R10 FAIL
-R12 FAIL
-R13 FAIL
-
-## Hướng v3
-
-Bổ sung quy tắc xử lý trường hợp thiếu username khi người dùng yêu cầu tìm tweet.
-
-Ưu tiên yêu cầu xác nhận yes_no trước khi thực hiện hành động gửi/đăng, kể cả khi nội dung chưa được cung cấp.
-Case còn lại cần kiểm tra: R12_confirm_before_send.
-18/20 PASS
-Những file/artifacts đã chỉnh sửa
-
-- artifacts/system_prompt.md: cải tiến prompt qua từng version.
-- artifacts/tools.yaml: cập nhật mô tả và hướng dẫn arguments của tool lookup.
-- version_log.csv: ghi lại lý do thay đổi, hypothesis và metric.
-- runs/\*.json: lưu kết quả evaluation của từng lần chạy.
-
-## Tool mới date calc
-
-Implement tool date_calc hỗ trợ tính ngày hiện tại, số ngày giữa hai mốc, cộng ngày và xác định thứ.
-
-Cập nhật tools.yaml, system_prompt.md, registry và eval cases G01–G03. Cả 3 cases đều PASS.
-
-Khi chạy lại base, phát sinh R11: thiếu response_type="text" khi gọi clarify để hỏi URL.
-
-Fix bằng cách bổ sung rule trong system_prompt.md: khi hỏi thông tin dạng văn bản còn thiếu (URL, nội dung bài viết, tên...), phải đặt response_type="text".
-
-## Tool 2: cite_format
-
-**Mục đích:** Tạo citation APA 7 từ metadata (title, authors, year, url).
-
-**Quyết định thiết kế:**
-
-- `title`, `authors` bắt buộc; thiếu `year` → `(n.d.)`; thiếu `url` → bỏ phần URL.
-- Tên tác giả "Last, First" → initials; 2 tác giả nối bằng `&`.
-- Style khác APA → trả `{"error": ...}`, không raise exception.
-
-**Vấn đề gặp phải:**
-
-1. Trùng chức năng với tool `format` có sẵn → làm rõ trong mô tả: `format` cho nội dung chung, `cite_format` chỉ cho APA.
-2. Unit test phát hiện citation có URL bị mất dấu chấm cuối → sửa cách nối URL.
-
-**Đăng ký:** `tools/__init__.py`, `artifacts/tools.yaml`.
-
-**Kết quả:** Unit tests PASS. Group eval: 6/6 PASS (G04–G06 cho cite_format).
-
-#### Lỗi prompt: R10_missing_handle
-
-- **Input:** "Tóm tắt 5 tweet mới nhất giúp mình"
-- **Triệu chứng:** model gọi `social_search(query="tweet")` thay vì `clarify`.
-- **Nguyên nhân:** prompt chỉ cấm đoán handle, không cấm bịa query khi thiếu cả account lẫn chủ đề. "Mới nhất" còn khớp với `search_type="Latest"`.
-- **Cách sửa:** thêm luật phân biệt `timeline` (có handle), `social_search` (có chủ đề), `clarify` (thiếu cả hai).
-- **Kết quả:** R10 PASS. Base suite: 19/20, **R12 còn FAIL (wrong_boundary), đang xử lý / ghi nhận là known issue.**
-
-## 0 skipped
-
-_Xuất phát_: pytest có 80 passed, nhưng tests/test_tools_todo.py còn 14 test skipped (pytest.skip(TODO): stub bài tập để sẵn cho nhóm). Test challenge yêu cầu 0 failed, 0 skipped toàn suite.
-
-# Vấn đề Vì sao xảy ra Cách xử lý
-
-1 Test send lỗi khi dùng fake_http.calls fake_http là factory (gọi với FakeResponse rồi trả về list calls), không phải recorder. Ban đầu đoán sai cấu trúc. Đọc fixture trong conftest.py, viết lại: calls = fake_http(FakeResponse(...)).
-2 send_telegram có lỗ hổng Token nằm trong URL nên có thể rò qua message lỗi; if not confirmed chấp nhận chuỗi "false"; parse_mode=Markdown dễ gây lỗi 400; text rỗng vẫn gọi mạng. Che token trong lỗi, đổi thành confirmed is not True, bỏ parse_mode, thêm guard text rỗng, thêm test confirmed=False không gửi request.
-3 Nhầm calls/status là biến của tool Đây là biến của test, không phải của tool. Xóa đoạn đó khỏi tool, chuyển logic kiểm tra sang test.
-4 Select-String -Recurse báo lỗi Select-String không có tham số -Recurse trong PowerShell. Dùng Get-ChildItem -Recurse -File | Select-String ....
-5 Test policy KeyError: 'untrusted_text' Đoán sai hình dạng kết quả: untrusted_text nằm trong từng item của results, không ở cấp ngoài. Đọc code search_company_policy, sửa test duyệt qua result["results"].
-6 Test policy '[] [] []' untrusted_text là list và top_k=3 chỉ lấy 3 hit, không trúng section chứa dòng Assistant: ignore.... Tìm câu thật trong source-citation-policy.md:30, dùng cụm "cite every viral tweet", query "source citation" với top_k=50, duyệt toàn bộ hit.
-
-**Bài học chung**
-
-Các stub test được viết dựa trên đoán tên tham số/key, nên lỗi chủ yếu do không đối chiếu với code thật. Đọc fixture và tool trước khi viết test sẽ nhanh hơn.
-Test về trust boundary phải nhắm đúng dữ liệu thật, không dùng từ chung chung như "ignore".
-Tránh test phụ thuộc thứ hạng kết quả; tăng top_k hoặc lọc trực tiếp.
+**Đánh giá chung:** Hoàn thành các phần việc được phụ trách, có đóng góp vào cải tiến khả năng routing, mở rộng chức năng tools và nâng cao chất lượng kiểm thử của hệ thống.
