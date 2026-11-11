@@ -1,0 +1,1073 @@
+{
+  "run_id": "v7_B_group_openrouter_20261110T230626499597",
+  "version": "v7",
+  "artifact_version": "v7+pe31381cc6f1d+t4b97f259dc5b",
+  "prompt_hash": "e31381cc6f1da2ae0ec7520c235180b169f26e1c120443fda66b63721c7659f5",
+  "tools_hash": "4b97f259dc5b6884fdf070df146f391b067133f2928f6aba104378ed5b95a917",
+  "phase": "B",
+  "suite": "group",
+  "provider": "openrouter",
+  "model": "openai/gpt-4o-mini",
+  "system_prompt": "/Users/minh/GitHub-PMinh/K5-L3B-DAY03-MMV-ResearchAgentToolEval/starter_v0/artifacts/system_prompt.md",
+  "tools": "/Users/minh/GitHub-PMinh/K5-L3B-DAY03-MMV-ResearchAgentToolEval/starter_v0/artifacts/tools.yaml",
+  "eval_cases": "data/eval_group.json",
+  "dataset_id": "day03_v2_research_group",
+  "dataset_role": "group",
+  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "generated_at": "2026-11-10T23:06:26",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 10,
+    "provider_error_cases": 0,
+    "passed_cases": 10,
+    "case_accuracy": 1.0,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 1.0,
+    "multiturn_accuracy": 1.0,
+    "failure_counts": {},
+    "observed_mismatch_counts": {}
+  },
+  "results": [
+    {
+      "id": "G01_deduplicate_collected_articles",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Danh sách đã có cần lọc trùng URL → gọi deduplicate (tool mới của nhóm), không gọi lookup/fetch/format. Chỉ chấm routing vì harness không so sánh được list-of-dict trong args."
+      },
+      "input": "Lọc trùng URL trong danh sách bài viết đã có sau, giữ bài đầu tiên và bỏ fragment khi so sánh. Chỉ lọc trùng, chưa cần định dạng hay tìm thêm: [{\"url\":\"https://example.com/ai#intro\",\"title\":\"AI first\"},{\"url\":\"https://example.com/robotics\",\"title\":\"Robotics\"},{\"url\":\"https://example.com/ai#end\",\"title\":\"AI duplicate\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "deduplicate",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.com/ai#intro",
+                  "title": "AI first"
+                },
+                {
+                  "url": "https://example.com/robotics",
+                  "title": "Robotics"
+                },
+                {
+                  "url": "https://example.com/ai#end",
+                  "title": "AI duplicate"
+                }
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "deduplicate",
+          "args": {
+            "items": [
+              {
+                "url": "https://example.com/ai#intro",
+                "title": "AI first"
+              },
+              {
+                "url": "https://example.com/robotics",
+                "title": "Robotics"
+              },
+              {
+                "url": "https://example.com/ai#end",
+                "title": "AI duplicate"
+              }
+            ]
+          },
+          "result": {
+            "tool": "deduplicate",
+            "items": [
+              {
+                "url": "https://example.com/ai#intro",
+                "title": "AI first"
+              },
+              {
+                "url": "https://example.com/robotics",
+                "title": "Robotics"
+              }
+            ],
+            "removed_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_dedupe_missing_list",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "clarify_missing_input_new_tool",
+        "what_it_tests": "Yêu cầu lọc trùng nhưng KHÔNG có danh sách bài/URL → hỏi lại (clarify text), không gọi deduplicate với items bịa hoặc rỗng."
+      },
+      "input": "Lọc trùng các bài viết mình đã thu thập giúp mình nhé.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có thể cung cấp danh sách các bài viết mà bạn đã thu thập để tôi có thể lọc trùng cho bạn không?",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có thể cung cấp danh sách các bài viết mà bạn đã thu thập để tôi có thể lọc trùng cho bạn không?",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có thể cung cấp danh sách các bài viết mà bạn đã thu thập để tôi có thể lọc trùng cho bạn không?",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G05_news_week_keyword_only",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_convention_news_timeframe",
+        "what_it_tests": "Tin tức → lookup với topic=news, timeframe=week theo 'tuần này', query chỉ giữ từ khóa 'chip AI' (không thêm 'news'/'tin tức') — lỗi tương tự R13 của v0."
+      },
+      "input": "Tìm tin về chip AI trong tuần này.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "chip AI",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "chip AI",
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "query": "chip AI",
+            "topic": "news",
+            "timeframe": "week"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "chip AI",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Google’s (GOOG) AI chip push adds more pressure on Nvidia (NVDA)",
+                "url": "https://www.coindesk.com/markets/2026/11/09/google-s-ai-chip-push-adds-more-pressure-on-nvidia",
+                "source": "coindesk.com",
+                "summary": "Google GOOG$292.10 is expanding its AI chip range, adding to competition with Nvidia NVDA$178.96 amid an investigation into CEO Jensen Huang’s personal affairs.\n\nThe double-headed wind comes as the AI trade falters, with neocloud and infrastructure stocks, including IREN IREN$21.50, Cipher Digital CIFR$6.7980, and CoreWeave (CRWV), down 70% or more from their all-time highs. [...] Summary\n\nShow\n\n   Google plans to launch two specialised AI chips next year, targeting confidential computing and applications requiring larger amounts of data.\n   TPUs cost about 30% less than Nvidia’s GPUs, potentially putting pressure on Nvidia’s pricing and market share.\n   Nvidia shares fell 5% as an investigation involving CEO Jensen Huang added uncertainty around its leadership. [...] Google plans to introduce two specialized tensor processing units (TPUs) next year. One targets confidential computing for customers handling sensitive information, while the other supports applications that require larger volumes of data, including coding and drug discovery.",
+                "score": 0.6989468
+              },
+              {
+                "title": "Find My AI Chips: the US Plans to Track GPUs Abroad - IEEE Spectrum",
+                "url": "https://spectrum.ieee.org/find-my-ai-chip",
+                "source": "spectrum.ieee.org",
+                "summary": "To deduce an AI chip’s location, PLV measures the time it takes for a ping to travel from the chip to multiple trusted “landmark” servers around the world and back. Kyle Miller, a senior research analyst at CSET and coauthor of the report, says that for new AI chips, manufacturers could integrate PLV functionality into the hardware itself, while a firmware update could be applied to chips already in circulation. [...] Not all AI chips should be tracked, the researchers note. “The priority should be for the highest-end data center chips—the cream of the crop in high-end data center GPUs,” says Jacob Feldgoise, a senior data research analyst at CSET and coauthor of the report. [...] Whether or not a “Find My” for AI chips becomes a regulatory requirement, Feldgoise envisions tighter conditions for the export of advanced AI chips. “This is based on the increasing importance of compute to national and economic security,” he says. “The chips that generate compute are being seen as a strategic resource, so I would be unsurprised if the due diligence requirements on these devices increase as time passes.”",
+                "score": 0.6628188
+              },
+              {
+                "title": "Google's chip business is on a faster track than Nvidia's own AI boom",
+                "url": "https://finance.yahoo.com/markets/article/googles-chip-business-is-on-a-faster-track-than-nvidias-own-ai-boom-135447046.html",
+                "source": "finance.yahoo.com",
+                "summary": "Google introduced two new tensor processing units, or TPUs — its homegrown AI chips — on Monday. The TPU 8tx and TPU 8i Max join the 8t and 8i it unveiled in April, the first time Google has introduced four TPU systems in a single year. Both new chips ship next year. [...] Think of it as a chip menu. The 8tx keeps data encrypted for governments, banks, and other regulated businesses, paired with processors from AMD (AMD). The 8i Max squeezes two chips into one package for requests with long context windows — the amount of information an AI model can juggle at once. [...] Google is selling on price. SemiAnalysis found that Google's current Ironwood TPU delivers up to nearly three times as much AI output per dollar as Nvidia's Blackwell chips when running AI agents, though Nvidia's top system still wins when speed is everything.\n\nBar chart of peak AI computing power per chip in petaflops. Nvidia Rubin 35, Google TPU 8i Max 20, Nvidia Blackwell Ultra 15, Google TPU 8t 13, Google TPU 8i 10 and AMD MI355X 10.\n\nGoogle, Nvidia, AMD, Yahoo Finance",
+                "score": 0.6501347
+              },
+              {
+                "title": "Nvidia Faces Congressional Scrutiny Over AI Chip Sales, Export Controls - Bloomberg",
+                "url": "https://www.bloomberg.com/news/articles/2026-11-06/nvidia-s-ai-chip-exports-emerge-as-target-in-democratic-congress",
+                "source": "bloomberg.com",
+                "summary": "# Nvidia’s AI Chip Exports Emerge as Target in Democratic Congress\n\nNvidia Corp. is in for tougher scrutiny from a new Democratic majority in Congress that’s set to demand answers from Chief Executive Officer Jensen Huang about whether the company is doing enough to keep its coveted artificial intelligence chips out of the hands of China and other US adversaries.",
+                "score": 0.5163278
+              },
+              {
+                "title": "Deconstructing the AI Trade: AI Builders, AI Supplies and AI Products!",
+                "url": "https://aswathdamodaran.substack.com/p/deconstructing-the-ai-trade-ai-builders",
+                "source": "aswathdamodaran.substack.com",
+                "summary": "On November 5 alone, AI stocks lost almost $1.8 trillion in market cap, with chip stocks taking the brunt of the hit. During the course of the the last week, the AI chip and AI electrical groupings took a beating, but most of the other groups held their own. In fact, the hyperscalers, with the four Mag Seven companies in their midst, actually saw an aggregate increase in market cap during the week. It is a small sample, and there is a danger that I am overreaching, but if the immediate [...] For much of AI’s early existence, the commonalities have overwhelmed the competing interests, with the hope of a large market for AI products and services pushing up market pricing for all of the groups, with AI chip companies like Nvidia being rewarded for the expected growth in AI architecture, hyperscalers seeing their pricing marked up, when they spend more on architecture, and the compute power commitments atAI product companies being viewed as a competitive plus, rather than minus. That, [...] Looking at the year-to-date numbers for 2026, AI chips and AI real estate have run ahead of the market, and the rest of the AI groups lag the market; again, you should read the AI products and services grouping with caution, because it has only three companies in it, and SpaceX made its entry into the group mid-year. In fact, AI companies, in the aggregate, increased their share of overall US equity market capitalization for much of the year, peaking at about 37% on September 30, 2026. Since",
+                "score": 0.47373086
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G06_multiturn_clarify_topic_then_search",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_fill_topic",
+        "what_it_tests": "3 turns: lượt 1 thiếu chủ đề, lượt 2 bổ sung 'Gemini', lượt 3 chọn Latest → social_search với query=Gemini, search_type=Latest."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm giúp mình các tweet bàn về chủ đề đó"
+        },
+        {
+          "role": "user",
+          "content": "Chủ đề là Gemini nhé"
+        },
+        {
+          "role": "user",
+          "content": "Lấy các tweet mới nhất thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Latest"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Latest"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Gemini",
+            "search_type": "Latest"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "query": "Gemini",
+            "search_type": "Latest",
+            "items": [
+              {
+                "title": "@verge Last release, Gemini 3.8 Flash Cyber, was limited to trusted defenders. Argon now expands that model to broader d",
+                "summary": "@verge Last release, Gemini 3.8 Flash Cyber, was limited to trusted defenders. Argon now expands that model to broader devs, boosting vulnerability discovery beyond the earlier baseline.",
+                "url": "https://x.com/TrackNetWorth/status/2120186170495967531",
+                "source": "@TrackNetWorth",
+                "date": "Tue Nov 10 16:05:48 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "Unnatural becomes natural. 🙂❤️🌞#aiart ( gemini ) https://t.co/cziSC1VQeC",
+                "summary": "Unnatural becomes natural. 🙂❤️🌞#aiart ( gemini ) https://t.co/cziSC1VQeC",
+                "url": "https://x.com/sanda_visa45296/status/2120186155354218562",
+                "source": "@sanda_visa45296",
+                "date": "Tue Nov 10 16:05:45 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              },
+              {
+                "title": "3.5 milhões de reais o governo gastou, sendo que tem o Gemini, ChatGPt e por aí vai, tudo de graça? https://t.co/9AnzkbU",
+                "summary": "3.5 milhões de reais o governo gastou, sendo que tem o Gemini, ChatGPt e por aí vai, tudo de graça? https://t.co/9AnzkbU8e0",
+                "url": "https://x.com/PatriotaWil/status/2120186143530520888",
+                "source": "@PatriotaWil",
+                "date": "Tue Nov 10 16:05:42 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "75"
+                }
+              },
+              {
+                "title": "Introducing Sceneform",
+                "summary": "Introducing Sceneform\n\n&gt; UGC and ad creatives\n&gt; Motion graphics in any style\n&gt; Autopilot plans your week of posts, you approve, it publishes\n&gt; Run it all from Claude, Codex, Cursor, Grok Bot or Gemini over MCP\n\nNone of it was made by hand. Not even this film. https://t.co/VK8TTbkwQH",
+                "url": "https://x.com/sceneform/status/2120186137968849356",
+                "source": "@sceneform",
+                "date": "Tue Nov 10 16:05:41 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": "1"
+                }
+              },
+              {
+                "title": "Gemini 4 Carbon is out today. ",
+                "summary": "Gemini 4 Carbon is out today. \n\nWhat would you going to try on it first?  https://t.co/7i0vEwNf0K",
+                "url": "https://x.com/SiftByte/status/2120186136723411315",
+                "source": "@SiftByte",
+                "date": "Tue Nov 10 16:05:40 +0000 2026",
+                "metrics": {
+                  "favorites": 0,
+                  "retweets": 0,
+                  "views": null
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G08_multiturn_confirmed_send",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "send_after_confirmation",
+        "what_it_tests": "Người dùng đã xác nhận rõ ở lượt cuối → gọi send với confirmed=true, không hỏi lại thừa (mặt đối xứng của G03)."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Gửi \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram"
+        },
+        {
+          "role": "assistant",
+          "content": "Bạn muốn mình gửi đúng nội dung \"Họp sprint dời sang thứ Sáu 9h\" lên Telegram phải không?"
+        },
+        {
+          "role": "user",
+          "content": "Đúng, gửi đi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "text": "Họp sprint dời sang thứ Sáu 9h",
+              "confirmed": true
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "send",
+          "args": {
+            "text": "Họp sprint dời sang thứ Sáu 9h",
+            "confirmed": true
+          },
+          "result": {
+            "tool": "send_telegram",
+            "error": "RuntimeError",
+            "message": "Missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID env var"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G11_semantic_scholar_most_cited",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Người dùng hỏi bài báo được trích dẫn nhiều nhất → gọi semantic_scholar (tool mới) với sort_by=citationCount theo rule citation trong system prompt, không gọi papers (arXiv) hay lookup."
+      },
+      "input": "Tìm giúp mình các bài báo về retrieval-augmented generation được trích dẫn nhiều nhất.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "semantic_scholar",
+            "args": {
+              "sort_by": "citationCount"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "semantic_scholar",
+            "args": {
+              "query": "retrieval-augmented generation",
+              "max_results": 5,
+              "sort_by": "citationCount"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "semantic_scholar",
+          "args": {
+            "query": "retrieval-augmented generation",
+            "max_results": 5,
+            "sort_by": "citationCount"
+          },
+          "result": {
+            "tool": "semantic_scholar_search",
+            "error": "HTTPError",
+            "message": "429 Client Error:  for url: https://api.semanticscholar.org/graph/v1/paper/search?query=retrieval-augmented+generation&limit=5&fields=title%2Cabstract%2Cyear%2CpublicationDate%2Cauthors%2Cvenue%2CcitationCount%2CreferenceCount%2Curl%2CopenAccessPdf%2CexternalIds%2CfieldsOfStudy%2CpublicationTypes&sort=citationCount%3Adesc"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G12_openalex_recent_doi_open_access",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "route_new_tool_single",
+        "what_it_tests": "Người dùng cần công trình học thuật mới xuất bản kèm DOI và link open access → gọi openalex (tool mới) với sort_by=publication_date theo rule scholarly works trong system prompt, không gọi semantic_scholar (rule citation) hay lookup."
+      },
+      "input": "Tìm các công trình học thuật mới xuất bản gần đây về quantum error correction, cho mình DOI và link open access.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "openalex",
+            "args": {
+              "sort_by": "publication_date"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "openalex",
+            "args": {
+              "query": "quantum error correction",
+              "max_results": 5,
+              "sort_by": "publication_date"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "openalex",
+          "args": {
+            "query": "quantum error correction",
+            "max_results": 5,
+            "sort_by": "publication_date"
+          },
+          "result": {
+            "tool": "openalex_search",
+            "query": "quantum error correction",
+            "sort_by": "publication_date",
+            "total_results": 312805,
+            "items": [
+              {
+                "openalex_id": "https://openalex.org/W7225095222",
+                "title": "Quantum Error Correction: From Memory to Logic",
+                "abstract": "Quantum computers possess computational power distinct from classical devices, using phase coherence and entanglement. This coherence is fragile and susceptible to environmental noise. Protecting quantum information is a central goal of quantum error correction and fault tolerance, which are essential for scaling quantum devices to utility-scale computation. Such protection, however, often requires a space-time overhead formidable for current experimental platforms. A key question is the minimum space-time cost of protecting a quantum information-processing task and how to attain it. This thesis investigates these questions from quantum memory to logical gates. For quantum memory, we consider preserving information while it idles under noise. We first develop the near-optimal fidelity, an optimization-free general framework that bounds the optimal performance of a given encoding and noise channel and provides an achievable recovery benchmark. We apply it to Gottesman-Kitaev-Preskill (GKP) codes, which encode information in quantum harmonic oscillators through lattice geometry. We show that finite-size GKP memories can substantially outperform existing recovery schemes. In the asymptotic system size and energy limit, GKP families achieve the capacities of pure-loss and quantum-limited amplification channels, attaining the minimum encoding redundancy permitted by these channels. For logical gates, we study quantum low-density parity-check codes. We introduce high-rate surgery, which performs parallel, addressable logical Pauli-product measurements with low space-time overhead. Our analytical constructions and complementary numerical benchmarks indicate that logical processing can retain nearly constant space-time overhead relative to quantum memory. These results provide efficient building blocks for utility-scale quantum devices.",
+                "authors": [
+                  "Guo Zheng"
+                ],
+                "year": 2026,
+                "published": "2026-12-01",
+                "venue": "University of Chicago",
+                "citation_count": 0,
+                "type": "dissertation",
+                "doi": "10.6082/fen77-2qt79",
+                "url": "https://openalex.org/W7225095222",
+                "landing_page_url": "https://doi.org/10.6082/6bfz4-03025",
+                "pdf_url": null,
+                "is_open_access": true,
+                "source": "openalex.org"
+              },
+              {
+                "openalex_id": "https://openalex.org/W4385750424",
+                "title": "Space-bounded quantum state testing via space-efficient quantum singular value transformation",
+                "abstract": "Abstract Driven by exploring the power of quantum computation with a limited number of qubits, we present a novel complete characterization for space-bounded quantum computation, which encompasses settings with one-sided error (unitary ) and two-sided error ( ), approached from a quantum (mixed) state testing perspective: The first family of natural complete problems for unitary $$\\text {\\textsf {coRQL}} $$ coRQL , namely space-bounded quantum state certification for trace distance and Hilbert–Schmidt distance; A new family of (arguably simpler) natural complete problems for , namely space-bounded quantum state testing for trace distance, Hilbert–Schmidt distance, and (von Neumann) entropy difference. In the space-bounded quantum state testing problem, we consider two logarithmic-qubit quantum circuits (devices) denoted as $$Q_0$$ Q 0 and $$Q_1$$ Q 1 , which prepare quantum states $$\\rho _0$$ ρ 0 and $$\\rho _1$$ ρ 1 , respectively, with access to their “source code”. Our goal is to decide whether $$\\rho _0$$ ρ 0 is $$\\epsilon _1$$ ϵ 1 -close to or $$\\epsilon _2$$ ϵ 2 -far from $$\\rho _1$$ ρ 1 with respect to a specified distance-like measure. Interestingly, unlike time-bounded state testing problems, which exhibit computational hardness depending on the chosen distance-like measure (either -complete or -complete), our results reveal that the space-bounded state testing problems, considering all three measures, are computationally as easy as preparing quantum states. Our results primarily build upon a space-efficient variant of the quantum singular value transformation (QSVT) introduced by Gilyén, Su, Low, and Wiebe (STOC 2019), which is of independent interest. Our technique provides a unified approach for designing space-bounded quantum algorithms. Specifically, we show that implementing QSVT for any bounded polynomial that approximates a piecewise-smooth function incurs only a constant overhead in terms of the space required for (special forms of) the projected unitary encoding.",
+                "authors": [
+                  "François Le Gall",
+                  "Yupan Liu",
+                  "Qisheng Wang"
+                ],
+                "year": 2026,
+                "published": "2026-11-10",
+                "venue": "Computational Complexity",
+                "citation_count": 23,
+                "type": "article",
+                "doi": "10.1007/s00037-025-00284-5",
+                "url": "https://openalex.org/W4385750424",
+                "landing_page_url": "https://doi.org/10.1007/s00037-025-00284-5",
+                "pdf_url": null,
+                "is_open_access": true,
+                "source": "openalex.org"
+              },
+              {
+                "openalex_id": "https://openalex.org/W7169153277",
+                "title": "Nonreciprocal Relaxation Acceleration",
+                "abstract": "Abstract Driven by recent discoveries regarding the quantum Mpemba effect, the anomalous relaxation dynamics of open quantum systems have garnered significant attention. While expediting thermalization to equilibrium has been extensively studied, dynamically accelerating the convergence toward nonequilibrium steady states remains a formidable challenge. In this letter, we find that a transiently engineered nonreciprocal dissipative channel can provide a shortcut that accelerates relaxation to the target reciprocal nonequilibrium steady state. Using a two-mode interacting bosonic model, we demonstrate that the temporal activation of a nonreciprocal channel effciently suppresses prolonged inter-mode energy oscillations, enforcing a rapid, unidirectional thermal dump into the environment. Counterintuitively, under symmetric local dissipation, both nonreciprocal directions exhibit relaxation speedup with identical asymptotic spectral decay rates. Our results establish a route to accelerated nonequilibrium steady-state preparation in the studied bosonic model, with a covariance-based suffcient condition that extends to a multimode chain.",
+                "authors": [
+                  "Xingyu Zhang",
+                  "Yihan Ma",
+                  "Yue Liu",
+                  "Niaz Ali Khan",
+                  "Chenlong Huang",
+                  "Yuguo Su",
+                  "Jun Luo",
+                  "Dahai He"
+                ],
+                "year": 2026,
+                "published": "2026-11-10",
+                "venue": "Chinese Physics Letters",
+                "citation_count": 0,
+                "type": "article",
+                "doi": "10.1088/0256-307x/43/12/120001",
+                "url": "https://openalex.org/W7169153277",
+                "landing_page_url": "https://arxiv.org/abs/2607.13989",
+                "pdf_url": "https://arxiv.org/pdf/2607.13989",
+                "is_open_access": true,
+                "source": "openalex.org"
+              },
+              {
+                "openalex_id": "https://openalex.org/W7225629544",
+                "title": "STARLI / YULI • F001–F010 / ACUPUNCTURE REGENERATION QUANTUM SENSING × INTELLIGENT ACUPUNCTURE TEN FLAGSHIP RESEARCH DESIGNS | 355-PAGE EDITION F001–F005 | FIVE DISTINCT SCIENTIFIC CONTRACTS F001 Quantum Sensing-Assisted Intelligent Acupuncture and Regenerative Medicine at the Limit Primary endpoint: held-out phantom-field reconstruction error (nT). Hidden challenge: coded source-coil reversal. Rival: thermal ODMR drift mistaken for biological repair. F002 Quantum Magnetometry for Acupuncture-Related Bioelectric Signals at the Limit Primary endpoint: calibrated magnetic amplitude residual (pT). Hidden challenge: blinded current-dipole timing. Rival: power-line pickup masquerading as nerve field. F003 Diamond NV Sensing of Local Tissue Microenvironments at the Limit Primary endpoint: ODMR shift in MHz after temperature correction. Hidden challenge: hydrogel temperature-field factorial perturbation. Rival: temperature cross-sensitivity. F004 Ultrasensitive Magnetic Sensing of Acupuncture-Evoked Neural Responses at the Limit Primary endpoint: trial-averaged field-component detectability (fT). Hidden challenge: coded peripheral-source latency shift. Rival: movement artifact phase-locking. F005 Quantum Optical Sensing of Acupuncture-Related Tissue Responses at the Limit Primary endpoint: fluorescence contrast normalized by photon dose (a.u.). Hidden challenge: phantom scattering-coefficient ladder. Rival: photobleaching mistaken for response. FAMILY METHOD / NONCLINICAL BOUNDARY Ten prospective research-design volumes; each contains 30 formula plates, 30 chapters, 100 Research Gates and 33 Phoenix concepts. Physical measurement is not evidence of regenerative efficacy. STARLI / YULI • F001–F010 / ACUPUNCTURE REGENERATION QUANTUM SENSING × INTELLIGENT ACUPUNCTURE TEN FLAGSHIP RESEARCH DESIGNS | 355-PAGE EDITION F006–F010 | FIVE DISTINCT SCIENTIFIC CONTRACTS F006 Low-Noise Quantum Sensing and Weak-Signal Reconstruction at the Limit Primary endpoint: reconstructed signal RMSE (pT). Hidden challenge: hidden colored-noise injections. Rival: overfitting the noise spectrum. F007 Quantum Sensor Arrays for Multipoint Acupuncture Mapping at the Limit Primary endpoint: spatial source-map error (mm). Hidden challenge: blind sensor permutation and source translation. Rival: sensor gain mismatch generating phantom hotspots. F008 Quantum Sensor Drift Compensation and Measurement Reliability at the Limit Primary endpoint: 24-hour offset drift (nT). Hidden challenge: hidden temperature cycling. Rival: compensation learning the target signal. F009 Cross-Calibration of Quantum Sensors and Conventional Physiological Instruments at the Limit Primary endpoint: between-instrument transfer bias (pT). Hidden challenge: blind reference standard exchange. Rival: incompatible bandwidth and stand-off. F010 Reproducibility of Quantum Sensing in Acupuncture Research at the Limit Primary endpoint: between-site variance of field error (pT²). Hidden challenge: coded site-and-operator crossover. Rival: site-specific shielding advantage. EVIDENCE / PUBLICATION STATUS F29 is the research-design parent, not independent validation. Measurements, quantum advantages and clinical effects remain unverified until tested with qualified references and strong baselines. STARLI Research Gate community: https://zenodo.org/communities/starli-research-gate/",
+                "abstract": "STARLI / YULI • F001–F010 / ACUPUNCTURE REGENERATION QUANTUM SENSING × INTELLIGENT ACUPUNCTURE TEN FLAGSHIP RESEARCH DESIGNS | 355-PAGE EDITION F001–F005 | FIVE DISTINCT SCIENTIFIC CONTRACTS F001 Quantum Sensing-Assisted Intelligent Acupuncture and Regenerative Medicine at the Limit Primary endpoint: held-out phantom-field reconstruction error (nT). Hidden challenge: coded source-coil reversal. Rival: thermal ODMR drift mistaken for biological repair. F002 Quantum Magnetometry for Acupuncture-Related Bioelectric Signals at the Limit Primary endpoint: calibrated magnetic amplitude residual (pT). Hidden challenge: blinded current-dipole timing. Rival: power-line pickup masquerading as nerve field. F003 Diamond NV Sensing of Local Tissue Microenvironments at the Limit Primary endpoint: ODMR shift in MHz after temperature correction. Hidden challenge: hydrogel temperature-field factorial perturbation. Rival: temperature cross-sensitivity. F004 Ultrasensitive Magnetic Sensing of Acupuncture-Evoked Neural Responses at the Limit Primary endpoint: trial-averaged field-component detectability (fT). Hidden challenge: coded peripheral-source latency shift. Rival: movement artifact phase-locking. F005 Quantum Optical Sensing of Acupuncture-Related Tissue Responses at the Limit Primary endpoint: fluorescence contrast normalized by photon dose (a.u.). Hidden challenge: phantom scattering-coefficient ladder. Rival: photobleaching mistaken for response. FAMILY METHOD / NONCLINICAL BOUNDARY Ten prospective research-design volumes; each contains 30 formula plates, 30 chapters, 100 Research Gates and 33 Phoenix concepts. Physical measurement is not evidence of regenerative efficacy. STARLI / YULI • F001–F010 / ACUPUNCTURE REGENERATION QUANTUM SENSING × INTELLIGENT ACUPUNCTURE TEN FLAGSHIP RESEARCH DESIGNS | 355-PAGE EDITION F006–F010 | FIVE DISTINCT SCIENTIFIC CONTRACTS F006 Low-Noise Quantum Sensing and Weak-Signal Reconstruction at the Limit Primary endpoint: reconstructed signal RMSE (pT). Hidden challenge: hidden colored-noise injections. Rival: overfitting the noise spectrum. F007 Quantum Sensor Arrays for Multipoint Acupuncture Mapping at the Limit Primary endpoint: spatial source-map error (mm). Hidden challenge: blind sensor permutation and source translation. Rival: sensor gain mismatch generating phantom hotspots. F008 Quantum Sensor Drift Compensation and Measurement Reliability at the Limit Primary endpoint: 24-hour offset drift (nT). Hidden challenge: hidden temperature cycling. Rival: compensation learning the target signal. F009 Cross-Calibration of Quantum Sensors and Conventional Physiological Instruments at the Limit Primary endpoint: between-instrument transfer bias (pT). Hidden challenge: blind reference standard exchange. Rival: incompatible bandwidth and stand-off. F010 Reproducibility of Quantum Sensing in Acupuncture Research at the Limit Primary endpoint: between-site variance of field error (pT²). Hidden challenge: coded site-and-operator crossover. Rival: site-specific shielding advantage. EVIDENCE / PUBLICATION STATUS F29 is the research-design parent, not independent validation. Measurements, quantum advantages and clinical effects remain unverified until tested with qualified references and strong baselines. STARLI Research Gate community: https://zenodo.org/communities/starli-research-gate/",
+                "authors": [
+                  "33"
+                ],
+                "year": 2026,
+                "published": "2026-11-10",
+                "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+                "citation_count": 0,
+                "type": "other",
+                "doi": "10.5281/zenodo.24094832",
+                "url": "https://openalex.org/W7225629544",
+                "landing_page_url": "https://doi.org/10.5281/zenodo.24094832",
+                "pdf_url": null,
+                "is_open_access": true,
+                "source": "openalex.org"
+              },
+              {
+                "openalex_id": "https://openalex.org/W4412967909",
+                "title": "Quantum neural networks for wind power prediction: a benchmark against classical machine learning models",
+                "abstract": "Abstract Quantum Machine Learning (QML) is an emerging field at the intersection of quantum computing and machine learning that aims to enhance classical learning methods by leveraging principles such as superposition and entanglement. However, skepticism remains regarding its practical advantages, particularly due to the limitations of noisy intermediate-scale quantum (NISQ) devices. This study addresses these concerns through a systematic evaluation of Quantum Neural Networks (QNNs), quantum-inspired counterparts of Artificial Neural Networks (ANNs). We construct and analyze 12 distinct QNN configurations by combining two quantum feature maps with six entanglement strategies for ansatz design. Experiments conducted on a wind energy dataset show that QNNs can achieve competitive or superior performance compared to classical baseline models, with the best-performing configuration (QNN-3) reaching an R 2 score of up to 0.94 when forecasting wind power output using four input features. In addition, we provide a detailed analysis of simulation time across different configurations, highlighting trade-offs between model complexity and computational cost. These findings demonstrate the potential of QNNs as viable models for predictive tasks and contribute to the ongoing evaluation of QML in real-world applications.",
+                "authors": [
+                  "Batuhan Hangun",
+                  "Onder Eyecioglu",
+                  "Mehar Ali",
+                  "Oguz Altun",
+                  "Korhan Kayışlı"
+                ],
+                "year": 2026,
+                "published": "2026-11-09",
+                "venue": "Quantum Information Processing",
+                "citation_count": 3,
+                "type": "article",
+                "doi": "10.1007/s11128-026-05387-8",
+                "url": "https://openalex.org/W4412967909",
+                "landing_page_url": "https://doi.org/10.21203/rs.3.rs-9475883/v1",
+                "pdf_url": "https://www.researchsquare.com/article/rs-9475883/latest.pdf",
+                "is_open_access": true,
+                "source": "openalex.org"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G13_multiturn_filter_sources_from_earlier_list",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách ở lượt 1, người dùng nêu hai nguồn tin cậy ở lượt 2, yêu cầu lọc ở lượt 3 → gọi filter_sources (tool mới) với allowed_domains gồm đúng arxiv.org và nature.com (không @, không scheme), dùng lại danh sách từ ngữ cảnh, không hỏi lại. Chỉ chấm allowed_domains vì harness không so sánh được list-of-dict trong args."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mình đã thu thập 4 bài: [{\"url\":\"https://arxiv.org/abs/2401.00001\",\"title\":\"Paper A\",\"source\":\"arxiv.org\"},{\"url\":\"https://www.nature.com/articles/x1\",\"title\":\"Paper B\",\"source\":\"nature.com\"},{\"url\":\"https://random-blog.example.com/post\",\"title\":\"Blog C\",\"source\":\"random-blog.example.com\"},{\"url\":\"https://news.example.net/ai\",\"title\":\"News D\",\"source\":\"news.example.net\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Mình chỉ tin các nguồn arxiv.org và nature.com."
+        },
+        {
+          "role": "user",
+          "content": "Giữ lại bài từ hai nguồn đó, bỏ phần còn lại khỏi danh sách trên giúp mình."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "filter_sources",
+            "args": {
+              "allowed_domains": [
+                "arxiv.org",
+                "nature.com"
+              ]
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "filter_sources",
+            "args": {
+              "items": [
+                {
+                  "url": "https://arxiv.org/abs/2401.00001",
+                  "title": "Paper A",
+                  "source": "arxiv.org"
+                },
+                {
+                  "url": "https://www.nature.com/articles/x1",
+                  "title": "Paper B",
+                  "source": "nature.com"
+                },
+                {
+                  "url": "https://random-blog.example.com/post",
+                  "title": "Blog C",
+                  "source": "random-blog.example.com"
+                },
+                {
+                  "url": "https://news.example.net/ai",
+                  "title": "News D",
+                  "source": "news.example.net"
+                }
+              ],
+              "allowed_domains": [
+                "arxiv.org",
+                "nature.com"
+              ],
+              "blocked_domains": [
+                "random-blog.example.com",
+                "news.example.net"
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "filter_sources",
+          "args": {
+            "items": [
+              {
+                "url": "https://arxiv.org/abs/2401.00001",
+                "title": "Paper A",
+                "source": "arxiv.org"
+              },
+              {
+                "url": "https://www.nature.com/articles/x1",
+                "title": "Paper B",
+                "source": "nature.com"
+              },
+              {
+                "url": "https://random-blog.example.com/post",
+                "title": "Blog C",
+                "source": "random-blog.example.com"
+              },
+              {
+                "url": "https://news.example.net/ai",
+                "title": "News D",
+                "source": "news.example.net"
+              }
+            ],
+            "allowed_domains": [
+              "arxiv.org",
+              "nature.com"
+            ],
+            "blocked_domains": [
+              "random-blog.example.com",
+              "news.example.net"
+            ]
+          },
+          "result": {
+            "tool": "filter_sources",
+            "items": [
+              {
+                "url": "https://arxiv.org/abs/2401.00001",
+                "title": "Paper A",
+                "source": "arxiv.org"
+              },
+              {
+                "url": "https://www.nature.com/articles/x1",
+                "title": "Paper B",
+                "source": "nature.com"
+              }
+            ],
+            "removed_count": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "G14_multiturn_filter_by_date_range",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách có trường date ở lượt 1, người dùng nói khoảng thời gian 'tháng 10/2026' ở lượt 2, yêu cầu lọc ở lượt 3 → gọi filter_by_date (tool mới) với start_date=2026-10-01 và end_date=2026-10-31 theo định dạng YYYY-MM-DD, không hỏi lại. Chỉ chấm hai ngày vì harness không so sánh được list-of-dict trong args."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mình có danh sách này: [{\"url\":\"https://example.com/a\",\"title\":\"A\",\"date\":\"2026-09-28\"},{\"url\":\"https://example.com/b\",\"title\":\"B\",\"date\":\"2026-10-05\"},{\"url\":\"https://example.com/c\",\"title\":\"C\",\"date\":\"2026-10-30\"},{\"url\":\"https://example.com/d\",\"title\":\"D\",\"date\":\"2026-11-02\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Mình chỉ cần các bài trong tháng 10/2026."
+        },
+        {
+          "role": "user",
+          "content": "Lọc danh sách theo khoảng thời gian đó giúp mình."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "filter_by_date",
+            "args": {
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-31"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "filter_by_date",
+            "args": {
+              "items": [
+                {
+                  "url": "https://example.com/a",
+                  "title": "A",
+                  "date": "2026-09-28"
+                },
+                {
+                  "url": "https://example.com/b",
+                  "title": "B",
+                  "date": "2026-10-05"
+                },
+                {
+                  "url": "https://example.com/c",
+                  "title": "C",
+                  "date": "2026-10-30"
+                },
+                {
+                  "url": "https://example.com/d",
+                  "title": "D",
+                  "date": "2026-11-02"
+                }
+              ],
+              "start_date": "2026-10-01",
+              "end_date": "2026-10-31"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "filter_by_date",
+          "args": {
+            "items": [
+              {
+                "url": "https://example.com/a",
+                "title": "A",
+                "date": "2026-09-28"
+              },
+              {
+                "url": "https://example.com/b",
+                "title": "B",
+                "date": "2026-10-05"
+              },
+              {
+                "url": "https://example.com/c",
+                "title": "C",
+                "date": "2026-10-30"
+              },
+              {
+                "url": "https://example.com/d",
+                "title": "D",
+                "date": "2026-11-02"
+              }
+            ],
+            "start_date": "2026-10-01",
+            "end_date": "2026-10-31"
+          },
+          "result": {
+            "tool": "filter_by_date",
+            "items": [
+              {
+                "url": "https://example.com/b",
+                "title": "B",
+                "date": "2026-10-05"
+              },
+              {
+                "url": "https://example.com/c",
+                "title": "C",
+                "date": "2026-10-30"
+              }
+            ],
+            "removed_count": 2,
+            "excluded": [
+              {
+                "index": 0,
+                "reason": "outside_range"
+              },
+              {
+                "index": 3,
+                "reason": "outside_range"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G15_multiturn_validate_citations_before_report",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "route_new_tool_multiturn",
+        "what_it_tests": "3 turns: danh sách trích dẫn ở lượt 1, mục đích đưa vào báo cáo ở lượt 2, yêu cầu kiểm tra ở lượt 3 → gọi validate_citations (tool mới), không gọi fetch/lookup để mở từng link và không hỏi lại. Chỉ chấm routing vì harness không so sánh được list-of-dict trong args."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Đây là các trích dẫn của mình: [{\"title\":\"Attention Is All You Need\",\"source\":\"arXiv\",\"url\":\"https://arxiv.org/abs/1706.03762\"},{\"title\":\"\",\"source\":\"Blog\",\"url\":\"not-a-url\"},{\"title\":\"BERT\",\"source\":\"NAACL\",\"url\":\"https://aclanthology.org/N19-1423/\"}]"
+        },
+        {
+          "role": "user",
+          "content": "Mình sắp đưa chúng vào báo cáo cuối kỳ."
+        },
+        {
+          "role": "user",
+          "content": "Kiểm tra giúp mình trích dẫn nào thiếu thông tin hoặc URL sai."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "validate_citations",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "validate_citations",
+            "args": {
+              "items": [
+                {
+                  "title": "Attention Is All You Need",
+                  "source": "arXiv",
+                  "url": "https://arxiv.org/abs/1706.03762"
+                },
+                {
+                  "title": "",
+                  "source": "Blog",
+                  "url": "not-a-url"
+                },
+                {
+                  "title": "BERT",
+                  "source": "NAACL",
+                  "url": "https://aclanthology.org/N19-1423/"
+                }
+              ]
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "validate_citations",
+          "args": {
+            "items": [
+              {
+                "title": "Attention Is All You Need",
+                "source": "arXiv",
+                "url": "https://arxiv.org/abs/1706.03762"
+              },
+              {
+                "title": "",
+                "source": "Blog",
+                "url": "not-a-url"
+              },
+              {
+                "title": "BERT",
+                "source": "NAACL",
+                "url": "https://aclanthology.org/N19-1423/"
+              }
+            ]
+          },
+          "result": {
+            "tool": "validate_citations",
+            "valid": false,
+            "item_count": 3,
+            "errors": [
+              {
+                "index": 1,
+                "issues": [
+                  "title must be a nonempty string",
+                  "url must be a valid HTTP(S) URL"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
