@@ -123,11 +123,11 @@ Lấy từ `starter_v0/transcripts/*.transcript.json`.
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 | --- | --- | --- | --- |
-| 4 Tool mới (Bonus CP3) | `starter_v0/tools/` (`github_repo`, `pypi_package`, `wiki_summary`, `hn_search`) | 4 công cụ mở rộng tích hợp live API: tra cứu GitHub repo, thư viện PyPI, bách khoa toàn thư Wikipedia, thảo luận Hacker News | Validate đầu vào chặt chẽ trước khi gọi mạng, không crash/raise mà trả về error dict có cấu trúc |
-| Unit test tool mới (12 test) | `starter_v0/tests/test_tools_todo.py` (`pytest` output: 12 passed) | Mỗi tool 3 test (happy path, input sai, lỗi mạng/404) | Mock toàn diện qua fake_http, 0 skipped, 0 failed |
+| 4 Tool mới (CP3) | `starter_v0/tools/` (`github_repo`, `pypi_package`, `wiki_summary`, `hn_search`) | 4 công cụ mở rộng tích hợp live API: tra cứu GitHub repo, thư viện PyPI, tóm tắt Wikipedia, thảo luận Hacker News | Validate đầu vào chặt chẽ trước khi gọi mạng, không crash/raise mà trả về error dict có cấu trúc |
+| Unit test tool mới (12 test) | `starter_v0/tests/test_tools_todo.py` (`pytest` toàn suite: `94 passed, 17 skipped, 0 failed`; `test_tools_todo.py`: `12 passed, 17 skipped, 0 failed`) | 12/12 unit test của 4 tool mới đều pass (`0 skipped, 0 failed` cho phần tool mới; 17 `skipped` còn lại là stub TODO của tool có sẵn theo đúng phạm vi CP3) | Mock toàn diện qua `fake_http`, không gọi mạng thật khi chạy `pytest` |
 | UI | `starter_v0/app.py` | Giao diện Streamlit trực quan, hiển thị lịch sử chat và các tool đã gọi | Có hiển thị các tool calls và args dạng expander cho người dùng theo dõi |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+Tool unit tests: Nhóm đã viết **12 unit tests** mới trong `starter_v0/tests/test_tools_todo.py` (3 tests/tool cho `github_repo`, `pypi_package`, `wiki_summary`, `hn_search`, chạy offline với `fake_http`). Một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được: Eval chỉ chấm xem model có chọn đúng tên tool và tham số (ví dụ `wiki_summary(title="Retrieval augmented generation")` hay `hn_search(query="AI", limit=0)`) chứ không kiểm tra code Python bên dưới có gửi đúng request lên API hay xử lý biên không. Thực tế, unit test `test_wiki_summary_sends_user_agent_and_maps_fields` kiểm tra trực tiếp URL path (đổi khoảng trắng thành `_` trong `/page/summary/...`) và bắt buộc có header `User-Agent` (thiếu sẽ bị Wikimedia trả 403), đồng thời `test_hn_search_clamps_bad_limits` và `test_github_repo_rejects_bad_repo_without_network` bắt được trường hợp input ngoài biên (`limit=0` → kẹp về `1`) hoặc format sai (`repo="whisper"` phải trả `invalid_repo` và `calls == []`, không gọi mạng thừa hay raise exception).
 
 ### B5. Bonus Evidence
 
