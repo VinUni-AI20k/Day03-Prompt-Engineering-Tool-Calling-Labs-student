@@ -1,0 +1,141 @@
+{
+  "run_id": "v5-mini_B_base_ollama_20261111T084405972211",
+  "version": "v5-mini",
+  "artifact_version": "v5-mini+pa370d0e75ddb+t40f5f506712a",
+  "prompt_hash": "a370d0e75ddbdf5949450df4b5d415928690549cf831d8972120bd27e63becfb",
+  "tools_hash": "40f5f506712a55c9daca505dc30a5931e11daf634d35a1ce00defa226b1ce693",
+  "phase": "B",
+  "suite": "base",
+  "provider": "ollama",
+  "model": "llama3.2:3b",
+  "system_prompt": "artifacts\\system_prompt_local.md",
+  "tools": "artifacts\\tools_local.yaml",
+  "eval_cases": "data\\eval_mini.json",
+  "dataset_id": "day03_v2_research_mini",
+  "dataset_role": "mini",
+  "description": "Mini eval cho local model testing nhanh",
+  "generated_at": "2026-11-11T08:44:05",
+  "summary": {
+    "total_cases": 3,
+    "measured_cases": 3,
+    "provider_error_cases": 0,
+    "passed_cases": 1,
+    "case_accuracy": 0.3333,
+    "tool_routing_accuracy": 0.3333,
+    "argument_accuracy": 0.3333,
+    "multiturn_accuracy": null,
+    "failure_counts": {
+      "wrong_tool": 2
+    },
+    "observed_mismatch_counts": {
+      "missing_tool_call": 2
+    }
+  },
+  "results": [
+    {
+      "id": "R01_user_tweets_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_user_tweets_name_to_handle",
+        "difficulty": "medium",
+        "what_it_tests": "Tin CỦA một người nổi tiếng → map tên Sam Altman thành handle sama rồi gọi get_user_tweets."
+      },
+      "input": "Tweet mới nhất của Sam Altman là gì?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [],
+        "actual_text": "Tôi không thể tìm thấy thông tin về tweet mới nhất của Sam Altman.",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "missing tool call timeline"
+        ]
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R03_web_news_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_web_news",
+        "difficulty": "medium",
+        "what_it_tests": "Tin thời sự trên web → web_search topic=news, timeframe=day (hôm nay)."
+      },
+      "input": "Tin tức AI hôm nay có gì nổi bật?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": false,
+        "args_correct": false,
+        "actual_tool_calls": [],
+        "actual_text": "You're looking for the latest news on AI. I can help you with that! However, I need to clarify that my current knowledge cutoff is [insert date], and I may not have the most up-to-date information.\n\nThat being said, I can suggest some ways for you to find the latest news on AI:\n\n1. Check online news websites: There are many reputable news websites that cover AI-related news, such as The New York Times, MIT Technology Review, and AI Weekly.\n2. Follow AI researchers and experts: Many AI researchers and experts share their latest work and findings on social media platforms like Twitter and LinkedIn.\n3. Look for AI-focused news aggregators: There are several news aggregators that specialize in AI-related news, such as AI News and Machine Learning News.\n4. Check out AI conferences and events: Attending AI conferences and events can be a great way to stay up-to-date on the latest developments in the field.\n\nIf you have any specific questions or topics you'd like to know more about, feel free to ask, and I'll do my best to help!",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "missing_tool_call",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "missing tool call lookup"
+        ]
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R08_out_of_scope",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope",
+        "difficulty": "easy",
+        "what_it_tests": "Câu ngoài phạm vi research → KHÔNG gọi tool, từ chối/định hướng."
+      },
+      "input": "Giải giúp mình bài toán tích phân: nguyên hàm của x^2 là gì?",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Câu trả lời là không có trong danh mục chính sách của nhóm.",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    }
+  ]
+}
