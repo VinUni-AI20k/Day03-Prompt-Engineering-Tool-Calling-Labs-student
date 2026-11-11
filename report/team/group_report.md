@@ -61,12 +61,12 @@ Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc 
 
 Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. Chỉ dùng run có `provider_error_cases == 0` và `measured_cases == total_cases`.
 
-| Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
-| ------- | ---------------- | ---------- | ------------: | -----------: | -------- |
-| v0      | baseline         |            |               |              |          |
-| v1      |                  |            |               |              |          |
-| v2      |                  |            |               |              |          |
-| v3      |                  |            |               |              |          |
+| Version | Changed Artifact                                   | Hypothesis                                                                                                                              | Metric Before | Metric After | Run File                                        |
+| ------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------: | -----------: | ----------------------------------------------- |
+| v0      | baseline                                           | Original starter prompt and tool declarations (baseline)                                                                                |             0 |         0.65 | v0_B_base_openrouter_20261110T180436912628.json |
+| v1      | artifacts/system_prompt.md                         | Explicit tool-use boundaries will prevent inappropriate send calls                                                                      |          0.65 |          0.8 | v1_B_base_openrouter_20261110T182150529339.json |
+| v2      | artifacts/system_prompt.md                         | Explicit clarification-type rules will reduce wrong clarification arguments                                                             |           0.8 |         0.85 | v2_B_base_openrouter_20261110T184052350453.json |
+| v3      | [artifacts/system_prompt.md, artifacts/tools.yaml] | Explicit clarification rules and tool argument guidance will reduce missing-info errors wrong boundaries and incorrect search arguments |          0.85 |          0.9 | v3_B_base_openrouter_20261110T185133364699.json |
 
 ### B2. Failure Analysis
 

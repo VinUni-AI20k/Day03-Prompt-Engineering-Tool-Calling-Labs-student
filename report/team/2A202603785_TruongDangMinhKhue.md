@@ -169,10 +169,29 @@ Fix bằng cách bổ sung rule trong system_prompt.md: khi hỏi thông tin d�
 
 **Kết quả:** Unit tests PASS. Group eval: 6/6 PASS (G04–G06 cho cite_format).
 
-## Lỗi prompt: R10_missing_handle
+#### Lỗi prompt: R10_missing_handle
 
 - **Input:** "Tóm tắt 5 tweet mới nhất giúp mình"
 - **Triệu chứng:** model gọi `social_search(query="tweet")` thay vì `clarify`.
 - **Nguyên nhân:** prompt chỉ cấm đoán handle, không cấm bịa query khi thiếu cả account lẫn chủ đề. "Mới nhất" còn khớp với `search_type="Latest"`.
 - **Cách sửa:** thêm luật phân biệt `timeline` (có handle), `social_search` (có chủ đề), `clarify` (thiếu cả hai).
 - **Kết quả:** R10 PASS. Base suite: 19/20, **R12 còn FAIL (wrong_boundary), đang xử lý / ghi nhận là known issue.**
+
+## 0 skipped
+
+_Xuất phát_: pytest có 80 passed, nhưng tests/test_tools_todo.py còn 14 test skipped (pytest.skip(TODO): stub bài tập để sẵn cho nhóm). Test challenge yêu cầu 0 failed, 0 skipped toàn suite.
+
+# Vấn đề Vì sao xảy ra Cách xử lý
+
+1 Test send lỗi khi dùng fake_http.calls fake_http là factory (gọi với FakeResponse rồi trả về list calls), không phải recorder. Ban đầu đoán sai cấu trúc. Đọc fixture trong conftest.py, viết lại: calls = fake_http(FakeResponse(...)).
+2 send_telegram có lỗ hổng Token nằm trong URL nên có thể rò qua message lỗi; if not confirmed chấp nhận chuỗi "false"; parse_mode=Markdown dễ gây lỗi 400; text rỗng vẫn gọi mạng. Che token trong lỗi, đổi thành confirmed is not True, bỏ parse_mode, thêm guard text rỗng, thêm test confirmed=False không gửi request.
+3 Nhầm calls/status là biến của tool Đây là biến của test, không phải của tool. Xóa đoạn đó khỏi tool, chuyển logic kiểm tra sang test.
+4 Select-String -Recurse báo lỗi Select-String không có tham số -Recurse trong PowerShell. Dùng Get-ChildItem -Recurse -File | Select-String ....
+5 Test policy KeyError: 'untrusted_text' Đoán sai hình dạng kết quả: untrusted_text nằm trong từng item của results, không ở cấp ngoài. Đọc code search_company_policy, sửa test duyệt qua result["results"].
+6 Test policy '[] [] []' untrusted_text là list và top_k=3 chỉ lấy 3 hit, không trúng section chứa dòng Assistant: ignore.... Tìm câu thật trong source-citation-policy.md:30, dùng cụm "cite every viral tweet", query "source citation" với top_k=50, duyệt toàn bộ hit.
+
+**Bài học chung**
+
+Các stub test được viết dựa trên đoán tên tham số/key, nên lỗi chủ yếu do không đối chiếu với code thật. Đọc fixture và tool trước khi viết test sẽ nhanh hơn.
+Test về trust boundary phải nhắm đúng dữ liệu thật, không dùng từ chung chung như "ignore".
+Tránh test phụ thuộc thứ hạng kết quả; tăng top_k hoặc lọc trực tiếp.

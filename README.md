@@ -96,14 +96,14 @@ Tool có sẵn (`send`, `policy`, `papers`, `paper_text`) không tự được b
 - [ ] UI chạy được + link dùng thử
 - [ ] `chat.py`: ≥ 3 lượt live, có transcript
 - [ ] `report/team/group_report.md` Phần A trước 16:30, Phần B trước khi nộp
-- [ ] Mỗi thành viên có `report/team/MSSV_HoTen.md`
+- [x] Mỗi thành viên có `report/team/MSSV_HoTen.md`
 
 **Bonus (tuỳ chọn)**
 
 - [ ] `send` gửi thật lên Telegram sau khi user xác nhận, có transcript chứng minh
 - [ ] Small Local Model Challenge (Step 7)
 - [ ] Hơn 3 tool mới (≥ 4), mỗi tool ≥ 3 test
-- [ ] Test challenge: `pytest` 0 failed, 0 skipped toàn suite
+- [x] Test challenge: `pytest` 0 failed, 0 skipped toàn suite
 
 ## Cấu trúc thư mục
 
