@@ -18,6 +18,9 @@ from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
 from .github_repo.tool import get_github_repo
+from .hackernews.tool import search_hackernews
+from .wikipedia.tool import get_wikipedia_summary
+from .pypi_package.tool import get_pypi_package
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -39,6 +42,9 @@ TOOL_FUNCTIONS = {
     # TODO CP3 (student): register your new tool here, e.g. "my_tool": my_tool_function,
     # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
     "github_repo": get_github_repo,
+    "hackernews": search_hackernews,
+    "wikipedia": get_wikipedia_summary,
+    "pypi_package": get_pypi_package,
 }
 
 

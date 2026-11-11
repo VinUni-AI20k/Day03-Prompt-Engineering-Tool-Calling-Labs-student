@@ -1,0 +1,101 @@
+{
+  "dataset_id": "day03_v2_research_new_tools",
+  "dataset_role": "group_new_tools",
+  "description": "Eval case route tới 4 tool do nhóm tự viết (github_repo, hackernews, wikipedia, pypi_package). Tách khỏi eval_group.json để giữ đúng 10 case 5 single + 5 multi.",
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "N01_github_repo_routing",
+      "phase": "B",
+      "suite": "new_tools",
+      "query": "Repo psf/requests trên GitHub có bao nhiêu sao và viết bằng ngôn ngữ gì?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "github_repo",
+            "args": {
+              "repo": "psf/requests"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_github_repo",
+        "difficulty": "medium",
+        "what_it_tests": "Hỏi thông tin repo cụ thể → github_repo với repo=owner/repo (không dùng lookup/fetch)."
+      }
+    },
+    {
+      "id": "N02_hackernews_routing",
+      "phase": "B",
+      "suite": "new_tools",
+      "query": "Dân Hacker News đang bàn gì về Rust async, lấy mấy bài hot nhất",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_hackernews",
+        "difficulty": "medium",
+        "what_it_tests": "Nhắc tới Hacker News → hackernews, không dùng lookup hay social_search."
+      }
+    },
+    {
+      "id": "N03_wikipedia_routing",
+      "phase": "B",
+      "suite": "new_tools",
+      "query": "Giải thích ngắn gọn Transformer (deep learning architecture) theo Wikipedia",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "wikipedia",
+            "args": {
+              "title": "Transformer (deep learning architecture)"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_wikipedia",
+        "difficulty": "medium",
+        "what_it_tests": "Nhờ tóm tắt khái niệm theo Wikipedia → wikipedia với title đúng tiêu đề bài."
+      }
+    },
+    {
+      "id": "N04_pypi_package_routing",
+      "phase": "B",
+      "suite": "new_tools",
+      "query": "Phiên bản mới nhất của thư viện Python httpx trên PyPI là gì?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "pypi_package",
+            "args": {
+              "package": "httpx"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_pypi_package",
+        "difficulty": "medium",
+        "what_it_tests": "Hỏi version mới nhất của package PyPI → pypi_package với package=httpx (không dùng github_repo/lookup)."
+      }
+    }
+  ]
+}

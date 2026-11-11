@@ -25,6 +25,8 @@ fetch_tool = TOOL_FUNCTIONS["fetch"]
 timeline_tool = TOOL_FUNCTIONS["timeline"]
 social_search_tool = TOOL_FUNCTIONS["social_search"]
 policy_tool = TOOL_FUNCTIONS["policy"]
+papers_tool = TOOL_FUNCTIONS["papers"]
+paper_text_tool = TOOL_FUNCTIONS["paper_text"]
 
 # ---------------- clarify ----------------
 
@@ -111,6 +113,30 @@ def test_send_confirmed_without_env_returns_error_and_no_request(fake_http) -> N
     assert calls == []
 
 
+def test_send_default_is_not_confirmed_and_makes_no_request(monkeypatch, fake_http) -> None:
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "tok123")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-10042")
+    calls = fake_http(FakeResponse({"ok": True}))
+
+    result = send_tool(text="Bản tin")  # model quên truyền confirmed
+
+    assert result["status"] == "needs_confirmation"
+    assert calls == []
+
+
+def test_send_error_message_does_not_leak_bot_token(monkeypatch, fake_http) -> None:
+    # Regression: lỗi của requests chứa nguyên URL (có token bot) -> token lọt vào kết quả tool,
+    # tức là vào transcript và UI.
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "SECRET123:abc")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "-10042")
+    fake_http(requests.ConnectionError("Max retries exceeded with url: /botSECRET123:abc/sendMessage"))
+
+    result = send_tool(text="x", confirmed=True)
+
+    assert result["error"] == "ConnectionError"
+    assert "SECRET123" not in str(result)
+
+
 # ---------------- lookup ----------------
 
 
@@ -130,6 +156,16 @@ def test_lookup_without_timeframe_omits_time_range(monkeypatch, fake_http) -> No
     assert "time_range" not in body
 
     assert result["items"] == []
+
+
+def test_lookup_without_key_returns_error_and_no_request(fake_http) -> None:
+    calls = fake_http(FakeResponse({"results": []}))
+
+    result = lookup_tool(query="AI")
+
+    assert result["error"] == "RuntimeError"
+    assert "TAVILY_API_KEY" in result["message"]
+    assert calls == []
 
 
 # ---------------- fetch ----------------
