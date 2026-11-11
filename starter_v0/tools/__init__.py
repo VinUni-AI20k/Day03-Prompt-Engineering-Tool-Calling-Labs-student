@@ -17,8 +17,8 @@ from .policy.tool import search_company_policy
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
-from .date_calc.tool import date_calc
-from .cite_format.tool import cite_format
+from .extract_claims.tool import extract_claims
+from .deduplicate_items.tool import deduplicate_items
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -27,20 +27,18 @@ from .cite_format.tool import cite_format
 #   artifacts/tools.yaml  ->  this dict  ->  data/eval_base.json + data/eval_research_extension.json
 # Otherwise the eval raises "not declared in tools.yaml" or scores every call as a name mismatch.
 TOOL_FUNCTIONS = {
-    "clarify":      ask_user,
-    "timeline":     get_user_tweets,
+    "clarify": ask_user,
+    "timeline": get_user_tweets,
     "social_search": search_tweets,
-    "lookup":       web_search,
-    "fetch":        read_url,
-    "format":       render_digest,
-    "send":         send_telegram,
-    "policy":       search_company_policy,
-    "papers":       arxiv_search,
-    "paper_text":   get_arxiv_paper_text,
-    "date_calc":    date_calc,
-    "cite_format":  cite_format,
-    # TODO CP3 (student): register your new tool here, e.g. "my_tool": my_tool_function,
-    # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
+    "lookup": web_search,
+    "fetch": read_url,
+    "format": render_digest,
+    "send": send_telegram,
+    "policy": search_company_policy,
+    "papers": arxiv_search,
+    "paper_text": get_arxiv_paper_text,
+    "extract_claims": extract_claims,
+    "deduplicate_items": deduplicate_items,
 }
 
 
@@ -57,4 +55,3 @@ def to_openai_tools(declarations: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "parameters": item.get("parameters", {"type": "object", "properties": {}}),
         },
     } for item in declarations]
-
