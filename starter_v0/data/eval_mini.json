@@ -1,0 +1,31 @@
+{
+  "dataset_id": "day03_v2_research_mini",
+  "dataset_role": "mini",
+  "description": "Mini eval cho local model testing nhanh",
+  "cases": [
+    {
+      "id": "R01_user_tweets_routing",
+      "phase": "B", "suite": "base",
+      "query": "Tweet mới nhất của Sam Altman là gì?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "sama"}}]},
+      "metadata": {"skill": "routing_user_tweets_name_to_handle", "difficulty": "medium", "what_it_tests": "Tin CỦA một người nổi tiếng → map tên Sam Altman thành handle sama rồi gọi get_user_tweets."}
+    },
+    {
+      "id": "R03_web_news_routing",
+      "phase": "B", "suite": "base",
+      "query": "Tin tức AI hôm nay có gì nổi bật?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"query": "AI", "topic": "news", "timeframe": "day"}}]},
+      "metadata": {"skill": "routing_web_news", "difficulty": "medium", "what_it_tests": "Tin thời sự trên web → web_search topic=news, timeframe=day (hôm nay)."}
+    },
+    {
+      "id": "R08_out_of_scope",
+      "phase": "B", "suite": "base",
+      "query": "Giải giúp mình bài toán tích phân: nguyên hàm của x^2 là gì?",
+      "failure_type": "out_of_scope",
+      "expect": {"no_tool": true, "behavior": "refuse"},
+      "metadata": {"skill": "out_of_scope", "difficulty": "easy", "what_it_tests": "Câu ngoài phạm vi research → KHÔNG gọi tool, từ chối/định hướng."}
+    }
+  ]
+}
