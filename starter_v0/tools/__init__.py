@@ -17,6 +17,10 @@ from .policy.tool import search_company_policy
 from .social_search.tool import search_tweets
 from .send.tool import send_telegram
 from .lookup.tool import web_search
+from .topic_radar.tool import compare_topic_signals
+from .evidence_finder.tool import find_claim_evidence
+from .source_deduplicator.tool import deduplicate_sources
+from .rss_feed_reader.tool import read_rss_feed
 
 
 # NOTE (starter_v0): tool names here are intentionally vague. These keys are the
@@ -35,8 +39,10 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
-    # TODO CP3 (student): register your new tool here, e.g. "my_tool": my_tool_function,
-    # then declare it in artifacts/tools.yaml and run `pytest tests/test_tool_contract.py`.
+    "topic_radar": compare_topic_signals,
+    "evidence_finder": find_claim_evidence,
+    "source_deduplicator": deduplicate_sources,
+    "rss_feed_reader": read_rss_feed,
 }
 
 
