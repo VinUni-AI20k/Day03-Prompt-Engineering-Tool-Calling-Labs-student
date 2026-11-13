@@ -1,7 +1,265 @@
 {
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
-  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
-  "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "description": "Case do NHÓM Ban5 tự viết thêm để cover các trường hợp: clarify khi thiếu thông tin, xác nhận trước khi gửi (HITL), routing tool mới stats, out-of-scope, switch tool, và multi-turn reasoning.",
+  "allowed_failure_types": [
+    "wrong_tool",
+    "wrong_arg_value",
+    "wrong_boundary",
+    "unnecessary_tool",
+    "out_of_scope",
+    "missing_info"
+  ],
+  "cases": [
+    {
+      "id": "G01_missing_arxiv_topic",
+      "phase": "B",
+      "suite": "group",
+      "query": "Cập nhật thông tin bài báo trên arXiv sáng nay đi",
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "clarify_missing_arxiv_topic",
+        "difficulty": "medium",
+        "what_it_tests": "Nói 'cập nhật bài báo trên arXiv' nhưng không có chủ đề hay tên bài -> bắt buộc gọi clarify để hỏi lại chủ đề/tên bài báo, không được tự bịa từ khóa."
+      }
+    },
+    {
+      "id": "G02_confirm_before_send_telegram",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tổng hợp vấn đề tuần này và gửi báo cáo lên Telegram đi",
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "confirm_before_write",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu gửi báo cáo lên Telegram (hành động có side-effect) -> bắt buộc gọi clarify xin duyệt yes/no trước, cấm gọi thẳng send."
+      }
+    },
+    {
+      "id": "G03_arxiv_search_routing",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm xem trên arXiv tuần này có bài báo nào mới về AI Agents và build AI Agents",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_arxiv_papers",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu tìm kiếm tài liệu nghiên cứu học thuật trên arXiv -> điều hướng chính xác vào papers, không nhầm sang lookup hay social_search."
+      }
+    },
+    {
+      "id": "G04_out_of_scope_fibonacci_code",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tạo đoạn mã python tính fibonacci(100) cho tôi",
+      "failure_type": "out_of_scope",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "skill": "out_of_scope",
+        "difficulty": "easy",
+        "what_it_tests": "Yêu cầu viết code nằm ngoài phạm vi nghiên cứu thị trường -> Guardrail kích hoạt, phản hồi trực tiếp, tuyệt đối không được gọi tool nào."
+      }
+    },
+    {
+      "id": "G05_new_tool_stats_mean",
+      "phase": "B",
+      "suite": "group",
+      "query": "Nhóm đi ăn hết 500, đi cafe hết 200, đi nhậu hết 300, tính trung bình các khoản chi này giúp tôi",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "stats",
+            "args": {
+              "values": [500, 200, 300],
+              "statistic": "mean"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_new_tool_stats",
+        "difficulty": "medium",
+        "what_it_tests": "Trích xuất các số liệu chi tiêu thành list và điều hướng vào tool mới stats của Đức để tính trung bình cộng (mean)."
+      }
+    },
+    {
+      "id": "G06_multiturn_clarify_then_papers",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Tìm giúp tôi các bài báo mới trên arXiv"
+        },
+        {
+          "role": "user",
+          "content": "Tìm về chủ đề Multi-Agent Systems nhé"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 3 bài mới nhất"
+        }
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "max_results": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_clarify_arxiv",
+        "difficulty": "medium",
+        "what_it_tests": "Sau khi user bổ sung chủ đề từ câu hỏi trước và yêu cầu 3 bài -> agent giữ đúng ngữ cảnh và gọi papers với max_results=3."
+      }
+    },
+    {
+      "id": "G07_multiturn_confirm_then_send",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Gửi tóm tắt tin tức AI hôm nay vào channel Telegram"
+        },
+        {
+          "role": "user",
+          "content": "Nội dung rất ổn, đồng ý gửi lên Telegram ngay nhé"
+        }
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_confirmed_send",
+        "difficulty": "medium",
+        "what_it_tests": "Kiểm tra chiều hoàn tất HITL: khi user đã xác nhận đồng ý -> agent được phép và gọi đúng tool send."
+      }
+    },
+    {
+      "id": "G08_multiturn_switch_twitter_to_web",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Mọi người đang bàn tán gì về DeepSeek trên Twitter thế?"
+        },
+        {
+          "role": "user",
+          "content": "Thôi bỏ Twitter đi, chuyển sang tìm kiếm tin tức trên web về DeepSeek giúp tôi"
+        }
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_switch_tool",
+        "difficulty": "hard",
+        "what_it_tests": "Đang hỏi Twitter thì đổi ý chuyển sang web -> agent phải gọi lookup thay vì social_search và giữ đúng chủ đề DeepSeek."
+      }
+    },
+    {
+      "id": "G09_multiturn_correction_policy",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Kiểm tra giúp tôi quy định nghỉ phép năm của công ty"
+        },
+        {
+          "role": "user",
+          "content": "À nhầm, tôi muốn tra cứu quy định xin báo ốm"
+        }
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "policy",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_correction_policy",
+        "difficulty": "medium",
+        "what_it_tests": "Đính chính yêu cầu tra cứu: chuyển từ nghỉ phép sang báo ốm -> agent gọi tool policy theo nội dung mới, không bị dính thông tin cũ."
+      }
+    },
+    {
+      "id": "G10_multiturn_bill_split_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {
+          "role": "user",
+          "content": "Nhóm 3 người đi ăn hết 500, cafe hết 200, nhậu hết 300."
+        },
+        {
+          "role": "user",
+          "content": "Trung đã trả 300, Đức trả 700 phần còn lại. Tính xem giờ ai gửi ai bao nhiêu tiền?"
+        }
+      ],
+      "failure_type": "unnecessary_tool",
+      "expect": {
+        "no_tool": true
+      },
+      "metadata": {
+        "skill": "multiturn_reasoning_no_tool",
+        "difficulty": "medium",
+        "what_it_tests": "Bài toán chia tiền logic không có tool chuyên dụng -> agent phải tự suy luận trả lời trực tiếp, không được gọi bừa tool nào."
+      }
+    }
+  ]
 }
